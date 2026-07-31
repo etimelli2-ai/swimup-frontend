@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { -webkit-tap-highlight-color: transparent; }
+  html { @apply antialiased; }
+  body {
+    @apply bg-surface-50 text-slate-900 dark:bg-surface-950 dark:text-slate-100;
+    @apply transition-colors duration-300;
+  }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-slate-300 dark:bg-slate-700 rounded-full; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply relative w-full py-3.5 px-5 bg-aqua-600 text-white font-semibold rounded-xl
+           shadow-lg shadow-aqua-600/25
+           hover:bg-aqua-500 hover:shadow-aqua-500/30 hover:-translate-y-0.5
+           active:translate-y-0 active:bg-aqua-700
+           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply w-full py-3.5 px-5 bg-white dark:bg-surface-800 
+           text-aqua-700 dark:text-aqua-300 font-semibold rounded-xl
+           border border-slate-200 dark:border-slate-700
+           hover:border-aqua-300 dark:hover:border-aqua-700 hover:bg-aqua-50 dark:hover:bg-aqua-950/30
+           active:scale-[0.98]
+           transition-all duration-200;
+  }
+  .btn-danger {
+    @apply w-full py-3 px-4 bg-red-500 text-white font-semibold rounded-xl
+           shadow-lg shadow-red-500/20
+           hover:bg-red-400 hover:-translate-y-0.5
+           active:translate-y-0
+           transition-all duration-200;
+  }
+  .btn-ghost {
+    @apply py-2.5 px-4 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400
+           hover:bg-slate-100 dark:hover:bg-slate-800
+           active:scale-[0.98]
+           transition-all duration-200;
+  }
+  .input {
+    @apply w-full px-4 py-3.5 bg-white dark:bg-surface-900 
+           border border-slate-200 dark:border-slate-700 rounded-xl text-base
+           text-slate-900 dark:text-slate-100
+           placeholder:text-slate-400 dark:placeholder:text-slate-600
+           focus:outline-none focus:ring-2 focus:ring-aqua-500/50 focus:border-aqua-500
+           hover:border-slate-300 dark:hover:border-slate-600
+           transition-all duration-200;
+  }
+  .card {
+    @apply bg-white dark:bg-surface-900/80 backdrop-blur-xl rounded-2xl p-5 
+           border border-slate-100 dark:border-slate-800/60
+           shadow-card hover:shadow-card-hover hover:-translate-y-0.5
+           transition-all duration-300;
+  }
+  .card-flat {
+    @apply bg-white dark:bg-surface-900 rounded-2xl p-5 
+           border border-slate-100 dark:border-slate-800/60
+           shadow-sm;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+  .badge-green { @apply badge bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20; }
+  .badge-yellow { @apply badge bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20; }
+  .badge-blue { @apply badge bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-500/20; }
+  .badge-red { @apply badge bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20; }
+  .badge-gray { @apply badge bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20; }
+  .badge-aqua { @apply badge bg-aqua-500/10 text-aqua-700 dark:text-aqua-400 border border-aqua-500/20; }
+  .badge-purple { @apply badge bg-violet-500/10 text-violet-700 dark:text-violet-400 border border-violet-500/20; }
+  .section-title { @apply font-display text-xl font-bold text-slate-900 dark:text-white tracking-tight; }
+  .text-gradient { @apply bg-gradient-to-r from-aqua-500 to-teal-400 bg-clip-text text-transparent; }
+  .skeleton { @apply animate-pulse bg-slate-200 dark:bg-slate-800 rounded-lg; }
+  .nav-item {
+    @apply flex flex-col items-center gap-1 py-2 px-3 rounded-xl text-xs font-medium
+           text-slate-400 hover:text-aqua-600 dark:hover:text-aqua-400
+           hover:bg-aqua-50 dark:hover:bg-aqua-950/30
+           transition-all duration-200;
+  }
+  .nav-item-active {
+    @apply nav-item text-aqua-600 dark:text-aqua-400 bg-aqua-50 dark:bg-aqua-950/30;
+  }
+}
