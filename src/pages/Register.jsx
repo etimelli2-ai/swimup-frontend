@@ -40,7 +40,7 @@ export default function Register() {
       await register(email, password, discordId || null, invitationCode || null)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.error || 'Erreur lors de l'inscription')
+      setError(err.response?.data?.error || "Erreur lors de l'inscription")
     } finally {
       setLoading(false)
     }
