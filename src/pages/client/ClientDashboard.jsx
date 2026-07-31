@@ -1,76 +1,453 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import api from '../../lib/api'
-import {
-  ClipboardList, CreditCard, ArrowRight, Loader2,
-  AlertTriangle, CheckCircle2
-} from 'lucide-react'
+
+const PRIX_AVIS = 3
+
+const getPrompts = (nom, type, etoiles) => {
+  const nb = parseInt(etoiles) || 5
+  const stars = '⭐'.repeat(nb)
+
+  if (nb === 1) return [
+    (i) => `Écris un avis Google NÉGATIF en français pour "${nom}" (${type}). Tu es un client très déçu. Parle d'un problème précis : mauvais accueil, attente excessive, qualité médiocre, personnel désagréable. Style naturel et frustré, 2-3 phrases. Pas de majuscules excessives. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Tu laisses un avis 1 étoile sur Google pour "${nom}" (${type}). Tu es déçu et tu le fais savoir calmement mais clairement. Mentionne ce qui ne t'a pas plu avec un détail concret. 2 phrases max. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis Google 1 étoile pour "${nom}" (${type}). Client mécontent qui ne reviendra pas. Sois direct et concis sur ce qui n'allait pas. Style naturel, pas agressif. 2-3 phrases. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Rédige un avis négatif authentique pour "${nom}" (${type}). Déception par rapport aux attentes. Mentionne un point précis et négatif lié au ${type}. 2 phrases. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis 1 étoile pour "${nom}" (${type}). Tu décris une mauvaise expérience de façon honnête et posée. Pas d'insultes. Un détail négatif spécifique. Réponds UNIQUEMENT avec le texte.`,
+  ]
+
+  if (nb === 2) return [
+    (i) => `Écris un avis 2 étoiles en français pour "${nom}" (${type}). Pas catastrophique mais décevant. Mentionne 1 point positif et 1-2 points négatifs. Style honnête, 2-3 phrases. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis Google 2 étoiles pour "${nom}" (${type}). Client mitigé plutôt déçu. Quelque chose de bien mais trop de défauts. 2-3 phrases naturelles. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Tu laisses 2 étoiles à "${nom}" (${type}). L'expérience était en dessous des attentes sans être terrible. Explique pourquoi en 2 phrases. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Rédige un avis 2 étoiles pour "${nom}" (${type}). Déception modérée avec une nuance positive. 2-3 phrases simples. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis 2 étoiles authentique pour "${nom}" (${type}). Ni excellent ni horrible. Souligne ce qui déçoit principalement. 2 phrases. Réponds UNIQUEMENT avec le texte.`,
+  ]
+
+  if (nb === 3) return [
+    (i) => `Écris un avis 3 étoiles en français pour "${nom}" (${type}). Expérience correcte mais sans plus. Équilibre entre points positifs et négatifs. Style neutre et honnête, 2-3 phrases. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis Google 3 étoiles pour "${nom}" (${type}). Ni déçu ni emballé. Quelques bons points et quelques moins bons. 2-3 phrases naturelles. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Tu laisses 3 étoiles à "${nom}" (${type}). C'était moyen. Quelque chose de bien et quelque chose de perfectible. 2 phrases simples. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Rédige un avis mitigé pour "${nom}" (${type}). Expérience dans la moyenne. 1 point positif, 1 point à améliorer. 2-3 phrases. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis 3 étoiles honnête pour "${nom}" (${type}). Correct sans être exceptionnel. Mentionne un détail concret positif et un négatif. Réponds UNIQUEMENT avec le texte.`,
+  ]
+
+  if (nb === 4) return [
+    (i) => `Écris un avis 4 étoiles en français pour "${nom}" (${type}). Très bonne expérience avec un petit bémol. Principalement positif mais pas parfait. 2-3 phrases naturelles. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis Google 4 étoiles pour "${nom}" (${type}). Client satisfait mais avec une petite réserve. Surtout positif, un léger point à améliorer. 2-3 phrases. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Tu laisses 4 étoiles à "${nom}" (${type}). Très bien dans l'ensemble avec juste un petit détail moins bien. 2 phrases simples et naturelles. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Rédige un avis 4 étoiles pour "${nom}" (${type}). Expérience réussie avec une légère imperfection. Style chaleureux et honnête. 2-3 phrases. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis 4 étoiles authentique pour "${nom}" (${type}). Très satisfait sans être parfait. Mentionne ce qui était bien et un tout petit bémol. Réponds UNIQUEMENT avec le texte.`,
+  ]
+
+  // 5 étoiles
+  return [
+    (i) => `Écris un avis Google 5 étoiles enthousiaste en français pour "${nom}" (${type}). Client ravi. Mentionne un détail spécifique positif. Style décontracté, 2-3 phrases. PAS de "je recommande vivement". Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis 5 étoiles authentique pour "${nom}" (${type}). Raconte une mini-anecdote personnelle positive en 2-3 phrases. Naturel, expressions françaises du quotidien. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Court avis 5 étoiles pour "${nom}" (${type}). 2 phrases maximum. Style naturel comme si tu écrivais depuis ton téléphone. Très positif et précis. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis 5 étoiles détaillé pour "${nom}" (${type}). 4-5 phrases. Pourquoi tu es venu, ce qui t'a surpris positivement, un détail concret. Ton naturel et sincère. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis 5 étoiles pour "${nom}" (${type}). Commence directement par ton ressenti. 3 phrases max. Un élément concret et spécifique. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis 5 étoiles percutant pour "${nom}" (${type}). 1-2 phrases mémorables et précises. Pas de "je recommande". Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis 5 étoiles chaleureux pour "${nom}" (${type}). Comme si tu en parlais à un ami. 3 phrases, ton conversationnel. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis 5 étoiles de quelqu'un qui était sceptique au départ mais agréablement surpris par "${nom}" (${type}). 3-4 phrases. Crédible et naturel. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis 5 étoiles d'un habitué de "${nom}" (${type}). Mentionne que c'est pas la première fois. 2-3 phrases. Réponds UNIQUEMENT avec le texte.`,
+    (i) => `Avis 5 étoiles spontané pour "${nom}" (${type}). Commence par une réaction émotionnelle. 2 phrases max. Très naturel. Réponds UNIQUEMENT avec le texte.`,
+  ]
+}
+
+async function genererTexteIA(nomEtablissement, typeEtablissement, index, etoiles) {
+  try {
+    const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY
+    const prompts = getPrompts(nomEtablissement, typeEtablissement || 'établissement', etoiles)
+    const prompt = prompts[index % prompts.length](index)
+
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          {
+            role: 'system',
+            content: `Tu génères des avis Google authentiques. Tu écris UNIQUEMENT le texte de l'avis, sans guillemets, sans introduction, sans explication. Chaque avis est unique et différent.`,
+          },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 300,
+        temperature: 1.2,
+        top_p: 0.95,
+      }),
+    })
+    const data = await res.json()
+    return data.choices?.[0]?.message?.content?.trim().replace(/^["']|["']$/g, '') || ''
+  } catch {
+    return ''
+  }
+}
+
+function Spinner() {
+  return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+}
 
 export default function ClientDashboard() {
-  const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [avis, setAvis]             = useState([])
+  const [stats, setStats]           = useState(null)
+  const [notifs, setNotifs]         = useState([])
+  const [show, setShow]             = useState(false)
+  const [showNotifs, setShowNotifs] = useState(false)
+  const [msg, setMsg]               = useState(null)
+  const [generating, setGen]        = useState(false)
+  const [genProgress, setGenProg]   = useState(0)
+  const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => {
-    api.get('/client/stats')
-      .then(r => setStats(r.data))
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [])
+  const [form, setForm] = useState({
+    nom_etablissement:  '',
+    type_etablissement: '',
+    lien_maps:          '',
+    textes:             [''],
+    delai_paiement:     '30',
+    nb_etoiles:         '5',
+    quantite:           '1',
+  })
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-aqua-600 animate-spin" />
-      </div>
-    )
+  const load = async () => {
+    const [a, s, n] = await Promise.all([
+      api.get('/client/avis'),
+      api.get('/client/stats'),
+      api.get('/client/notifications'),
+    ])
+    setAvis(a.data)
+    setStats(s.data)
+    setNotifs(n.data)
   }
 
-  return (
-    <div className="space-y-5 animate-fade-in">
-      <h1 className="section-title">Espace Client</h1>
+  useEffect(() => { load() }, [])
 
-      {stats?.bloquerSiDette && !stats?.paiementValide && (
-        <div className="p-4 rounded-xl bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-sm">Compte bloqué</p>
-            <p className="text-xs mt-1">Tu as une dette de {parseFloat(stats.aPayerTotal).toFixed(2)} €. Contacte l'admin.</p>
+  const showMsg = (type, text) => {
+    setMsg({ type, text })
+    setTimeout(() => setMsg(null), 4000)
+  }
+
+  const marquerLues = async () => {
+    await api.put('/client/notifications/lire')
+    setNotifs(n => n.map(x => ({ ...x, lu: 1 })))
+  }
+
+  const genererTousIA = async () => {
+    if (!form.nom_etablissement) return showMsg('error', 'Entre d\'abord le nom de l\'établissement')
+    const quantite = parseInt(form.quantite) || 1
+    setGen(true)
+    setGenProg(0)
+
+    const textes = []
+    for (let i = 0; i < quantite; i += 5) {
+      const batch = []
+      for (let j = i; j < Math.min(i + 5, quantite); j++) {
+        batch.push(genererTexteIA(form.nom_etablissement, form.type_etablissement, j, form.nb_etoiles))
+      }
+      const results = await Promise.all(batch)
+      textes.push(...results.map(t => t || ''))
+      setGenProg(Math.round((Math.min(i + 5, quantite) / quantite) * 100))
+    }
+
+    setForm(p => ({ ...p, textes }))
+    showMsg('success', `${quantite} textes générés ✨`)
+    setGen(false)
+  }
+
+  const updateTexte = (index, value) => {
+    const newTextes = [...form.textes]
+    newTextes[index] = value
+    setForm(p => ({ ...p, textes: newTextes }))
+  }
+
+  const updateQuantite = (val) => {
+    const q = parseInt(val) || 1
+    const textes = Array.from({ length: q }, (_, i) => form.textes[i] || '')
+    setForm(p => ({ ...p, quantite: val, textes }))
+  }
+
+  const ajouter = async () => {
+    if (submitting) return
+    if (!form.lien_maps) return showMsg('error', 'Lien Google Maps requis')
+    const quantite = parseInt(form.quantite) || 1
+    const textesVides = form.textes.some(t => !t.trim())
+    if (textesVides) return showMsg('error', 'Tous les textes doivent être remplis')
+
+    setSubmitting(true)
+    let added = 0
+    let lastError = null
+
+    for (let i = 0; i < quantite; i++) {
+      try {
+        await api.post('/client/avis', {
+          lien_maps:      form.lien_maps,
+          texte:          form.textes[i],
+          delai_paiement: form.delai_paiement,
+          nb_etoiles:     parseInt(form.nb_etoiles),
+        })
+        added++
+      } catch (e) {
+        lastError = e.response?.data?.error || 'Erreur'
+        break
+      }
+    }
+
+    if (added > 0) {
+      showMsg('success', `${added} avis commandé${added > 1 ? 's' : ''} ! Coût : ${added * PRIX_AVIS}€`)
+      setForm({ nom_etablissement: '', type_etablissement: '', lien_maps: '', textes: [''], delai_paiement: '30', nb_etoiles: '5', quantite: '1' })
+      setShow(false)
+      load()
+    } else {
+      showMsg('error', lastError || 'Erreur')
+    }
+    setSubmitting(false)
+  }
+
+  const supprimer = async id => {
+    if (!confirm('Supprimer cet avis ? Le montant sera remboursé.')) return
+    await api.delete(`/client/avis/${id}`)
+    load()
+  }
+
+  const etoiles = n => {
+    const nb = parseInt(n) || 5
+    return nb === 1 ? '⭐' : nb === 2 ? '⭐⭐' : nb === 3 ? '⭐⭐⭐' : nb === 4 ? '⭐⭐⭐⭐' : '⭐⭐⭐⭐⭐'
+  }
+
+  const etoilesLabel = n => {
+    const nb = parseInt(n) || 5
+    const labels = { 1: '😡 Très mauvais', 2: '😞 Mauvais', 3: '😐 Moyen', 4: '😊 Bien', 5: '🤩 Excellent' }
+    return labels[nb] || 'Excellent'
+  }
+
+  const statutBadge = s => ({
+    disponible:      <span className="badge-blue">En attente</span>,
+    reserve:         <span className="badge-yellow">En cours</span>,
+    en_verification: <span className="badge-yellow">Vérification</span>,
+    valide:          <span className="badge-green">Validé ✓</span>,
+    refuse:          <span className="badge-red">Refusé</span>,
+    paye:            <span className="badge-green">Payé 💸</span>,
+  }[s])
+
+  const quantite = parseInt(form.quantite) || 1
+  const total = quantite * PRIX_AVIS
+  const notifsNonLues = notifs.filter(n => !n.lu).length
+
+  return (
+    <div className="p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold">Mes avis</h2>
+        <div className="flex gap-2">
+          <button onClick={() => { setShowNotifs(!showNotifs); if (!showNotifs) marquerLues() }}
+            className="relative p-2 bg-gray-100 rounded-xl active:bg-gray-200">
+            🔔
+            {notifsNonLues > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                {notifsNonLues}
+              </span>
+            )}
+          </button>
+          <button onClick={() => setShow(!show)}
+            className="bg-brand-600 text-white px-4 py-2 rounded-xl font-medium text-sm active:bg-brand-700">
+            + Commander
+          </button>
+        </div>
+      </div>
+
+      {showNotifs && (
+        <div className="card space-y-2">
+          <h3 className="font-bold text-gray-900">🔔 Notifications</h3>
+          {notifs.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-4">Aucune notification</p>
+          ) : notifs.map(n => (
+            <div key={n.id} className={`rounded-xl p-3 ${n.lu ? 'bg-gray-50' : 'bg-brand-50 border border-brand-200'}`}>
+              <p className="text-sm font-semibold text-gray-900">{n.titre}</p>
+              <p className="text-xs text-gray-600 mt-1">{n.message}</p>
+              <p className="text-xs text-gray-400 mt-1">{new Date(n.created_at).toLocaleString('fr-FR')}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {stats && (
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-blue-50 rounded-xl p-3 text-center">
+            <p className="text-xl font-bold text-blue-700">{stats.total}</p>
+            <p className="text-xs text-gray-500">Total avis</p>
+          </div>
+          <div className="bg-green-50 rounded-xl p-3 text-center">
+            <p className="text-xl font-bold text-green-700">{stats.valides}</p>
+            <p className="text-xs text-gray-500">Validés</p>
+          </div>
+          <div className="bg-yellow-50 rounded-xl p-3 text-center">
+            <p className="text-xl font-bold text-yellow-700">{stats.enCours}</p>
+            <p className="text-xs text-gray-500">En cours</p>
+          </div>
+          <div className="bg-red-50 rounded-xl p-3 text-center">
+            <p className="text-xl font-bold text-red-700">{(stats.aPayerTotal||0).toFixed(2)}€</p>
+            <p className="text-xs text-gray-500">À payer</p>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="card p-4 text-center">
-          <p className="font-display text-2xl font-bold text-slate-900 dark:text-white">{stats?.total || 0}</p>
-          <p className="text-xs text-slate-500 mt-1">Avis commandés</p>
-        </div>
-        <div className="card p-4 text-center">
-          <p className="font-display text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats?.valides || 0}</p>
-          <p className="text-xs text-slate-500 mt-1">Validés</p>
-        </div>
-        <div className="card p-4 text-center">
-          <p className="font-display text-2xl font-bold text-amber-600 dark:text-amber-400">{stats?.enCours || 0}</p>
-          <p className="text-xs text-slate-500 mt-1">En cours</p>
-        </div>
-        <div className="card p-4 text-center">
-          <p className="font-display text-2xl font-bold text-slate-900 dark:text-white">
-            {parseFloat(stats?.aPayerTotal || 0).toFixed(2)} €
+      {stats && stats.aPayerTotal > 0 && !stats.paiementValide && stats.bloquerSiDette && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
+          <p className="text-sm font-bold text-orange-700">⚠️ Compte bloqué</p>
+          <p className="text-xs text-orange-600 mt-1">
+            Tu as une dette de <strong>{stats.aPayerTotal.toFixed(2)}€</strong>. Contacte l'admin pour débloquer.
           </p>
-          <p className="text-xs text-slate-500 mt-1">À payer</p>
         </div>
-      </div>
+      )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <Link to="/client/avis" className="card p-4 flex flex-col items-center text-center gap-2 hover:-translate-y-1">
-          <ClipboardList className="w-6 h-6 text-aqua-600 dark:text-aqua-400" />
-          <span className="text-sm font-medium">Mes avis</span>
-          <ArrowRight className="w-4 h-4 text-slate-400" />
-        </Link>
-        <Link to="/client/paiement" className="card p-4 flex flex-col items-center text-center gap-2 hover:-translate-y-1">
-          <CreditCard className="w-6 h-6 text-aqua-600 dark:text-aqua-400" />
-          <span className="text-sm font-medium">Paiement</span>
-          <ArrowRight className="w-4 h-4 text-slate-400" />
-        </Link>
+      {msg && (
+        <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+          {msg.text}
+        </div>
+      )}
+
+      {show && (
+        <div className="card space-y-3 border-2 border-brand-200">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold">Commander des avis</h3>
+            <span className="text-sm font-bold text-brand-600">{PRIX_AVIS}€/avis</span>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Nom de l'établissement</label>
+            <input className="input" placeholder="Ex: Restaurant Le Petit Bistro"
+              value={form.nom_etablissement}
+              onChange={e => setForm(p => ({ ...p, nom_etablissement: e.target.value }))} />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Type d'établissement</label>
+            <input className="input" placeholder="Ex: restaurant, hôtel, couvreur..."
+              value={form.type_etablissement}
+              onChange={e => setForm(p => ({ ...p, type_etablissement: e.target.value }))} />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Lien Google Maps</label>
+            <input className="input" placeholder="https://maps.google.com/..."
+              value={form.lien_maps}
+              onChange={e => setForm(p => ({ ...p, lien_maps: e.target.value }))} />
+          </div>
+
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="text-xs text-gray-500 mb-1 block">Nombre d'étoiles</label>
+              <select className="input" value={form.nb_etoiles}
+                onChange={e => setForm(p => ({ ...p, nb_etoiles: e.target.value, textes: Array.from({ length: parseInt(p.quantite) || 1 }, () => '') }))}>
+                <option value="1">⭐ 1 — 😡 Très mauvais</option>
+                <option value="2">⭐⭐ 2 — 😞 Mauvais</option>
+                <option value="3">⭐⭐⭐ 3 — 😐 Moyen</option>
+                <option value="4">⭐⭐⭐⭐ 4 — 😊 Bien</option>
+                <option value="5">⭐⭐⭐⭐⭐ 5 — 🤩 Excellent</option>
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="text-xs text-gray-500 mb-1 block">Quantité</label>
+              <input className="input" type="number" min="1" max="50" placeholder="1"
+                value={form.quantite}
+                onChange={e => updateQuantite(e.target.value)} />
+            </div>
+          </div>
+
+          {/* Aperçu étoiles */}
+          <div className={`rounded-xl p-3 text-center ${
+            parseInt(form.nb_etoiles) <= 2 ? 'bg-red-50 border border-red-200' :
+            parseInt(form.nb_etoiles) === 3 ? 'bg-yellow-50 border border-yellow-200' :
+            'bg-green-50 border border-green-200'
+          }`}>
+            <p className="text-2xl">{etoiles(form.nb_etoiles)}</p>
+            <p className={`text-sm font-medium mt-1 ${
+              parseInt(form.nb_etoiles) <= 2 ? 'text-red-600' :
+              parseInt(form.nb_etoiles) === 3 ? 'text-yellow-600' :
+              'text-green-600'
+            }`}>{etoilesLabel(form.nb_etoiles)}</p>
+            <p className="text-xs text-gray-500 mt-1">L'IA va générer des textes adaptés à cette note</p>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Délai paiement rédacteur (jours)</label>
+            <input className="input" type="number" placeholder="30"
+              value={form.delai_paiement}
+              onChange={e => setForm(p => ({ ...p, delai_paiement: e.target.value }))} />
+          </div>
+
+          <button onClick={genererTousIA} disabled={generating}
+            className="w-full py-3 bg-purple-600 text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 active:bg-purple-700">
+            {generating
+              ? <><Spinner /> Génération... {genProgress}%</>
+              : `✨ Générer ${quantite} texte${quantite > 1 ? 's' : ''} IA (${parseInt(form.nb_etoiles)}⭐)`
+            }
+          </button>
+
+          {generating && (
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-purple-500 rounded-full transition-all" style={{ width: `${genProgress}%` }} />
+            </div>
+          )}
+
+          {form.textes.map((texte, i) => (
+            <div key={i}>
+              <label className="text-xs text-gray-500 mb-1 block">
+                Texte avis {quantite > 1 ? `#${i + 1}` : ''} {etoiles(form.nb_etoiles)}
+              </label>
+              <textarea className="input min-h-[80px]" placeholder="Texte généré par IA ou saisi manuellement..."
+                value={texte}
+                onChange={e => updateTexte(i, e.target.value)} />
+            </div>
+          ))}
+
+          <div className="bg-brand-50 rounded-xl p-3">
+            <p className="text-sm text-brand-700 font-medium">
+              💰 Total : <strong>{total}€</strong> pour {quantite} avis
+            </p>
+          </div>
+
+          <button className="btn-primary flex items-center justify-center gap-2 disabled:opacity-70"
+            onClick={ajouter} disabled={submitting}>
+            {submitting ? <><Spinner /> Commande en cours...</> : `Commander ${quantite} avis — ${total}€`}
+          </button>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {avis.map(a => (
+          <div key={a.id} className="card space-y-1">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-400 truncate">{a.lien_maps}</p>
+                <p className="text-sm font-medium text-gray-700 truncate mt-0.5">
+                  {a.texte?.slice(0, 60)}...
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {etoiles(a.nb_etoiles || 5)} · Délai : {a.delai_paiement}j
+                  {a.membre_email && ` · ${a.membre_email}`}
+                </p>
+              </div>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                {statutBadge(a.statut)}
+                {a.statut === 'disponible' && (
+                  <button onClick={() => supprimer(a.id)} className="text-red-400 text-xs active:opacity-70">
+                    Supprimer
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+        {avis.length === 0 && (
+          <div className="card text-center py-10">
+            <p className="text-3xl mb-2">📝</p>
+            <p className="text-gray-500 font-medium">Aucun avis commandé</p>
+            <p className="text-xs text-gray-400 mt-1">Clique sur + Commander pour commencer</p>
+          </div>
+        )}
       </div>
     </div>
   )

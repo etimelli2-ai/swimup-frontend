@@ -1,157 +1,243 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import api from '../lib/api'
-import {
-  Clock, Link2, CheckCircle2, XCircle, AlertTriangle,
-  RotateCcw, Loader2, ExternalLink, Copy, Check
-} from 'lucide-react'
+
+function Spinner({ dark }) {
+  return <div className={`w-4 h-4 border-2 ${dark ? 'border-gray-600 border-t-transparent' : 'border-white border-t-transparent'} rounded-full animate-spin inline-block`} />
+}
+
+function Countdown({ reserveAt }) {
+  const [left, setLeft] = useState('')
+  useEffect(() => {
+    const update = () => {
+      const diff = 3600000 - (Date.now() - new Date(reserveAt).getTime())
+      if (diff <= 0) { setLeft('Expiré'); return }
+      const m = Math.floor(diff / 60000)
+      const s = Math.floor((diff % 60000) / 1000)
+      setLeft(`${m}m ${s}s`)
+    }
+    update()
+    const t = setInterval(update, 1000)
+    return () => clearInterval(t)
+  }, [reserveAt])
+
+  const pct = Math.max(0, 100 - ((Date.now() - new Date(reserveAt).getTime()) / 3600000) * 100)
+  return (
+    <div>
+      <div className="flex justify-between text-xs text-gray-500 mb-1">
+        <span>Temps restant</span>
+        <span className={`font-bold ${pct < 25 ? 'text-red-500' : 'text-brand-600'}`}>{left}</span>
+      </div>
+      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full transition-all ${pct < 25 ? 'bg-red-400' : 'bg-brand-500'}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  )
+}
 
 export default function MonAvis() {
-  const [avis, setAvis] = useState([])
-  const [lien, setLien] = useState('')
-  const [msg, setMsg] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [copied, setCopied] = useState(false)
+  const [avis, setAvis]             = useState([])
+  const [loading, setLoading]       = useState(true)
+  const [lien, setLien]             = useState('')
+  const [submitting, setSub]        = useState(false)
+  const [annulant, setAnnulant]     = useState(false)
+  const [msg, setMsg]               = useState(null)
+  const [contestMsg, setContestMsg] = useState('')
+  const [contesting, setContesting] = useState(null)
+  const [contestLoading, setContestLoading] = useState(false)
 
-  useEffect(() => {
-    api.get('/avis/mes-avis')
-      .then(r => setAvis(r.data))
-      .catch(() => setMsg({ type: 'error', text: 'Erreur de chargement' }))
-      .finally(() => setLoading(false))
-  }, [])
+  const load = () => api.get('/avis/mes-avis').then(r => setAvis(r.data)).finally(() => setLoading(false))
+  useEffect(() => { load() }, [])
+
+  const showMsg = (type, text) => {
+    setMsg({ type, text })
+    setTimeout(() => setMsg(null), 4000)
+  }
 
   const soumettre = async (id) => {
-    if (!lien.trim()) return setMsg({ type: 'error', text: 'Colle le lien de ton avis Google Maps' })
+    if (!lien.trim()) return showMsg('error', 'Entre le lien de ton avis Google')
+    setSub(true)
     try {
-      await api.post(`/avis/${id}/soumettre`, { lien_avis: lien })
-      setMsg({ type: 'success', text: 'Avis soumis et validé !' })
-      setAvis(prev => prev.map(a => a.id === id ? { ...a, statut: 'valide' } : a))
+      const r = await api.post(`/avis/${id}/soumettre`, { lien_avis: lien })
+      showMsg(r.data.success ? 'success' : 'error', r.data.message)
+      load()
       setLien('')
-    } catch (err) {
-      setMsg({ type: 'error', text: err.response?.data?.error || 'Erreur' })
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
     }
+    setSub(false)
   }
 
   const annuler = async (id) => {
     if (!confirm('Annuler la réservation ?')) return
+    setAnnulant(true)
     try {
       await api.post(`/avis/${id}/annuler`)
-      setAvis(prev => prev.filter(a => a.id !== id))
-    } catch (err) {
-      setMsg({ type: 'error', text: err.response?.data?.error || 'Erreur' })
+      showMsg('success', 'Réservation annulée')
+      load()
+    } catch {
+      showMsg('error', 'Erreur')
     }
+    setAnnulant(false)
   }
 
-  const copyLink = (url) => {
-    navigator.clipboard.writeText(url)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  const getStatusBadge = (statut) => {
-    switch (statut) {
-      case 'valide': return <span className="badge-green flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Validé</span>
-      case 'refuse': return <span className="badge-red flex items-center gap-1"><XCircle className="w-3 h-3" /> Refusé</span>
-      case 'paye': return <span className="badge-aqua flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Payé</span>
-      default: return <span className="badge-yellow flex items-center gap-1"><Clock className="w-3 h-3" /> En cours</span>
+  const contester = async (id) => {
+    setContestLoading(true)
+    try {
+      const r = await api.post(`/avis/${id}/contester`, { message: contestMsg })
+      showMsg('success', r.data.message)
+      setContesting(null)
+      setContestMsg('')
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
     }
+    setContestLoading(false)
   }
 
-  const enCours = avis.filter(a => ['reserve', 'en_verification'].includes(a.statut))
-  const termines = avis.filter(a => ['valide', 'refuse', 'paye'].includes(a.statut))
+  const statutBadge = s => ({
+    reserve:         <span className="badge-yellow">⏳ En cours</span>,
+    en_verification: <span className="badge-blue">🔍 Vérification</span>,
+    valide:          <span className="badge-green">✅ Validé</span>,
+    refuse:          <span className="badge-red">❌ Supprimé</span>,
+    paye:            <span className="badge-green">💸 Payé</span>,
+    lien_incorrect:  <span className="badge-red">🔗 Lien incorrect</span>,
+  }[s] || <span className="badge-gray">{s}</span>)
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-aqua-600 animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/>
+    </div>
+  )
+
+  const actif = avis.find(a => a.statut === 'reserve' || a.statut === 'lien_incorrect')
+  const historique = avis.filter(a => a.statut !== 'reserve' && a.statut !== 'lien_incorrect')
 
   return (
-    <div className="space-y-5 animate-fade-in">
-      <h1 className="section-title">Mon avis</h1>
+    <div className="p-4 space-y-4">
+      <h2 className="text-xl font-bold text-gray-900">Mes avis</h2>
 
       {msg && (
-        <div className={`p-4 rounded-xl text-sm font-medium ${
-          msg.type === 'error'
-            ? 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20'
-            : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
-        }`}>
+        <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
           {msg.text}
         </div>
       )}
 
-      {enCours.length === 0 && termines.length === 0 && (
-        <div className="card-flat text-center py-16">
-          <AlertTriangle className="w-12 h-12 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Tu n'as aucun avis en cours</p>
-          <p className="text-xs text-slate-400 mt-1">Va dans "Avis" pour en réserver un</p>
+      {actif ? (
+        <div className={`card space-y-4 border-2 ${actif.statut === 'lien_incorrect' ? 'border-orange-300' : 'border-brand-200'}`}>
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-gray-900">
+              {actif.statut === 'lien_incorrect' ? '🔗 Corriger ton lien' : 'Avis en cours'}
+            </h3>
+            {statutBadge(actif.statut)}
+          </div>
+
+          {actif.statut === 'lien_incorrect' && (
+            <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
+              <p className="text-sm font-bold text-orange-700">⚠️ Lien incorrect détecté</p>
+              <p className="text-xs text-orange-600 mt-1">
+                L'admin a détecté que le lien soumis n'est pas le bon. Ton avis est gardé — soumets simplement le bon lien.
+              </p>
+            </div>
+          )}
+
+          {actif.statut === 'reserve' && <Countdown reserveAt={actif.reserve_at} />}
+
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1">Établissement</p>
+            <p className="font-bold text-brand-700">{actif.nom_societe}</p>
+            <p className="text-sm text-gray-500">Récompense : <span className="font-bold">{parseFloat(actif.prix).toFixed(2)}€</span> après {actif.delai_paiement}j</p>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">Texte à copier ⬇️</p>
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+              <p className="text-sm text-gray-700 leading-relaxed">{actif.texte}</p>
+            </div>
+            <button className="mt-2 text-xs text-brand-600 font-medium active:opacity-70"
+              onClick={() => { navigator.clipboard.writeText(actif.texte); showMsg('success', '📋 Texte copié !') }}>
+              📋 Copier le texte
+            </button>
+          </div>
+
+          <a href={actif.lien_maps} target="_blank" rel="noreferrer" className="btn-secondary text-center block">
+            🗺️ Ouvrir Google Maps
+          </a>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+            <p className="text-xs text-blue-700 font-medium">💡 Comment trouver le lien de ton avis ?</p>
+            <p className="text-xs text-blue-600 mt-1">Une fois publié → clique sur ton avis → copie l'URL de la page de ton avis</p>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">
+              {actif.statut === 'lien_incorrect' ? '🔗 Nouveau lien de ton avis' : 'Lien de ton avis publié'}
+            </p>
+            <input className="input" type="url" placeholder="https://maps.google.com/..."
+              value={lien} onChange={e => setLien(e.target.value)} />
+          </div>
+
+          <button className="btn-primary flex items-center justify-center gap-2 disabled:opacity-70"
+            onClick={() => soumettre(actif.id)} disabled={submitting}>
+            {submitting ? <><Spinner /> Envoi en cours...</> : '✅ Soumettre le lien de mon avis'}
+          </button>
+
+          {actif.statut === 'reserve' && (
+            <button
+              className="text-sm text-red-400 text-center w-full py-2 flex items-center justify-center gap-2 disabled:opacity-50"
+              onClick={() => annuler(actif.id)}
+              disabled={annulant}
+            >
+              {annulant ? <><Spinner dark /> Annulation...</> : 'Annuler la réservation'}
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="card text-center py-8">
+          <p className="text-3xl mb-2">🎯</p>
+          <p className="font-semibold text-gray-700">Aucun avis en cours</p>
+          <Link to="/avis" className="btn-primary mt-4 block">Voir les avis disponibles</Link>
         </div>
       )}
 
-      {enCours.map(a => {
-        const reserveAt = new Date(a.reserve_at)
-        const diff = 3600000 - (Date.now() - reserveAt.getTime())
-        const minutes = Math.max(0, Math.floor(diff / 60000))
-        const secondes = Math.max(0, Math.floor((diff % 60000) / 1000))
-
-        return (
-          <div key={a.id} className="card border-l-4 border-l-aqua-500">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-display font-semibold text-slate-900 dark:text-white">{a.nom_societe}</h3>
-              {getStatusBadge(a.statut)}
-            </div>
-
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 mb-3">
-              <p className="text-sm text-slate-700 dark:text-slate-300 italic">"{a.texte}"</p>
-            </div>
-
-            <div className="flex items-center gap-2 mb-4">
-              <button onClick={() => copyLink(a.lien_maps)} className="btn-ghost flex items-center gap-1 text-xs">
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? 'Copié' : 'Copier le lien'}
-              </button>
-              <a href={a.lien_maps} target="_blank" rel="noreferrer"
-                className="btn-ghost flex items-center gap-1 text-xs">
-                <ExternalLink className="w-3.5 h-3.5" /> Ouvrir Maps
-              </a>
-            </div>
-
-            <div className="flex items-center gap-2 mb-3 text-sm">
-              <Clock className="w-4 h-4 text-amber-500" />
-              <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
-                {String(minutes).padStart(2, '0')}:{String(secondes).padStart(2, '0')}
-              </span>
-            </div>
-
-            <div className="space-y-2">
-              <div className="relative">
-                <Link2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input type="url" placeholder="Colle le lien de ton avis ici" value={lien}
-                  onChange={e => setLien(e.target.value)} className="input pl-11 text-sm" />
-              </div>
-              <button onClick={() => soumettre(a.id)} className="btn-primary text-sm py-3">
-                Soumettre mon avis
-              </button>
-              <button onClick={() => annuler(a.id)} className="btn-secondary text-sm py-3">
-                <RotateCcw className="w-4 h-4 inline mr-1" /> Annuler
-              </button>
-            </div>
-          </div>
-        )
-      })}
-
-      {termines.length > 0 && (
+      {historique.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Historique</h2>
-          <div className="space-y-2">
-            {termines.map(a => (
-              <div key={a.id} className="card-flat p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-slate-900 dark:text-white text-sm">{a.nom_societe}</p>
-                  <p className="text-xs text-slate-500">{parseFloat(a.prix).toFixed(2)} €</p>
+          <h3 className="font-bold text-gray-900 mb-3">Historique</h3>
+          <div className="space-y-3">
+            {historique.map(a => (
+              <div key={a.id} className="card space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">{a.nom_societe}</p>
+                    <p className="text-xs text-gray-400">{parseFloat(a.prix).toFixed(2)}€ · {a.delai_paiement}j</p>
+                  </div>
+                  {statutBadge(a.statut)}
                 </div>
-                {getStatusBadge(a.statut)}
+
+                {a.statut === 'refuse' && (
+                  contesting === a.id ? (
+                    <div className="space-y-2">
+                      <textarea className="input text-sm min-h-[80px]"
+                        placeholder="Explique pourquoi ton avis est toujours en ligne..."
+                        value={contestMsg} onChange={e => setContestMsg(e.target.value)} />
+                      <div className="flex gap-2">
+                        <button onClick={() => contester(a.id)} disabled={contestLoading}
+                          className="flex-1 bg-orange-500 text-white py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+                          {contestLoading ? <><Spinner /> Envoi...</> : 'Envoyer'}
+                        </button>
+                        <button onClick={() => { setContesting(null); setContestMsg('') }}
+                          className="flex-1 bg-gray-100 text-gray-600 py-2 rounded-xl text-sm font-semibold">
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button onClick={() => setContesting(a.id)}
+                      className="w-full bg-orange-50 border border-orange-200 text-orange-600 py-2 rounded-xl text-sm font-semibold active:bg-orange-100">
+                      ⚠️ Contester la suppression
+                    </button>
+                  )
+                )}
               </div>
             ))}
           </div>

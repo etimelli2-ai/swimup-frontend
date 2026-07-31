@@ -1,116 +1,178 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import api from '../../lib/api'
-import {
-  Trophy, Plus, Loader2, Sparkles,
-  Target, Dices
-} from 'lucide-react'
+
+function Spinner() {
+  return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+}
 
 export default function AdminLoterie() {
-  const [loteries, setLoteries] = useState([])
-  const [tirage, setTirage] = useState(null)
-  const [form, setForm] = useState({ titre: '', montant_gain: '', prix_ticket: 1 })
-  const [loading, setLoading] = useState(true)
+  const [data, setData]         = useState(null)
+  const [participants, setPart] = useState([])
+  const [users, setUsers]       = useState([])
+  const [form, setForm]         = useState({ titre: '', montant_gain: '', prix_ticket: '1' })
+  const [ticketForm, setTF]     = useState({ user_id: '', nb_tickets: '1' })
+  const [msg, setMsg]           = useState(null)
+  const [tirage, setTirage]     = useState(null)
+  const [loadingAction, setLA]  = useState(null)
 
-  useEffect(() => {
-    api.get('/loterie/historique')
-      .then(r => setLoteries(r.data))
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [])
+  const load = async () => {
+    const [l, u] = await Promise.all([
+      api.get('/loterie'),
+      api.get('/admin/users'),
+    ])
+    setData(l.data)
+    setUsers(u.data)
+    if (l.data?.loterie) {
+      const p = await api.get(`/loterie/${l.data.loterie.id}/participants`)
+      setPart(p.data)
+    }
+  }
 
-  const creer = async (e) => {
-    e.preventDefault()
+  useEffect(() => { load() }, [])
+
+  const showMsg = (type, text) => {
+    setMsg({ type, text })
+    setTimeout(() => setMsg(null), 3000)
+  }
+
+  const creerLoterie = async () => {
+    if (!form.titre || !form.montant_gain) return showMsg('error', 'Titre et montant requis')
+    setLA('creer')
     try {
       await api.post('/loterie', form)
-      setForm({ titre: '', montant_gain: '', prix_ticket: 1 })
+      showMsg('success', 'Loterie créée !')
+      setForm({ titre: '', montant_gain: '', prix_ticket: '1' })
+      // Fix — réinitialiser tirage quand on crée une nouvelle loterie
       setTirage(null)
-      const r = await api.get('/loterie/historique')
-      setLoteries(r.data)
-    } catch (err) {
-      alert(err.response?.data?.error || 'Erreur')
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
     }
+    setLA(null)
   }
 
-  const tirer = async (id) => {
-    if (!confirm('Lancer le tirage ?')) return
+  const ajouterTickets = async () => {
+    if (!ticketForm.user_id || !ticketForm.nb_tickets) return showMsg('error', 'Sélectionne un membre et un nombre de tickets')
+    setLA('tickets')
     try {
-      const res = await api.post(`/loterie/${id}/tirer`)
-      setTirage(res.data)
-      const r = await api.get('/loterie/historique')
-      setLoteries(r.data)
-    } catch (err) {
-      alert(err.response?.data?.error || 'Erreur')
+      await api.post(`/loterie/${data.loterie.id}/tickets`, ticketForm)
+      showMsg('success', `${ticketForm.nb_tickets} ticket(s) ajouté(s) !`)
+      setTF({ user_id: '', nb_tickets: '1' })
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
     }
+    setLA(null)
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-aqua-600 animate-spin" />
-      </div>
-    )
+  const lancerTirage = async () => {
+    if (!confirm('Lancer le tirage au sort ? Cette action est irréversible !')) return
+    setLA('tirage')
+    try {
+      const r = await api.post(`/loterie/${data.loterie.id}/tirer`)
+      setTirage(r.data)
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
+    }
+    setLA(null)
   }
 
   return (
-    <div className="space-y-5 animate-fade-in">
-      <h1 className="section-title flex items-center gap-2">
-        <Trophy className="w-6 h-6 text-aqua-500" /> Loterie
-      </h1>
+    <div className="p-4 space-y-4">
+      <h2 className="text-xl font-bold">🎰 Gestion Loterie</h2>
 
-      <form onSubmit={creer} className="card space-y-3">
-        <h3 className="font-display font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Nouvelle loterie
-        </h3>
-        <input type="text" placeholder="Titre" value={form.titre}
-          onChange={e => setForm({...form, titre: e.target.value})} className="input" required />
-        <input type="number" placeholder="Gain (€)" value={form.montant_gain}
-          onChange={e => setForm({...form, montant_gain: e.target.value})} className="input" required />
-        <input type="number" placeholder="Prix ticket (€)" value={form.prix_ticket}
-          onChange={e => setForm({...form, prix_ticket: e.target.value})} className="input" />
-        <button type="submit" className="btn-primary text-sm py-3">Créer</button>
-      </form>
-
-      {tirage && (
-        <div className="card bg-gradient-to-br from-violet-600 to-purple-500 text-white border-0 animate-fade-in">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-5 h-5" />
-            <span className="font-semibold">Résultat du tirage</span>
-          </div>
-          <p className="font-display text-xl font-bold">{tirage.gagnant_email}</p>
-          <p className="text-violet-100">{parseFloat(tirage.montant).toFixed(2)} €</p>
+      {msg && (
+        <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+          {msg.text}
         </div>
       )}
 
-      <div>
-        <h2 className="section-title mb-3">Historique</h2>
-        {loteries.length === 0 ? (
-          <div className="card-flat text-center py-12 text-slate-400">
-            <Target className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            Aucune loterie
+      {/* Résultat tirage */}
+      {tirage && (
+        <div className="bg-yellow-50 border-2 border-yellow-400 rounded-2xl p-5 text-center space-y-2">
+          <p className="text-4xl">🎉</p>
+          <p className="font-extrabold text-xl text-yellow-700">Tirage effectué !</p>
+          <p className="text-gray-700">Gagnant : <strong>{tirage.gagnant_email}</strong></p>
+          <p className="text-2xl font-bold text-green-600">{parseFloat(tirage.montant || 0).toFixed(2)}€ crédités !</p>
+        </div>
+      )}
+
+      {!data?.loterie ? (
+        <div className="card space-y-3">
+          <h3 className="font-bold">Créer une loterie</h3>
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Titre</label>
+            <input className="input" placeholder="Ex: Loterie de juillet"
+              value={form.titre} onChange={e => setForm(p => ({ ...p, titre: e.target.value }))} />
           </div>
-        ) : (
-          <div className="space-y-2">
-            {loteries.map(l => (
-              <div key={l.id} className="card p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">{l.titre}</p>
-                    <p className="text-xs text-slate-500">
-                      {l.gagnant_email ? `Gagnant : ${l.gagnant_email}` : 'En cours'}
-                    </p>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="text-xs text-gray-500 mb-1 block">Montant à gagner (€)</label>
+              <input className="input" type="number" placeholder="100"
+                value={form.montant_gain} onChange={e => setForm(p => ({ ...p, montant_gain: e.target.value }))} />
+            </div>
+            <div className="flex-1">
+              <label className="text-xs text-gray-500 mb-1 block">Prix ticket (€)</label>
+              <input className="input" type="number" placeholder="1"
+                value={form.prix_ticket} onChange={e => setForm(p => ({ ...p, prix_ticket: e.target.value }))} />
+            </div>
+          </div>
+          <button onClick={creerLoterie} disabled={loadingAction === 'creer'}
+            className="btn-primary flex items-center justify-center gap-2 disabled:opacity-70">
+            {loadingAction === 'creer' ? <><Spinner /> Création...</> : '🎰 Lancer la loterie'}
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl p-5 text-white">
+            <p className="font-bold text-lg">{data.loterie.titre}</p>
+            <p className="text-3xl font-extrabold mt-1">{data.loterie.montant_gain}€</p>
+            <p className="text-sm opacity-90 mt-1">
+              {data.totalTickets} tickets vendus · {data.loterie.prix_ticket}€/ticket
+            </p>
+          </div>
+
+          <div className="card space-y-3">
+            <h3 className="font-bold">Ajouter des tickets à un membre</h3>
+            <select className="input" value={ticketForm.user_id}
+              onChange={e => setTF(p => ({ ...p, user_id: e.target.value }))}>
+              <option value="">Sélectionner un membre</option>
+              {users.filter(u => u.role === 'membre').map(u => (
+                <option key={u.id} value={u.id}>{u.email}</option>
+              ))}
+            </select>
+            <div className="flex gap-2">
+              <input className="input" type="number" min="1" placeholder="Nombre de tickets"
+                value={ticketForm.nb_tickets}
+                onChange={e => setTF(p => ({ ...p, nb_tickets: e.target.value }))} />
+              <button onClick={ajouterTickets} disabled={loadingAction === 'tickets'}
+                className="bg-brand-600 text-white px-4 rounded-xl font-medium text-sm flex items-center gap-2 disabled:opacity-70 whitespace-nowrap">
+                {loadingAction === 'tickets' ? <Spinner /> : '+ Ajouter'}
+              </button>
+            </div>
+          </div>
+
+          {participants.length > 0 && (
+            <div className="card space-y-2">
+              <h3 className="font-bold">👥 Participants ({participants.length})</h3>
+              <div className="space-y-2">
+                {participants.map(p => (
+                  <div key={p.id} className="flex items-center justify-between">
+                    <p className="text-sm text-gray-700 truncate">{p.email}</p>
+                    <span className="badge-blue">{p.nb_tickets} 🎟️</span>
                   </div>
-                  <span className="badge-purple">{parseFloat(l.montant_gain).toFixed(2)} €</span>
-                </div>
-                {l.statut === 'en_cours' && (
-                  <button onClick={() => tirer(l.id)} className="btn-primary text-sm py-2.5 w-auto px-4">
-                    <Dices className="w-4 h-4 inline mr-1" /> Tirer au sort
-                  </button>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+
+          <button onClick={lancerTirage} disabled={loadingAction === 'tirage'}
+            className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-extrabold rounded-2xl text-lg flex items-center justify-center gap-2 disabled:opacity-70">
+            {loadingAction === 'tirage' ? <><Spinner /> Tirage en cours...</> : '🎲 Lancer le tirage au sort'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

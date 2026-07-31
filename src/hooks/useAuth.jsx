@@ -1,58 +1,63 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import api from '../lib/api'
 
-const AuthContext = createContext()
+const AuthCtx = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUserState] = useState(null)
+  const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchUser = useCallback(async () => {
+  useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) { setLoading(false); return }
-    try {
-      const res = await api.get('/auth/me')
-      setUserState(res.data)
-    } catch {
-      localStorage.removeItem('token')
-      setUserState(null)
-    } finally {
-      setLoading(false)
-    }
+    api.get('/auth/me')
+      .then(r => setUser(r.data))
+      .catch(() => {
+        localStorage.removeItem('token')
+        setUser(null)
+      })
+      .finally(() => setLoading(false))
   }, [])
 
+  // Fix — écouter l'event swimup:logout de api.js
   useEffect(() => {
-    fetchUser()
-    const handleLogout = () => { localStorage.removeItem('token'); setUserState(null) }
+    const handleLogout = () => {
+      setUser(null)
+      setLoading(false)
+    }
     window.addEventListener('swimup:logout', handleLogout)
     return () => window.removeEventListener('swimup:logout', handleLogout)
-  }, [fetchUser])
+  }, [])
 
-  const login = async (email, password) => {
-    const res = await api.post('/auth/login', { email, password })
-    localStorage.setItem('token', res.data.token)
-    setUserState(res.data.user)
-    return res.data
-  }
+  const login = useCallback(async (email, password) => {
+    const r = await api.post('/auth/login', { email, password })
+    localStorage.setItem('token', r.data.token)
+    setUser(r.data.user)
+    return r.data.user
+  }, [])
 
-  const register = async (data) => {
-    const res = await api.post('/auth/register', data)
-    localStorage.setItem('token', res.data.token)
-    setUserState(res.data.user)
-    return res.data
-  }
+  const register = useCallback(async (email, password, discord_id, invitation_code) => {
+    const r = await api.post('/auth/register', { email, password, discord_id, invitation_code })
+    localStorage.setItem('token', r.data.token)
+    setUser(r.data.user)
+    return r.data.user
+  }, [])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('token')
-    setUserState(null)
-    window.location.href = '/login'
-  }
+    setUser(null)
+  }, [])
+
+  // Fix — updateUser au lieu de setUser exposé
+  const updateUser = useCallback((data) => {
+    setUser(prev => ({ ...prev, ...data }))
+  }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthCtx.Provider value={{ user, updateUser, login, register, logout, loading }}>
       {children}
-    </AuthContext.Provider>
+    </AuthCtx.Provider>
   )
 }
 
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => useContext(AuthCtx)

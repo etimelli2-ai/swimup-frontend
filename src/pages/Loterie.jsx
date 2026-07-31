@@ -1,98 +1,140 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import api from '../lib/api'
-import { Trophy, Ticket, Users, Loader2, Target, Sparkles } from 'lucide-react'
 
 export default function Loterie() {
-  const [data, setData] = useState({ loterie: null, tickets: 0, totalTickets: 0 })
-  const [historique, setHistorique] = useState([])
+  const [data, setData]       = useState(null)
+  const [historique, setHist] = useState([])
   const [loading, setLoading] = useState(true)
+  const [tab, setTab]         = useState('loterie')
+  const [error, setError]     = useState(null)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [curr, hist] = await Promise.all([
-          api.get('/loterie'),
-          api.get('/loterie/historique'),
-        ])
-        setData(curr.data)
-        setHistorique(hist.data)
-      } catch (e) {
-        console.error(e)
-      } finally {
-        setLoading(false)
-      }
+  const load = async () => {
+    try {
+      const [l, h] = await Promise.all([
+        api.get('/loterie'),
+        api.get('/loterie/historique'),
+      ])
+      setData(l.data)
+      setHist(h.data)
+    } catch {
+      setError('Impossible de charger la loterie')
+    } finally {
+      setLoading(false)
     }
-    fetchData()
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-aqua-600 animate-spin" />
-      </div>
-    )
   }
 
-  return (
-    <div className="space-y-5 animate-fade-in">
-      <h1 className="section-title flex items-center gap-2">
-        <Trophy className="w-6 h-6 text-aqua-500" /> Loterie
-      </h1>
+  useEffect(() => { load() }, [])
 
-      {data.loterie ? (
-        <div className="card bg-gradient-to-br from-violet-600 to-purple-500 text-white border-0">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-violet-100 text-sm font-medium">En cours</span>
-            <Sparkles className="w-5 h-5 text-violet-200" />
-          </div>
-          <h2 className="font-display text-2xl font-bold mb-1">{data.loterie.titre}</h2>
-          <div className="font-display text-4xl font-bold mb-3">
-            {parseFloat(data.loterie.montant_gain).toFixed(2)} €
-          </div>
-          <div className="flex items-center gap-4 text-sm text-violet-100">
-            <span className="flex items-center gap-1">
-              <Ticket className="w-4 h-4" /> {data.tickets} ticket{data.tickets > 1 ? 's' : ''}
-            </span>
-            <span className="flex items-center gap-1">
-              <Users className="w-4 h-4" /> {data.totalTickets} total
-            </span>
-          </div>
-          {data.totalTickets > 0 && (
-            <div className="mt-3">
-              <div className="flex justify-between text-xs text-violet-100 mb-1">
-                <span>Tes chances</span>
-                <span>{((data.tickets / data.totalTickets) * 100).toFixed(1)}%</span>
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/>
+    </div>
+  )
+
+  if (error) return (
+    <div className="p-4">
+      <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm">{error}</div>
+    </div>
+  )
+
+  return (
+    <div className="p-4 space-y-4">
+      <h2 className="text-xl font-bold text-gray-900">🎰 Loterie</h2>
+
+      <div className="flex bg-gray-100 rounded-xl p-1">
+        <button onClick={() => setTab('loterie')}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${tab === 'loterie' ? 'bg-white shadow text-brand-700' : 'text-gray-500'}`}>
+          En cours
+        </button>
+        <button onClick={() => setTab('historique')}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${tab === 'historique' ? 'bg-white shadow text-brand-700' : 'text-gray-500'}`}>
+          Historique
+        </button>
+      </div>
+
+      {tab === 'loterie' && (
+        <>
+          {!data?.loterie ? (
+            <div className="card text-center py-12">
+              <p className="text-5xl mb-3">🎰</p>
+              <p className="font-bold text-gray-700 text-lg">Aucune loterie en cours</p>
+              <p className="text-sm text-gray-400 mt-2">Reviens plus tard !</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl p-6 text-white text-center">
+                <p className="text-sm font-medium opacity-90">🎉 {data.loterie.titre}</p>
+                <p className="text-5xl font-extrabold mt-2">{data.loterie.montant_gain}€</p>
+                <p className="text-sm opacity-90 mt-1">à gagner</p>
               </div>
-              <div className="h-2 bg-violet-800/50 rounded-full overflow-hidden">
-                <div className="h-full bg-white/80 rounded-full transition-all duration-500"
-                  style={{ width: `${(data.tickets / data.totalTickets) * 100}%` }} />
+
+              <div className="card text-center">
+                <p className="text-gray-500 text-sm">Tes tickets</p>
+                <p className="text-5xl font-extrabold text-brand-600 mt-1">{data.tickets}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  sur {data.totalTickets} tickets au total
+                </p>
+                {/* Fix — division par zéro */}
+                {data.tickets > 0 && data.totalTickets > 0 && (
+                  <div className="mt-3 bg-brand-50 rounded-xl p-3">
+                    <p className="text-sm text-brand-700 font-medium">
+                      🎯 Probabilité : <strong>
+                        {((data.tickets / data.totalTickets) * 100).toFixed(1)}%
+                      </strong>
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="card space-y-2">
+                <h3 className="font-bold text-gray-900">Comment participer ?</h3>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-start gap-2">
+                    <span>1️⃣</span>
+                    <p>Achète des tickets sur PayPal à <strong>{data.loterie.prix_ticket}€</strong> pièce</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span>2️⃣</span>
+                    <p>L'admin ajoute tes tickets sur ton compte</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span>3️⃣</span>
+                    <p>Plus tu as de tickets, plus tu as de chances de gagner !</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span>4️⃣</span>
+                    <p>Le gagnant est tiré au sort et reçoit <strong>{data.loterie.montant_gain}€</strong> sur son solde</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card">
+                <p className="text-sm text-gray-500">👥 <strong>{data.totalTickets}</strong> tickets vendus au total</p>
               </div>
             </div>
           )}
-        </div>
-      ) : (
-        <div className="card-flat text-center py-16">
-          <Target className="w-12 h-12 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Aucune loterie en cours</p>
-        </div>
+        </>
       )}
 
-      {historique.length > 0 && (
-        <div>
-          <h2 className="section-title mb-3">Historique</h2>
-          <div className="space-y-2">
-            {historique.map((h, i) => (
-              <div key={i} className="card-flat p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-slate-900 dark:text-white">{h.titre}</p>
-                  <p className="text-xs text-slate-500">
-                    Gagnant : {h.gagnant_email || 'Inconnu'}
-                  </p>
-                </div>
-                <span className="badge-purple">{parseFloat(h.montant_gain).toFixed(2)} €</span>
+      {tab === 'historique' && (
+        <div className="space-y-3">
+          {historique.length === 0 ? (
+            <div className="card text-center py-10 text-gray-400">Aucune loterie terminée</div>
+          ) : historique.map(l => (
+            <div key={l.id} className="card space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="font-bold text-gray-900">{l.titre}</p>
+                <span className="badge-green">Terminée</span>
               </div>
-            ))}
-          </div>
+              <p className="text-2xl font-extrabold text-yellow-500">{l.montant_gain}€</p>
+              <p className="text-sm text-gray-600">
+                🏆 Gagnant : <strong>{l.gagnant_email || '—'}</strong>
+              </p>
+              <p className="text-xs text-gray-400">
+                {l.termine_at ? new Date(l.termine_at).toLocaleDateString('fr-FR') : '—'}
+              </p>
+            </div>
+          ))}
         </div>
       )}
     </div>

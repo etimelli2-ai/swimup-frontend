@@ -1,119 +1,448 @@
-import { useEffect, useState } from 'react'
+ import { useState, useEffect } from 'react'
 import api from '../../lib/api'
-import {
-  Search, CheckCircle2, XCircle, Link2, Loader2,
-  Clock, AlertTriangle, MapPin, Star, Euro
-} from 'lucide-react'
 
-const STATUT_FILTRES = ['tous', 'disponible', 'reserve', 'en_verification', 'valide', 'refuse', 'paye']
+function Spinner() {
+  return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+}
+
+const STATUT_FILTRES = ['tous', 'disponible', 'reserve', 'valide', 'refuse', 'paye']
 
 export default function AdminAvis() {
-  const [avis, setAvis] = useState([])
-  const [filtre, setFiltre] = useState('tous')
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [avis, setAvis]               = useState([])
+  const [clients, setClients]         = useState([])
+  const [form, setForm]               = useState({ client_id: '', lien_maps: '', texte: '', delai_paiement: '30' })
+  const [show, setShow]               = useState(false)
+  const [msg, setMsg]                 = useState(null)
+  const [detail, setDetail]           = useState(null)
+  const [newLien, setNewLien]         = useState('')
+  const [editForm, setEditForm]       = useState(null)
+  const [loadingAction, setLA]        = useState(null)
+  const [filtre, setFiltre]           = useState('tous')
+  const [tri, setTri]                 = useState('recent')
+  const [search, setSearch]           = useState('')
+  const [verifResult, setVerifResult] = useState(null)
 
-  useEffect(() => {
-    api.get('/admin/avis')
-      .then(r => setAvis(r.data))
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [])
-
-  const filtrer = () => {
-    return avis.filter(a => {
-      const matchStatut = filtre === 'tous' || a.statut === filtre
-      const q = search.toLowerCase()
-      const matchSearch = !q || (a.nom_societe || '').toLowerCase().includes(q) || (a.texte || '').toLowerCase().includes(q)
-      return matchStatut && matchSearch
-    })
+  const load = async () => {
+    const [a, c] = await Promise.all([api.get('/admin/avis'), api.get('/admin/clients')])
+    setAvis(a.data)
+    setClients(c.data)
   }
 
-  const getBadge = (statut) => {
-    switch (statut) {
-      case 'disponible': return <span className="badge-blue"><Clock className="w-3 h-3" /> Disponible</span>
-      case 'reserve': return <span className="badge-yellow"><Clock className="w-3 h-3" /> Réservé</span>
-      case 'en_verification': return <span className="badge-purple"><Clock className="w-3 h-3" /> Vérification</span>
-      case 'valide': return <span className="badge-green"><CheckCircle2 className="w-3 h-3" /> Validé</span>
-      case 'refuse': return <span className="badge-red"><XCircle className="w-3 h-3" /> Refusé</span>
-      case 'paye': return <span className="badge-aqua"><CheckCircle2 className="w-3 h-3" /> Payé</span>
-      default: return <span className="badge-gray">{statut}</span>
+  useEffect(() => { load() }, [])
+
+  const showMsg = (type, text) => {
+    setMsg({ type, text })
+    setTimeout(() => setMsg(null), 3000)
+  }
+
+  const ajouter = async () => {
+    setLA('ajouter')
+    try {
+      await api.post('/admin/avis', { ...form, prix: 1 })
+      showMsg('success', 'Avis ajouté !')
+      setForm({ client_id: '', lien_maps: '', texte: '', delai_paiement: '30' })
+      setShow(false)
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
     }
+    setLA(null)
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-aqua-600 animate-spin" />
-      </div>
-    )
+  const supprimer = async (id) => {
+    if (!confirm('Supprimer cet avis ?')) return
+    setLA(`sup_${id}`)
+    try {
+      await api.delete(`/admin/avis/${id}`)
+      load()
+      showMsg('success', 'Avis supprimé !')
+    } catch { showMsg('error', 'Erreur') }
+    setLA(null)
   }
 
-  const filtered = filtrer()
+  const valider = async (avisId) => {
+    if (!confirm('Valider manuellement ?')) return
+    setLA('valider')
+    try {
+      await api.put(`/admin/avis/${avisId}/valider`)
+      showMsg('success', '✅ Avis validé !')
+      setDetail(null)
+      load()
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
+  const refuser = async (avisId) => {
+    if (!confirm('Refuser cet avis ?')) return
+    setLA('refuser')
+    try {
+      await api.put(`/admin/avis/${avisId}/refuser`)
+      showMsg('success', '❌ Avis refusé !')
+      setDetail(null)
+      load()
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
+  const remettreEnDispo = async (avisId) => {
+    if (!confirm('Remettre cet avis en disponible ?')) return
+    setLA('dispo')
+    try {
+      await api.put(`/admin/avis/${avisId}/remettre-dispo`)
+      showMsg('success', '🔄 Avis remis en disponible !')
+      setDetail(null)
+      load()
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
+  const faireLeMenuage = async () => {
+    const nb = avis.filter(a => a.statut === 'refuse' || a.statut === 'paye').length
+    if (!confirm(`Supprimer ${nb} avis (refusés + payés) ? Action irréversible.`)) return
+    setLA('menage')
+    try {
+      const r = await api.delete('/admin/avis/menage')
+      showMsg('success', r.data.message)
+      load()
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
+  const verifierMaintenant = async (avisId) => {
+    setLA('verifier')
+    setVerifResult(null)
+    try {
+      const r = await api.post(`/admin/avis/${avisId}/verifier`)
+      setVerifResult(r.data)
+      showMsg('success', '🔍 Vérification lancée ! Rafraîchis dans 1-2 minutes.')
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
+    }
+    setLA(null)
+  }
+
+  const lienIncorrect = async (avisId) => {
+    if (!confirm('Marquer le lien comme incorrect ?')) return
+    setLA('lien')
+    try {
+      await api.put(`/admin/avis/${avisId}/lien-incorrect`)
+      showMsg('success', '🔗 Membre notifié !')
+      setDetail(null)
+      load()
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
+  const modifierLienEtValider = async (avisId) => {
+    if (!newLien.trim()) return showMsg('error', 'Entre le nouveau lien')
+    if (!confirm('Modifier le lien et valider ?')) return
+    setLA('modifier_lien')
+    try {
+      await api.put(`/admin/avis/${avisId}/valider`, { lien_avis_poste: newLien })
+      showMsg('success', '🔗 Lien modifié et validé !')
+      setNewLien('')
+      setDetail(null)
+      load()
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
+  const modifierAvis = async (avisId) => {
+    setLA('modifier')
+    try {
+      await api.put(`/admin/avis/${avisId}`, editForm)
+      showMsg('success', '✏️ Avis modifié !')
+      setEditForm(null)
+      setDetail(null)
+      load()
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
+  const statutBadge = s => ({
+    disponible:      <span className="badge-blue">Dispo</span>,
+    reserve:         <span className="badge-yellow">Réservé</span>,
+    en_verification: <span className="badge-yellow">Vérif.</span>,
+    valide:          <span className="badge-green">Validé</span>,
+    refuse:          <span className="badge-red">Refusé</span>,
+    paye:            <span className="badge-green">Payé</span>,
+    lien_incorrect:  <span className="badge-red">🔗 Lien ❌</span>,
+  }[s])
+
+  const verifBadge = (a) => {
+    if (!a.last_check) return <span className="text-xs text-gray-400">Jamais vérifié</span>
+    const date = new Date(a.last_check).toLocaleDateString('fr-FR')
+    if (a.verif_statut === 'paye') return <span className="text-xs text-green-600">✅ Payé</span>
+    if (a.verif_statut === 'inactif') return <span className="text-xs text-red-500">❌ Inactif</span>
+    return <span className="text-xs text-blue-600">🔍 Vérifié {date} ({a.nb_checks}x)</span>
+  }
+
+  const formatDate = d => d ? new Date(d).toLocaleString('fr-FR') : '—'
+  const closeDetail = () => { setDetail(null); setEditForm(null); setNewLien(''); setVerifResult(null) }
+
+  const nbMenuage = avis.filter(a => a.statut === 'refuse' || a.statut === 'paye').length
+
+  let avisFiltres = [...avis]
+  if (filtre !== 'tous') avisFiltres = avisFiltres.filter(a => a.statut === filtre)
+  if (search) avisFiltres = avisFiltres.filter(a =>
+    a.nom_societe?.toLowerCase().includes(search.toLowerCase()) ||
+    a.membre_email?.toLowerCase().includes(search.toLowerCase()) ||
+    String(a.id).includes(search)
+  )
+  if (tri === 'recent') avisFiltres.sort((a, b) => new Date(b.soumis_at || b.created_at) - new Date(a.soumis_at || a.created_at))
+  if (tri === 'ancien') avisFiltres.sort((a, b) => new Date(a.soumis_at || a.created_at) - new Date(b.soumis_at || b.created_at))
+  if (tri === 'valide') avisFiltres.sort((a, b) => new Date(b.valide_at || 0) - new Date(a.valide_at || 0))
+  if (tri === 'verif') avisFiltres.sort((a, b) => new Date(b.last_check || 0) - new Date(a.last_check || 0))
+  if (tri === 'id') avisFiltres.sort((a, b) => b.id - a.id)
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <h1 className="section-title">Gestion des avis</h1>
-
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input type="text" placeholder="Rechercher..." value={search}
-            onChange={e => setSearch(e.target.value)} className="input pl-9 text-sm" />
+    <div className="p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold">Avis ({avis.length})</h2>
+        <div className="flex gap-2">
+          {nbMenuage > 0 && (
+            <button onClick={faireLeMenuage} disabled={loadingAction === 'menage'}
+              className="bg-red-100 text-red-600 px-3 py-2 rounded-xl font-medium text-sm flex items-center gap-1 disabled:opacity-70">
+              {loadingAction === 'menage' ? <Spinner /> : '🗑️'} Ménage ({nbMenuage})
+            </button>
+          )}
+          <button onClick={() => setShow(!show)} className="bg-brand-600 text-white px-4 py-2 rounded-xl font-medium text-sm">
+            + Ajouter
+          </button>
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {STATUT_FILTRES.map(s => (
-          <button key={s} onClick={() => setFiltre(s)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-              filtre === s
-                ? 'bg-aqua-600 text-white'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+      {msg && (
+        <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+          {msg.text}
+        </div>
+      )}
+
+      <input className="input" placeholder="🔍 Rechercher par nom, membre ou #ID..."
+        value={search} onChange={e => setSearch(e.target.value)} />
+
+      <select className="input text-sm" value={tri} onChange={e => setTri(e.target.value)}>
+        <option value="recent">📅 Plus récent</option>
+        <option value="ancien">📅 Plus ancien</option>
+        <option value="id">🔢 Par numéro</option>
+        <option value="valide">✅ Date validation</option>
+        <option value="verif">🔍 Dernière vérification</option>
+      </select>
+
+      <div className="flex gap-1 overflow-x-auto pb-1">
+        {STATUT_FILTRES.map(f => (
+          <button key={f} onClick={() => setFiltre(f)}
+            className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+              filtre === f ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-600'
             }`}>
-            {s}
+            {f === 'tous' ? `Tous (${avis.length})` : f}
           </button>
         ))}
       </div>
 
-      <p className="text-xs text-slate-500">{filtered.length} résultat(s)</p>
+      {/* Modal détail */}
+      {detail && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={closeDetail}>
+          <div className="bg-white rounded-t-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-lg">Avis #{detail.id}</h3>
+              <button onClick={closeDetail} className="text-gray-400 text-2xl">×</button>
+            </div>
 
-      {filtered.length === 0 ? (
-        <div className="card-flat text-center py-12 text-slate-400">
-          <AlertTriangle className="w-10 h-10 mx-auto mb-2 opacity-50" />
-          Aucun avis
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map(a => (
-            <div key={a.id} className="card">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-900 dark:text-white text-sm truncate">
-                    {a.nom_societe || 'Sans nom'}
-                  </p>
-                  <p className="text-xs text-slate-500">{a.membre_email || 'Non réservé'}</p>
+            <div className="space-y-2">
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs text-gray-500 mb-1">Établissement</p>
+                <p className="font-medium">{detail.nom_societe}</p>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs text-gray-500 mb-1">Statut</p>
+                {statutBadge(detail.statut)}
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2">
+                <p className="text-xs text-blue-600 font-medium">🔍 Vérification Outscraper</p>
+                <div>{verifBadge(detail)}</div>
+                {verifResult && (
+                  <div className={`rounded-lg p-2 text-xs font-medium ${verifResult.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {verifResult.message}
+                  </div>
+                )}
+                <button onClick={() => verifierMaintenant(detail.id)} disabled={loadingAction === 'verifier'}
+                  className="w-full bg-blue-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+                  {loadingAction === 'verifier' ? <><Spinner /> Lancé...</> : '🔍 Vérifier maintenant via Outscraper'}
+                </button>
+              </div>
+
+              {detail.membre_email && (
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 mb-1">Membre</p>
+                  <p className="font-medium">{detail.membre_email}</p>
                 </div>
-                {getBadge(a.statut)}
+              )}
+
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs text-gray-500 mb-1">Texte de l'avis</p>
+                <p className="text-sm text-gray-700 leading-relaxed">{detail.texte}</p>
               </div>
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-2 mb-2">
-                <p className="text-xs text-slate-700 dark:text-slate-300 italic truncate">"{a.texte}"</p>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 mb-1">Soumis le</p>
+                  <p className="text-xs font-medium">{formatDate(detail.soumis_at)}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 mb-1">Validé le</p>
+                  <p className="text-xs font-medium">{formatDate(detail.valide_at)}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-3 text-xs text-slate-500 mb-2">
-                <span className="flex items-center gap-1"><Star className="w-3 h-3 text-amber-400 fill-amber-400" /> {a.nb_etoiles}</span>
-                <span className="flex items-center gap-1"><Euro className="w-3 h-3" /> {parseFloat(a.prix).toFixed(2)}</span>
-                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> <a href={a.lien_maps} target="_blank" rel="noreferrer" className="text-aqua-600 hover:underline">Maps</a></span>
-              </div>
-              {a.lien_avis_poste && (
-                <a href={a.lien_avis_poste} target="_blank" rel="noreferrer"
-                  className="text-xs text-aqua-600 dark:text-aqua-400 flex items-center gap-1 mb-2 hover:underline">
-                  <Link2 className="w-3 h-3" /> Lien avis posté
-                </a>
+
+              {detail.lien_avis_poste && (
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 mb-1">Lien publié</p>
+                  <a href={detail.lien_avis_poste} target="_blank" rel="noreferrer"
+                    className="text-brand-600 text-xs break-all underline">{detail.lien_avis_poste}</a>
+                </div>
               )}
             </div>
-          ))}
+
+            {editForm ? (
+              <div className="space-y-3 border-t border-gray-100 pt-3">
+                <p className="text-sm font-bold">✏️ Modifier</p>
+                <textarea className="input text-sm min-h-[80px]" value={editForm.texte}
+                  onChange={e => setEditForm(p => ({ ...p, texte: e.target.value }))} />
+                <input className="input text-sm" value={editForm.lien_maps}
+                  onChange={e => setEditForm(p => ({ ...p, lien_maps: e.target.value }))} />
+                <div className="flex gap-2">
+                  <button onClick={() => modifierAvis(detail.id)} disabled={loadingAction === 'modifier'}
+                    className="flex-1 bg-brand-600 text-white py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+                    {loadingAction === 'modifier' ? <><Spinner /> Sauvegarde...</> : '💾 Sauvegarder'}
+                  </button>
+                  <button onClick={() => setEditForm(null)}
+                    className="flex-1 bg-gray-100 text-gray-600 py-2 rounded-xl text-sm font-semibold">
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setEditForm({ lien_maps: detail.lien_maps, texte: detail.texte, prix: detail.prix, delai_paiement: detail.delai_paiement, statut: detail.statut })}
+                className="w-full bg-gray-100 text-gray-700 py-2.5 rounded-xl text-sm font-semibold">
+                ✏️ Modifier l'avis
+              </button>
+            )}
+
+            <div className="space-y-2 border-t border-gray-100 pt-3">
+              <p className="text-sm font-bold">⚡ Actions</p>
+
+              {detail.statut !== 'valide' && detail.statut !== 'paye' && (
+                <button onClick={() => valider(detail.id)} disabled={loadingAction === 'valider'}
+                  className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+                  {loadingAction === 'valider' ? <><Spinner /> Validation...</> : '✅ Valider manuellement'}
+                </button>
+              )}
+
+              {['refuse', 'valide', 'reserve', 'en_verification'].includes(detail.statut) && (
+                <button onClick={() => remettreEnDispo(detail.id)} disabled={loadingAction === 'dispo'}
+                  className="w-full bg-blue-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+                  {loadingAction === 'dispo' ? <><Spinner /> Traitement...</> : '🔄 Remettre en disponible'}
+                </button>
+              )}
+
+              {detail.statut !== 'refuse' && detail.statut !== 'disponible' && (
+                <button onClick={() => refuser(detail.id)} disabled={loadingAction === 'refuser'}
+                  className="w-full bg-red-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+                  {loadingAction === 'refuser' ? <><Spinner /> Traitement...</> : '❌ Refuser — plus sur Google'}
+                </button>
+              )}
+
+              {(detail.statut === 'valide' || detail.statut === 'reserve') && (
+                <button onClick={() => lienIncorrect(detail.id)} disabled={loadingAction === 'lien'}
+                  className="w-full bg-orange-400 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+                  {loadingAction === 'lien' ? <><Spinner /> Envoi...</> : '🔗 Lien incorrect — demander correction'}
+                </button>
+              )}
+
+              <div className="space-y-2 pt-1">
+                <p className="text-xs text-gray-500">Modifier le lien et valider :</p>
+                <input className="input text-sm" placeholder="Nouveau lien..."
+                  value={newLien} onChange={e => setNewLien(e.target.value)} />
+                <button onClick={() => modifierLienEtValider(detail.id)}
+                  disabled={loadingAction === 'modifier_lien' || !newLien.trim()}
+                  className="w-full bg-brand-600 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+                  {loadingAction === 'modifier_lien' ? <><Spinner /> Traitement...</> : '🔗 Modifier et valider'}
+                </button>
+              </div>
+            </div>
+
+            <button onClick={closeDetail} className="btn-secondary">Fermer</button>
+          </div>
         </div>
       )}
+
+      {show && (
+        <div className="card space-y-3 border-2 border-brand-200">
+          <h3 className="font-bold">Nouvel avis</h3>
+          <select className="input" value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))}>
+            <option value="">Sélectionner un client</option>
+            {clients.map(c => <option key={c.id} value={c.id}>{c.nom_societe} ({c.email})</option>)}
+          </select>
+          <input className="input" placeholder="Lien Google Maps"
+            value={form.lien_maps} onChange={e => setForm(p => ({ ...p, lien_maps: e.target.value }))} />
+          <textarea className="input min-h-[100px]" placeholder="Texte"
+            value={form.texte} onChange={e => setForm(p => ({ ...p, texte: e.target.value }))} />
+          <input className="input" type="number" placeholder="Délai (jours)"
+            value={form.delai_paiement} onChange={e => setForm(p => ({ ...p, delai_paiement: e.target.value }))} />
+          <button onClick={ajouter} disabled={loadingAction === 'ajouter'}
+            className="btn-primary flex items-center justify-center gap-2 disabled:opacity-70">
+            {loadingAction === 'ajouter' ? <><Spinner /> Ajout...</> : 'Ajouter l\'avis'}
+          </button>
+        </div>
+      )}
+
+      <p className="text-xs text-gray-400">{avisFiltres.length} avis</p>
+
+      <div className="space-y-2">
+        {avisFiltres.map(a => (
+          <div key={a.id} className="card space-y-1 cursor-pointer active:bg-gray-50"
+            onClick={() => { setDetail(a); setEditForm(null); setNewLien(''); setVerifResult(null) }}>
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-gray-400 font-mono shrink-0">#{a.id}</span>
+                  <p className="font-bold text-sm truncate">{a.nom_societe}</p>
+                </div>
+                <p className="text-xs text-gray-500 truncate">{a.texte?.slice(0, 50)}...</p>
+                <p className="text-xs text-gray-400">
+                  {a.membre_email ? `👤 ${a.membre_email}` : 'Non réservé'}
+                  {a.soumis_at ? ` · 📅 ${new Date(a.soumis_at).toLocaleDateString('fr-FR')}` : ''}
+                </p>
+                <div className="mt-1">{verifBadge(a)}</div>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                {statutBadge(a.statut)}
+                {a.statut === 'disponible' && (
+                  <button onClick={e => { e.stopPropagation(); supprimer(a.id) }}
+                    disabled={loadingAction === `sup_${a.id}`}
+                    className="text-red-400 text-xl disabled:opacity-50">
+                    {loadingAction === `sup_${a.id}` ? '...' : '×'}
+                  </button>
+                )}
+              </div>
+            </div>
+            {a.lien_avis_poste && (
+              <a href={a.lien_avis_poste} target="_blank" rel="noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="text-xs text-brand-600 underline truncate block">
+                🔗 Voir l'avis
+              </a>
+            )}
+          </div>
+        ))}
+        {avisFiltres.length === 0 && (
+          <div className="card text-center py-10 text-gray-400">Aucun avis</div>
+        )}
+      </div>
     </div>
   )
 }

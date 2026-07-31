@@ -1,110 +1,136 @@
-import { useEffect, useState } from 'react'
-import api from '../lib/api'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import {
-  User, Lock, Eye, EyeOff, Save, CheckCircle2, Loader2,
-  MessageCircle, CreditCard
-} from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import api from '../lib/api'
+
+function Spinner() {
+  return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+}
 
 export default function Profil() {
-  const { user } = useAuth()
-  const [form, setForm] = useState({ discord_id: '', paypal_email: '', current_password: '', new_password: '' })
-  const [msg, setMsg] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [showPwd, setShowPwd] = useState(false)
+  const { user, updateUser, logout } = useAuth()
+  const navigate = useNavigate()
+  const [form, setForm] = useState({
+    discord_id:       '',
+    paypal_email:     '',
+    current_password: '',
+    new_password:     '',
+  })
+  const [msg, setMsg]           = useState(null)
+  const [saving, setSaving]     = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
 
+  // Fix — synchroniser form avec user quand user change
   useEffect(() => {
     if (user) {
-      setForm(prev => ({
-        ...prev,
-        discord_id: user.discord_id || '',
+      setForm(p => ({
+        ...p,
+        discord_id:   user.discord_id || '',
         paypal_email: user.paypal_email || '',
       }))
     }
   }, [user])
 
-  const save = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setMsg(null)
+  const showMsg = (type, text) => {
+    setMsg({ type, text })
+    setTimeout(() => setMsg(null), 4000)
+  }
+
+  const save = async () => {
+    setSaving(true)
     try {
       await api.put('/auth/profile', form)
-      setMsg({ type: 'success', text: 'Profil mis à jour !' })
-      setForm(prev => ({ ...prev, current_password: '', new_password: '' }))
-    } catch (err) {
-      setMsg({ type: 'error', text: err.response?.data?.error || 'Erreur' })
+      const r = await api.get('/auth/me')
+      // Fix — utiliser updateUser au lieu de setUser
+      updateUser(r.data)
+      showMsg('success', '✅ Profil mis à jour !')
+      setForm(p => ({ ...p, current_password: '', new_password: '' }))
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
-  return (
-    <div className="space-y-5 animate-fade-in">
-      <h1 className="section-title">Profil</h1>
+  const handleLogout = () => {
+    setLoggingOut(true)
+    logout()
+    navigate('/login')
+  }
 
-      <div className="card text-center">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-aqua-500 to-teal-400 flex items-center justify-center mx-auto mb-3 shadow-glow">
-          <User className="w-8 h-8 text-white" />
+  return (
+    <div className="p-4 space-y-4">
+      <h2 className="text-xl font-bold text-gray-900">Mon profil</h2>
+
+      <div className="card">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 bg-brand-100 rounded-2xl flex items-center justify-center">
+            <span className="text-brand-700 font-bold text-xl">{user?.email?.[0]?.toUpperCase()}</span>
+          </div>
+          <div>
+            <p className="font-bold text-gray-900">{user?.email}</p>
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+              user?.role === 'admin'  ? 'bg-purple-100 text-purple-700' :
+              user?.role === 'client' ? 'bg-blue-100 text-blue-700' :
+              'bg-green-100 text-green-700'
+            }`}>
+              {user?.role === 'admin' ? '⚡ Admin' : user?.role === 'client' ? '🏢 Client' : '⭐ Membre'}
+            </span>
+          </div>
         </div>
-        <p className="font-display font-semibold text-slate-900 dark:text-white">{user?.email}</p>
-        <p className="text-xs text-slate-500 capitalize mt-1">{user?.role}</p>
+
+        {msg && (
+          <div className={`rounded-xl p-3 text-sm mb-4 font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+            {msg.text}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1.5">ID Discord</label>
+            <input className="input" placeholder="123456789012345678"
+              value={form.discord_id} onChange={e => setForm(p => ({ ...p, discord_id: e.target.value }))} />
+            {!user?.discord_id && (
+              <p className="text-xs text-orange-500 mt-1">⚠️ ID Discord non renseigné</p>
+            )}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1.5">Email PayPal</label>
+            <input className="input" type="email" placeholder="ton@paypal.com"
+              value={form.paypal_email} onChange={e => setForm(p => ({ ...p, paypal_email: e.target.value }))} />
+            {!user?.paypal_email && (
+              <p className="text-xs text-orange-500 mt-1">⚠️ Adresse PayPal requise pour les retraits</p>
+            )}
+          </div>
+
+          <div className="border-t border-gray-100 pt-4">
+            <p className="text-sm font-semibold text-gray-700 mb-3">Changer le mot de passe</p>
+            <div className="space-y-3">
+              <input className="input" type="password" placeholder="Mot de passe actuel"
+                value={form.current_password} onChange={e => setForm(p => ({ ...p, current_password: e.target.value }))} />
+              <input className="input" type="password" placeholder="Nouveau mot de passe (6 car. min)"
+                value={form.new_password} onChange={e => setForm(p => ({ ...p, new_password: e.target.value }))} />
+            </div>
+          </div>
+
+          <button
+            className="btn-primary flex items-center justify-center gap-2 disabled:opacity-70"
+            onClick={save}
+            disabled={saving}
+          >
+            {saving ? <><Spinner /> Enregistrement...</> : 'Enregistrer'}
+          </button>
+        </div>
       </div>
 
-      {msg && (
-        <div className={`p-4 rounded-xl text-sm font-medium ${
-          msg.type === 'error'
-            ? 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20'
-            : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
-        }`}>
-          {msg.text}
-        </div>
-      )}
-
-      <form onSubmit={save} className="space-y-4">
-        <div className="card space-y-4">
-          <h3 className="font-display font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-            <MessageCircle className="w-4 h-4 text-aqua-500" /> Infos
-          </h3>
-          <div className="relative">
-            <MessageCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input type="text" placeholder="ID Discord" value={form.discord_id}
-              onChange={e => setForm({...form, discord_id: e.target.value})} className="input pl-12" />
-          </div>
-          <div className="relative">
-            <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input type="email" placeholder="Email PayPal" value={form.paypal_email}
-              onChange={e => setForm({...form, paypal_email: e.target.value})} className="input pl-12" />
-          </div>
-        </div>
-
-        <div className="card space-y-4">
-          <h3 className="font-display font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-            <Lock className="w-4 h-4 text-aqua-500" /> Mot de passe
-          </h3>
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input type="password" placeholder="Mot de passe actuel" value={form.current_password}
-              onChange={e => setForm({...form, current_password: e.target.value})} className="input pl-12" />
-          </div>
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input type={showPwd ? 'text' : 'password'} placeholder="Nouveau mot de passe" value={form.new_password}
-              onChange={e => setForm({...form, new_password: e.target.value})} className="input pl-12 pr-12" />
-            <button type="button" onClick={() => setShowPwd(!showPwd)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-              {showPwd ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-
-        <button type="submit" disabled={loading} className="btn-primary flex items-center justify-center gap-2">
-          {loading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <><Save className="w-4 h-4" /> Enregistrer</>
-          )}
-        </button>
-      </form>
+      <button
+        className="btn-danger flex items-center justify-center gap-2 disabled:opacity-70"
+        onClick={handleLogout}
+        disabled={loggingOut}
+      >
+        {loggingOut ? <><Spinner /> Déconnexion...</> : 'Se déconnecter'}
+      </button>
     </div>
   )
 }

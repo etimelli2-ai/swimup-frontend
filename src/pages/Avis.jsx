@@ -1,106 +1,117 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../lib/api'
-import { useAuth } from '../hooks/useAuth'
-import {
-  MapPin, Star, Euro, Clock, ArrowRight, Target,
-  Loader2, AlertTriangle
-} from 'lucide-react'
+
+function Spinner() {
+  return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+}
 
 export default function Avis() {
-  const { user } = useAuth()
-  const [avis, setAvis] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [msg, setMsg] = useState(null)
+  const [avis, setAvis]           = useState([])
+  const [loading, setLoading]     = useState(true)
+  const [reserving, setReserving] = useState(null)
+  const [msg, setMsg]             = useState(null)
+  const navigate                  = useNavigate()
 
   useEffect(() => {
-    api.get('/avis')
-      .then(r => setAvis(r.data))
-      .catch(() => setMsg({ type: 'error', text: 'Impossible de charger les avis' }))
-      .finally(() => setLoading(false))
+    api.get('/avis').then(r => setAvis(r.data)).finally(() => setLoading(false))
   }, [])
 
+  const showMsg = (type, text) => {
+    setMsg({ type, text })
+    setTimeout(() => setMsg(null), 4000)
+  }
+
   const reserver = async (id) => {
+    setReserving(id)
     try {
       await api.post(`/avis/${id}/reserver`)
-      setMsg({ type: 'success', text: 'Avis réservé ! Va dans "Mon avis".' })
-      setAvis(prev => prev.filter(a => a.id !== id))
-    } catch (err) {
-      setMsg({ type: 'error', text: err.response?.data?.error || 'Erreur' })
+      showMsg('success', '✅ Avis réservé ! Tu as 1h pour le publier.')
+      navigate('/mon-avis')
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
     }
+    setReserving(null)
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-aqua-600 animate-spin" />
-      </div>
-    )
+  const etoilesDisplay = n => {
+    const nb = parseInt(n) || 5
+    return { stars: '⭐'.repeat(nb), label: `${nb} étoile${nb > 1 ? 's' : ''}` }
   }
+
+  const etoilesColor = n => {
+    const nb = parseInt(n) || 5
+    if (nb <= 2) return 'bg-red-50 border-red-200 text-red-700'
+    if (nb === 3) return 'bg-yellow-50 border-yellow-200 text-yellow-700'
+    return 'bg-green-50 border-green-200 text-green-700'
+  }
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/>
+    </div>
+  )
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <h1 className="section-title">Avis disponibles</h1>
-        <Link to="/mon-avis" className="text-sm text-aqua-600 dark:text-aqua-400 font-medium hover:underline flex items-center gap-1">
-          Mon avis <ArrowRight className="w-4 h-4" />
-        </Link>
+    <div className="p-4 space-y-4">
+      <div>
+        <h2 className="text-xl font-bold text-gray-900">Avis disponibles</h2>
+        <p className="text-sm text-gray-500 mt-1">{avis.length} avis en attente de rédaction</p>
       </div>
 
       {msg && (
-        <div className={`p-4 rounded-xl text-sm font-medium ${
-          msg.type === 'error'
-            ? 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20'
-            : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
-        }`}>
+        <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
           {msg.text}
         </div>
       )}
 
       {avis.length === 0 ? (
-        <div className="card-flat text-center py-16">
-          <Target className="w-12 h-12 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Aucun avis disponible</p>
-          <p className="text-xs text-slate-400 mt-1">Reviens plus tard</p>
+        <div className="card text-center py-10">
+          <p className="text-4xl mb-3">🎯</p>
+          <p className="font-semibold text-gray-700">Aucun avis disponible</p>
+          <p className="text-sm text-gray-400 mt-1">Reviens plus tard !</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {avis.map((a, i) => (
-            <div key={a.id} className="card" style={{ animationDelay: `${i * 50}ms` }}>
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display font-semibold text-slate-900 dark:text-white truncate">
-                    {a.nom_societe || 'Établissement'}
-                  </h3>
-                  <a href={a.lien_maps} target="_blank" rel="noreferrer"
-                    className="text-xs text-aqua-600 dark:text-aqua-400 flex items-center gap-1 mt-1 hover:underline">
-                    <MapPin className="w-3 h-3" /> Voir sur Maps
-                  </a>
+          {avis.map(a => {
+            const { stars, label } = etoilesDisplay(a.nb_etoiles)
+            return (
+              <div key={a.id} className="card space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    {/* Nom entreprise au lieu de l'email */}
+                    <p className="font-bold text-gray-900">{a.nom_societe}</p>
+                  </div>
+                  <div className="shrink-0 bg-green-50 border border-green-200 rounded-xl px-3 py-2 text-center">
+                    <p className="text-green-700 font-bold text-lg">+1,00€</p>
+                    <p className="text-xs text-green-600">à gagner</p>
+                  </div>
                 </div>
-                <span className="badge-aqua flex-shrink-0">{parseFloat(a.prix).toFixed(2)} €</span>
-              </div>
 
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 mb-3">
-                <p className="text-sm text-slate-700 dark:text-slate-300 italic">"{a.texte}"</p>
-              </div>
+                {/* Nombre d'étoiles à mettre */}
+                <div className={`rounded-xl p-3 border ${etoilesColor(a.nb_etoiles)}`}>
+                  <p className="text-xs font-medium mb-1">Note à mettre sur Google :</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{stars}</span>
+                    <span className="font-bold text-sm">{label}</span>
+                  </div>
+                </div>
 
-              <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 mb-3">
-                <span className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> {a.nb_etoiles} étoiles
-                </span>
-                <span className="flex items-center gap-1">
-                  <Euro className="w-3.5 h-3.5" /> {parseFloat(a.prix).toFixed(2)} €
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" /> Paiement {a.delai_paiement}j
-                </span>
-              </div>
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 font-medium mb-1">Texte à copier :</p>
+                  <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">{a.texte}</p>
+                </div>
 
-              <button onClick={() => reserver(a.id)} className="btn-primary text-sm py-3">
-                Réserver cet avis
-              </button>
-            </div>
-          ))}
+                <button
+                  className="btn-primary py-3 text-sm flex items-center justify-center gap-2 disabled:opacity-70"
+                  onClick={() => reserver(a.id)}
+                  disabled={reserving !== null}
+                >
+                  {reserving === a.id ? <><Spinner /> Réservation...</> : '✋ Réserver cet avis'}
+                </button>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
