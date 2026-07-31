@@ -1,9 +1,5 @@
-// ============================================================
-// frontend/src/components/Layout.jsx -- NOUVEAU
-// ============================================================
-
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import {
   LayoutDashboard,
@@ -17,11 +13,10 @@ import {
   Shield,
   Ticket,
   ChevronRight,
-  Bell
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export default function Layout({ children }) {
+export default function Layout() {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
@@ -30,24 +25,36 @@ export default function Layout({ children }) {
   const isAdmin = user?.role === 'admin'
   const isClient = user?.role === 'client'
 
-  const navItems = [
+  const navItems = isAdmin ? [
+    { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/admin/avis', label: 'Avis', icon: Star },
+    { path: '/admin/users', label: 'Membres', icon: User },
+    { path: '/admin/retraits', label: 'Retraits', icon: Wallet },
+    { path: '/admin/loterie', label: 'Loterie', icon: Ticket },
+    { path: '/admin/commande', label: 'Commande', icon: FileText },
+  ] : isClient ? [
+    { path: '/client', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/profil', label: 'Profil', icon: User },
+  ] : [
     { path: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
     { path: '/avis', label: 'Avis disponibles', icon: Star },
     { path: '/mon-avis', label: 'Mon avis', icon: FileText },
     { path: '/portefeuille', label: 'Portefeuille', icon: Wallet },
-    { path: '/profil', label: 'Profil', icon: User },
-    ...(isAdmin ? [
-      { path: '/admin', label: 'Admin', icon: Shield },
-    ] : []),
-    ...(isClient ? [
-      { path: '/client', label: 'Espace client', icon: Shield },
-    ] : []),
     { path: '/loterie', label: 'Loterie', icon: Ticket },
+    { path: '/profil', label: 'Profil', icon: User },
+    ...(isAdmin ? [{ path: '/admin', label: 'Admin', icon: Shield }] : []),
   ]
 
-  const handleLogout = async () => {
-    await logout()
+  const handleLogout = () => {
+    logout()
     navigate('/login')
+  }
+
+  const isActive = (path) => {
+    if (path === '/admin' && location.pathname === '/admin') return true
+    if (path === '/client' && location.pathname === '/client') return true
+    if (path === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard')) return true
+    return location.pathname === path || (path !== '/admin' && path !== '/client' && path !== '/dashboard' && location.pathname.startsWith(path + '/'))
   }
 
   return (
@@ -65,7 +72,7 @@ export default function Layout({ children }) {
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => {
-            const active = location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+            const active = isActive(item.path)
             const Icon = item.icon
             return (
               <Link
@@ -86,12 +93,16 @@ export default function Layout({ children }) {
         </nav>
 
         <div className="p-3 border-t border-slate-100">
+          <div className="px-3 py-2 mb-2">
+            <p className="text-xs font-medium text-slate-700 truncate">{user?.email}</p>
+            <p className="text-xs text-slate-400 capitalize">{user?.role}</p>
+          </div>
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all"
           >
             <LogOut size={18} />
-            Deconnexion
+            Déconnexion
           </button>
         </div>
       </aside>
@@ -120,7 +131,7 @@ export default function Layout({ children }) {
           >
             <nav className="p-3 space-y-0.5">
               {navItems.map((item) => {
-                const active = location.pathname === item.path
+                const active = isActive(item.path)
                 const Icon = item.icon
                 return (
                   <Link
@@ -143,17 +154,17 @@ export default function Layout({ children }) {
                 className="flex items-center gap-3 px-3 py-3 w-full rounded-lg text-sm font-medium text-red-500 hover:bg-red-50"
               >
                 <LogOut size={18} />
-                Deconnexion
+                Déconnexion
               </button>
             </nav>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Main Content */}
+      {/* Main Content — Fix: Outlet au lieu de children */}
       <main className="flex-1 lg:ml-64 pt-14 lg:pt-0">
         <div className="max-w-5xl mx-auto p-4 lg:p-8">
-          {children}
+          <Outlet />
         </div>
       </main>
     </div>
