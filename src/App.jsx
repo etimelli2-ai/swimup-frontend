@@ -23,7 +23,6 @@ function PrivateRoute({ children, roles }) {
       <div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/>
     </div>
   )
-  // Fix — Navigate au lieu de return undefined
   if (!user) return <Navigate to="/login" replace />
   if (roles && !roles.includes(user.role)) return <Navigate to="/" replace />
   return children
@@ -37,6 +36,7 @@ export default function App() {
 
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route index                element={<Dashboard />} />
+        <Route path="dashboard"     element={<Dashboard />} />
         <Route path="avis"          element={<Avis />} />
         <Route path="mon-avis"      element={<MonAvis />} />
         <Route path="portefeuille"  element={<Portefeuille />} />
@@ -57,7 +57,6 @@ export default function App() {
         <Route index element={<ClientDashboard />} />
       </Route>
 
-      {/* Fix — Route 404 */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
