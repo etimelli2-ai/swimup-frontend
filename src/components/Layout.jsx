@@ -13,6 +13,8 @@ import {
   Shield,
   Ticket,
   ChevronRight,
+  CreditCard,
+  ShoppingBag,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -33,8 +35,10 @@ export default function Layout() {
     { path: '/admin/loterie',  label: 'Loterie',     icon: Ticket },
     { path: '/admin/commande', label: 'Commande',    icon: FileText },
   ] : isClient ? [
-    { path: '/client',  label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/profil',  label: 'Profil',    icon: User },
+    { path: '/client',            label: 'Dashboard',    icon: LayoutDashboard },
+    { path: '/client/payer',      label: 'Commander',    icon: CreditCard },
+    { path: '/client/commandes',  label: 'Mes commandes', icon: ShoppingBag },
+    { path: '/profil',            label: 'Profil',       icon: User },
   ] : [
     { path: '/dashboard',    label: 'Tableau de bord',  icon: LayoutDashboard },
     { path: '/avis',         label: 'Avis disponibles', icon: Star },
@@ -84,7 +88,7 @@ export default function Layout() {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 fixed h-full z-20">
         <div className="p-5 border-b border-slate-100 dark:border-slate-700">
-          <Link to="/dashboard" className="flex items-center gap-2.5">
+          <Link to={isAdmin ? '/admin' : isClient ? '/client' : '/dashboard'} className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-sky-500 rounded-lg flex items-center justify-center shadow-sm">
               <Star size={18} className="text-white fill-white" />
             </div>
@@ -113,7 +117,7 @@ export default function Layout() {
 
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 z-30 flex items-center justify-between px-4">
-        <Link to="/dashboard" className="flex items-center gap-2">
+        <Link to={isAdmin ? '/admin' : isClient ? '/client' : '/dashboard'} className="flex items-center gap-2">
           <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center">
             <Star size={15} className="text-white fill-white" />
           </div>
