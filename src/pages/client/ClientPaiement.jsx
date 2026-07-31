@@ -1,71 +1,174 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
-import { CreditCard, CheckCircle2, Loader2, AlertTriangle } from 'lucide-react'
+import { CreditCard, Star, Building, Link, Clock, Loader2 } from 'lucide-react'
+import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
+
+function Spinner() {
+  return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+}
+
+const PRIX_AVIS = 3
 
 export default function ClientPaiement() {
-  const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
+  const [form, setForm] = useState({
+    nom_etablissement:  '',
+    type_etablissement: '',
+    lien_maps:          '',
+    nb_etoiles:         '5',
+    delai_paiement:     '30',
+    nb_avis:            '1',
+  })
 
-  useEffect(() => {
-    api.get('/client/stats')
-      .then(r => setStats(r.data))
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [])
+  const nb = parseInt(form.nb_avis) || 1
+  const total = nb * PRIX_AVIS
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-aqua-600 animate-spin" />
-      </div>
-    )
+  const handlePayer = async () => {
+    if (!form.nom_etablissement) return toast.error('Entre le nom de l\'établissement')
+    if (!form.lien_maps) return toast.error('Entre le lien Google Maps')
+    if (nb < 1) return toast.error('Minimum 1 avis')
+
+    setLoading(true)
+    try {
+      const r = await api.post('/stripe/create-checkout-session', {
+        nb_avis:            nb,
+        nom_etablissement:  form.nom_etablissement,
+        lien_maps:          form.lien_maps,
+        type_etablissement: form.type_etablissement,
+        delai_paiement:     parseInt(form.delai_paiement) || 30,
+        nb_etoiles:         parseInt(form.nb_etoiles) || 5,
+      })
+      // Rediriger vers Stripe Checkout
+      window.location.href = r.data.url
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Erreur lors de la création du paiement')
+      setLoading(false)
+    }
   }
 
-  return (
-    <div className="space-y-5 animate-fade-in">
-      <h1 className="section-title">Paiement</h1>
+  const etoilesLabel = n => ({
+    1: '😡 Très mauvais', 2: '😞 Mauvais', 3: '😐 Moyen',
+    4: '😊 Bien', 5: '🤩 Excellent'
+  }[parseInt(n)] || 'Excellent')
 
-      <div className="card bg-gradient-to-br from-aqua-600 to-teal-500 text-white border-0">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-aqua-100 text-sm">Solde à payer</span>
-          <CreditCard className="w-5 h-5 text-aqua-200" />
+  return (
+    <div className="space-y-6 animate-fade-in max-w-lg mx-auto">
+      <div>
+        <h1 className="page-title">Commander des avis</h1>
+        <p className="text-muted mt-1">Remplis les informations et paye pour débloquer tes avis</p>
+      </div>
+
+      <div className="card p-5 space-y-4">
+        <h2 className="section-title flex items-center gap-2">
+          <Building size={18} className="text-sky-500" />
+          Informations établissement
+        </h2>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            Nom de l'établissement <span className="text-red-500">*</span>
+          </label>
+          <input className="input" placeholder="Ex: Restaurant Le Petit Bistro"
+            value={form.nom_etablissement}
+            onChange={e => setForm(p => ({ ...p, nom_etablissement: e.target.value }))} />
         </div>
-        <div className="font-display text-3xl font-bold">
-          {parseFloat(stats?.aPayerTotal || 0).toFixed(2)} €
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            Type d'établissement
+          </label>
+          <input className="input" placeholder="Ex: restaurant, hôtel, couvreur..."
+            value={form.type_etablissement}
+            onChange={e => setForm(p => ({ ...p, type_etablissement: e.target.value }))} />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+            <Link size={14} className="text-slate-400" />
+            Lien Google Maps <span className="text-red-500">*</span>
+          </label>
+          <input className="input" placeholder="https://maps.google.com/..."
+            value={form.lien_maps}
+            onChange={e => setForm(p => ({ ...p, lien_maps: e.target.value }))} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+              <Star size={14} className="text-slate-400" />
+              Étoiles
+            </label>
+            <select className="input" value={form.nb_etoiles}
+              onChange={e => setForm(p => ({ ...p, nb_etoiles: e.target.value }))}>
+              <option value="1">⭐ 1</option>
+              <option value="2">⭐⭐ 2</option>
+              <option value="3">⭐⭐⭐ 3</option>
+              <option value="4">⭐⭐⭐⭐ 4</option>
+              <option value="5">⭐⭐⭐⭐⭐ 5</option>
+            </select>
+            <p className="text-xs text-slate-400 mt-1">{etoilesLabel(form.nb_etoiles)}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+              <Clock size={14} className="text-slate-400" />
+              Délai paiement
+            </label>
+            <input className="input" type="number" min="7" max="90" placeholder="30"
+              value={form.delai_paiement}
+              onChange={e => setForm(p => ({ ...p, delai_paiement: e.target.value }))} />
+            <p className="text-xs text-slate-400 mt-1">jours</p>
+          </div>
         </div>
       </div>
 
-      {stats?.paiementValide ? (
-        <div className="p-4 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5" />
-          <p className="font-medium text-sm">Ton paiement est à jour</p>
-        </div>
-      ) : (
-        <div className="p-4 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-sm">Paiement en attente</p>
-            <p className="text-xs mt-1">Contacte l'admin pour régler {parseFloat(stats?.aPayerTotal || 0).toFixed(2)} €</p>
-          </div>
-        </div>
-      )}
+      <div className="card p-5 space-y-4">
+        <h2 className="section-title flex items-center gap-2">
+          <CreditCard size={18} className="text-sky-500" />
+          Quantité et paiement
+        </h2>
 
-      <div className="card">
-        <h3 className="font-display font-semibold text-slate-900 dark:text-white mb-3">Détails</h3>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-slate-500">Avis total</span>
-            <span className="font-medium text-slate-900 dark:text-white">{stats?.total || 0}</span>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            Nombre d'avis
+          </label>
+          <input className="input" type="number" min="1" max="50"
+            value={form.nb_avis}
+            onChange={e => setForm(p => ({ ...p, nb_avis: e.target.value }))} />
+        </div>
+
+        {/* Récap prix */}
+        <div className="bg-sky-50 dark:bg-sky-900/20 rounded-xl p-4 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-slate-600 dark:text-slate-400">{nb} avis × {PRIX_AVIS}€</span>
+            <span className="font-bold text-slate-900 dark:text-white">{total.toFixed(2)}€</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Validés</span>
-            <span className="font-medium text-emerald-600 dark:text-emerald-400">{stats?.valides || 0}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">En cours</span>
-            <span className="font-medium text-amber-600 dark:text-amber-400">{stats?.enCours || 0}</span>
+          <div className="flex justify-between text-sm border-t border-sky-100 dark:border-sky-800 pt-2">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Total à payer</span>
+            <span className="font-extrabold text-sky-600 dark:text-sky-400 text-lg">{total.toFixed(2)}€</span>
           </div>
         </div>
+
+        <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
+          <p>✅ Paiement sécurisé par Stripe</p>
+          <p>✅ Après paiement, tu pourras remplir les textes de tes avis</p>
+          <p>✅ Les avis seront visibles par les membres une fois les textes validés</p>
+        </div>
+
+        <button
+          onClick={handlePayer}
+          disabled={loading || !form.nom_etablissement || !form.lien_maps}
+          className="btn-primary w-full text-base py-3 disabled:opacity-50"
+        >
+          {loading ? (
+            <><Spinner /> Redirection vers Stripe...</>
+          ) : (
+            <><CreditCard size={18} /> Payer {total.toFixed(2)}€ avec Stripe</>
+          )}
+        </button>
       </div>
     </div>
   )
