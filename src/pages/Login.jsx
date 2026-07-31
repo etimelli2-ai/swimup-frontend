@@ -1,23 +1,29 @@
+// ============================================================
+// frontend/src/pages/Login.jsx -- NOUVEAU (redesign)
+// ============================================================
+
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { Star, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export default function Login() {
-  const [form, setForm]       = useState({ email: '', password: '' })
-  const [error, setError]     = useState('')
+  const navigate = useNavigate()
+  const { login } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login }             = useAuth()
-  const navigate              = useNavigate()
 
-  const submit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      const user = await login(form.email, form.password)
-      if (user.role === 'admin') navigate('/admin')
-      else if (user.role === 'client') navigate('/client')
-      else navigate('/')
+      await login(email, password)
+      navigate('/dashboard')
     } catch (err) {
       setError(err.response?.data?.error || 'Erreur de connexion')
     } finally {
@@ -26,45 +32,93 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-600 to-brand-900 flex flex-col">
-      <div className="flex-1 flex flex-col items-center justify-center p-6 pb-0">
-        <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-xl mb-4">
-          <span className="text-brand-600 font-extrabold text-3xl">S</span>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-sm"
+      >
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="w-14 h-14 bg-sky-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-sky-200">
+            <Star size={26} className="text-white fill-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900">SwimUp</h1>
+          <p className="text-sm text-slate-500 mt-1">Connecte-toi a ton compte</p>
         </div>
-        <h1 className="text-white text-3xl font-extrabold">SwimUp</h1>
-        <p className="text-brand-200 mt-1 text-center">Gagne de l'argent facilement</p>
-      </div>
 
-      <div className="bg-white rounded-t-3xl mt-8 p-6 shadow-xl">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Connexion</h2>
+        {/* Card */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-lg p-6">
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg mb-4"
+            >
+              <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
+              <p className="text-sm text-red-700">{error}</p>
+            </motion.div>
+          )}
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-3 mb-4 text-sm">
-            {error}
-          </div>
-        )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                className="input"
+                placeholder="ton@email.com"
+              />
+            </div>
 
-        <form onSubmit={submit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">Email</label>
-            <input className="input" type="email" placeholder="ton@email.com"
-              value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">Mot de passe</label>
-            <input className="input" type="password" placeholder="••••••••"
-              value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} required />
-          </div>
-          <button className="btn-primary mt-2" disabled={loading}>
-            {loading ? 'Connexion...' : 'Se connecter'}
-          </button>
-        </form>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Mot de passe</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  className="input pr-10"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
 
-        <p className="text-center text-gray-500 mt-6 text-sm">
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full"
+            >
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  Se connecter
+                  <ArrowRight size={16} />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+
+        <p className="text-center text-sm text-slate-500 mt-6">
           Pas encore de compte ?{' '}
-          <Link to="/register" className="text-brand-600 font-semibold">Créer un compte</Link>
+          <Link to="/register" className="font-semibold text-sky-600 hover:text-sky-700">
+            S'inscrire
+          </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   )
 }

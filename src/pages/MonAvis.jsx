@@ -1,243 +1,310 @@
+// ============================================================
+// frontend/src/pages/MonAvis.jsx -- NOUVEAU (redesign)
+// ============================================================
+
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import api from '../lib/api'
-
-function Spinner({ dark }) {
-  return <div className={`w-4 h-4 border-2 ${dark ? 'border-gray-600 border-t-transparent' : 'border-white border-t-transparent'} rounded-full animate-spin inline-block`} />
-}
-
-function Countdown({ reserveAt }) {
-  const [left, setLeft] = useState('')
-  useEffect(() => {
-    const update = () => {
-      const diff = 3600000 - (Date.now() - new Date(reserveAt).getTime())
-      if (diff <= 0) { setLeft('Expiré'); return }
-      const m = Math.floor(diff / 60000)
-      const s = Math.floor((diff % 60000) / 1000)
-      setLeft(`${m}m ${s}s`)
-    }
-    update()
-    const t = setInterval(update, 1000)
-    return () => clearInterval(t)
-  }, [reserveAt])
-
-  const pct = Math.max(0, 100 - ((Date.now() - new Date(reserveAt).getTime()) / 3600000) * 100)
-  return (
-    <div>
-      <div className="flex justify-between text-xs text-gray-500 mb-1">
-        <span>Temps restant</span>
-        <span className={`font-bold ${pct < 25 ? 'text-red-500' : 'text-brand-600'}`}>{left}</span>
-      </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all ${pct < 25 ? 'bg-red-400' : 'bg-brand-500'}`} style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  )
-}
+import { useAuth } from '../hooks/useAuth'
+import { useMesAvis, useSoumettreAvis, useAnnulerAvis } from '../hooks/useAvis'
+import {
+  Clock,
+  ExternalLink,
+  Copy,
+  Check,
+  AlertTriangle,
+  ArrowLeft,
+  Star,
+  Send,
+  RotateCcw,
+  XCircle,
+  CheckCircle2,
+  Loader2,
+  MessageSquare
+} from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function MonAvis() {
-  const [avis, setAvis]             = useState([])
-  const [loading, setLoading]       = useState(true)
-  const [lien, setLien]             = useState('')
-  const [submitting, setSub]        = useState(false)
-  const [annulant, setAnnulant]     = useState(false)
-  const [msg, setMsg]               = useState(null)
-  const [contestMsg, setContestMsg] = useState('')
-  const [contesting, setContesting] = useState(null)
-  const [contestLoading, setContestLoading] = useState(false)
+  const { user } = useAuth()
+  const { data: avisList, isLoading } = useMesAvis()
+  const soumettre = useSoumettreAvis()
+  const annuler = useAnnulerAvis()
 
-  const load = () => api.get('/avis/mes-avis').then(r => setAvis(r.data)).finally(() => setLoading(false))
-  useEffect(() => { load() }, [])
+  const [lienAvis, setLienAvis] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(null)
 
-  const showMsg = (type, text) => {
-    setMsg({ type, text })
-    setTimeout(() => setMsg(null), 4000)
-  }
+  const avisEnCours = avisList?.find(a => a.statut === 'reserve')
+  const avisEnVerification = avisList?.find(a => a.statut === 'en_verification')
+  const avisValides = avisList?.filter(a => a.statut === 'valide') || []
+  const avisRefuses = avisList?.filter(a => a.statut === 'refuse') || []
 
-  const soumettre = async (id) => {
-    if (!lien.trim()) return showMsg('error', 'Entre le lien de ton avis Google')
-    setSub(true)
-    try {
-      const r = await api.post(`/avis/${id}/soumettre`, { lien_avis: lien })
-      showMsg(r.data.success ? 'success' : 'error', r.data.message)
-      load()
-      setLien('')
-    } catch (e) {
-      showMsg('error', e.response?.data?.error || 'Erreur')
+  const currentAvis = avisEnCours || avisEnVerification
+
+  // Timer
+  useEffect(() => {
+    if (!avisEnCours?.reserve_at) return
+    const interval = setInterval(() => {
+      const reserveAt = new Date(avisEnCours.reserve_at)
+      const elapsed = Date.now() - reserveAt.getTime()
+      const remaining = 3600000 - elapsed
+      if (remaining <= 0) {
+        setTimeLeft(0)
+        clearInterval(interval)
+      } else {
+        const mins = Math.floor(remaining / 60000)
+        const secs = Math.floor((remaining % 60000) / 1000)
+        setTimeLeft(`${mins}m ${secs.toString().padStart(2, '0')}s`)
+      }
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [avisEnCours])
+
+  const handleCopy = () => {
+    if (currentAvis?.texte) {
+      navigator.clipboard.writeText(currentAvis.texte)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
-    setSub(false)
   }
 
-  const annuler = async (id) => {
-    if (!confirm('Annuler la réservation ?')) return
-    setAnnulant(true)
-    try {
-      await api.post(`/avis/${id}/annuler`)
-      showMsg('success', 'Réservation annulée')
-      load()
-    } catch {
-      showMsg('error', 'Erreur')
-    }
-    setAnnulant(false)
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (!lienAvis.trim() || !currentAvis) return
+    soumettre.mutate({ id: currentAvis.id, lien_avis: lienAvis.trim() })
   }
 
-  const contester = async (id) => {
-    setContestLoading(true)
-    try {
-      const r = await api.post(`/avis/${id}/contester`, { message: contestMsg })
-      showMsg('success', r.data.message)
-      setContesting(null)
-      setContestMsg('')
-      load()
-    } catch (e) {
-      showMsg('error', e.response?.data?.error || 'Erreur')
-    }
-    setContestLoading(false)
+  const nbEtoiles = parseInt(currentAvis?.nb_etoiles) || 5
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-8 bg-slate-200 rounded w-48" />
+        <div className="h-64 bg-slate-200 rounded-xl" />
+      </div>
+    )
   }
-
-  const statutBadge = s => ({
-    reserve:         <span className="badge-yellow">⏳ En cours</span>,
-    en_verification: <span className="badge-blue">🔍 Vérification</span>,
-    valide:          <span className="badge-green">✅ Validé</span>,
-    refuse:          <span className="badge-red">❌ Supprimé</span>,
-    paye:            <span className="badge-green">💸 Payé</span>,
-    lien_incorrect:  <span className="badge-red">🔗 Lien incorrect</span>,
-  }[s] || <span className="badge-gray">{s}</span>)
-
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/>
-    </div>
-  )
-
-  const actif = avis.find(a => a.statut === 'reserve' || a.statut === 'lien_incorrect')
-  const historique = avis.filter(a => a.statut !== 'reserve' && a.statut !== 'lien_incorrect')
 
   return (
-    <div className="p-4 space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">Mes avis</h2>
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <Link to="/dashboard" className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+          <ArrowLeft size={18} className="text-slate-500" />
+        </Link>
+        <h1 className="page-title">Mon avis</h1>
+      </div>
 
-      {msg && (
-        <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-          {msg.text}
-        </div>
-      )}
-
-      {actif ? (
-        <div className={`card space-y-4 border-2 ${actif.statut === 'lien_incorrect' ? 'border-orange-300' : 'border-brand-200'}`}>
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-gray-900">
-              {actif.statut === 'lien_incorrect' ? '🔗 Corriger ton lien' : 'Avis en cours'}
-            </h3>
-            {statutBadge(actif.statut)}
+      {/* Avis en cours */}
+      {currentAvis && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card p-0 overflow-hidden"
+        >
+          {/* Status bar */}
+          <div className={`px-5 py-3 flex items-center justify-between ${
+            avisEnCours ? 'bg-amber-50 border-b border-amber-100' : 'bg-sky-50 border-b border-sky-100'
+          }`}>
+            <div className="flex items-center gap-2">
+              {avisEnCours ? (
+                <>
+                  <Clock size={16} className="text-amber-500" />
+                  <span className="text-sm font-semibold text-amber-700">En cours</span>
+                </>
+              ) : (
+                <>
+                  <Loader2 size={16} className="text-sky-500 animate-spin" />
+                  <span className="text-sm font-semibold text-sky-700">En verification</span>
+                </>
+              )}
+            </div>
+            {avisEnCours && timeLeft !== null && (
+              <span className={`text-sm font-bold tabular-nums ${
+                timeLeft === 0 ? 'text-red-500' : 'text-amber-600'
+              }`}>
+                {timeLeft === 0 ? 'Delai expire' : timeLeft}
+              </span>
+            )}
           </div>
 
-          {actif.statut === 'lien_incorrect' && (
-            <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
-              <p className="text-sm font-bold text-orange-700">⚠️ Lien incorrect détecté</p>
-              <p className="text-xs text-orange-600 mt-1">
-                L'admin a détecté que le lien soumis n'est pas le bon. Ton avis est gardé — soumets simplement le bon lien.
+          <div className="p-5 space-y-5">
+            {/* Etablissement */}
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">{currentAvis.nom_societe}</h2>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="flex gap-0.5">
+                  {[1,2,3,4,5].map(n => (
+                    <Star key={n} size={14} className={
+                      n <= nbEtoiles ? 'text-amber-400 fill-amber-400' : 'text-slate-300'
+                    } />
+                  ))}
+                </div>
+                <span className="text-sm text-slate-500">{nbEtoiles} etoiles</span>
+                <span className="text-slate-300">|</span>
+                <span className="text-sm font-semibold text-sky-600">+{parseFloat(currentAvis.prix).toFixed(2)} EUR</span>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            {avisEnCours && (
+              <div>
+                <div className="flex justify-between text-xs text-slate-500 mb-1.5">
+                  <span>Temps restant</span>
+                  <span className="font-medium">{timeLeft === 0 ? 'Expire' : '1h max'}</span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-amber-400 rounded-full"
+                    initial={{ width: '100%' }}
+                    animate={{ width: timeLeft === 0 ? '0%' : `${(parseInt(timeLeft) / 60) * 100}%` }}
+                    transition={{ duration: 1 }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Texte a copier */}
+            <div className="bg-slate-50 rounded-xl p-4 relative group">
+              <p className="text-sm text-slate-600 italic leading-relaxed pr-10">
+                &ldquo;{currentAvis.texte}&rdquo;
               </p>
+              <button
+                onClick={handleCopy}
+                className="absolute top-3 right-3 p-2 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-sky-600 hover:border-sky-200 transition-all shadow-sm"
+                title="Copier le texte"
+              >
+                {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+              </button>
             </div>
-          )}
 
-          {actif.statut === 'reserve' && <Countdown reserveAt={actif.reserve_at} />}
-
-          <div>
-            <p className="text-sm font-medium text-gray-700 mb-1">Établissement</p>
-            <p className="font-bold text-brand-700">{actif.nom_societe}</p>
-            <p className="text-sm text-gray-500">Récompense : <span className="font-bold">{parseFloat(actif.prix).toFixed(2)}€</span> après {actif.delai_paiement}j</p>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Texte à copier ⬇️</p>
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-              <p className="text-sm text-gray-700 leading-relaxed">{actif.texte}</p>
-            </div>
-            <button className="mt-2 text-xs text-brand-600 font-medium active:opacity-70"
-              onClick={() => { navigator.clipboard.writeText(actif.texte); showMsg('success', '📋 Texte copié !') }}>
-              📋 Copier le texte
-            </button>
-          </div>
-
-          <a href={actif.lien_maps} target="_blank" rel="noreferrer" className="btn-secondary text-center block">
-            🗺️ Ouvrir Google Maps
-          </a>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-            <p className="text-xs text-blue-700 font-medium">💡 Comment trouver le lien de ton avis ?</p>
-            <p className="text-xs text-blue-600 mt-1">Une fois publié → clique sur ton avis → copie l'URL de la page de ton avis</p>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">
-              {actif.statut === 'lien_incorrect' ? '🔗 Nouveau lien de ton avis' : 'Lien de ton avis publié'}
-            </p>
-            <input className="input" type="url" placeholder="https://maps.google.com/..."
-              value={lien} onChange={e => setLien(e.target.value)} />
-          </div>
-
-          <button className="btn-primary flex items-center justify-center gap-2 disabled:opacity-70"
-            onClick={() => soumettre(actif.id)} disabled={submitting}>
-            {submitting ? <><Spinner /> Envoi en cours...</> : '✅ Soumettre le lien de mon avis'}
-          </button>
-
-          {actif.statut === 'reserve' && (
-            <button
-              className="text-sm text-red-400 text-center w-full py-2 flex items-center justify-center gap-2 disabled:opacity-50"
-              onClick={() => annuler(actif.id)}
-              disabled={annulant}
-            >
-              {annulant ? <><Spinner dark /> Annulation...</> : 'Annuler la réservation'}
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="card text-center py-8">
-          <p className="text-3xl mb-2">🎯</p>
-          <p className="font-semibold text-gray-700">Aucun avis en cours</p>
-          <Link to="/avis" className="btn-primary mt-4 block">Voir les avis disponibles</Link>
-        </div>
-      )}
-
-      {historique.length > 0 && (
-        <div>
-          <h3 className="font-bold text-gray-900 mb-3">Historique</h3>
-          <div className="space-y-3">
-            {historique.map(a => (
-              <div key={a.id} className="card space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-sm text-gray-900">{a.nom_societe}</p>
-                    <p className="text-xs text-gray-400">{parseFloat(a.prix).toFixed(2)}€ · {a.delai_paiement}j</p>
-                  </div>
-                  {statutBadge(a.statut)}
+            {/* Actions */}
+            {avisEnCours && (
+              <>
+                <div className="flex gap-3">
+                  <a
+                    href={currentAvis.lien_maps}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary flex-1"
+                  >
+                    <ExternalLink size={16} />
+                    Ouvrir Google Maps
+                  </a>
+                  <button
+                    onClick={() => annuler.mutate(currentAvis.id)}
+                    disabled={annuler.isPending}
+                    className="btn-ghost px-4"
+                  >
+                    <RotateCcw size={16} />
+                    Annuler
+                  </button>
                 </div>
 
-                {a.statut === 'refuse' && (
-                  contesting === a.id ? (
-                    <div className="space-y-2">
-                      <textarea className="input text-sm min-h-[80px]"
-                        placeholder="Explique pourquoi ton avis est toujours en ligne..."
-                        value={contestMsg} onChange={e => setContestMsg(e.target.value)} />
-                      <div className="flex gap-2">
-                        <button onClick={() => contester(a.id)} disabled={contestLoading}
-                          className="flex-1 bg-orange-500 text-white py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
-                          {contestLoading ? <><Spinner /> Envoi...</> : 'Envoyer'}
-                        </button>
-                        <button onClick={() => { setContesting(null); setContestMsg('') }}
-                          className="flex-1 bg-gray-100 text-gray-600 py-2 rounded-xl text-sm font-semibold">
-                          Annuler
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button onClick={() => setContesting(a.id)}
-                      className="w-full bg-orange-50 border border-orange-200 text-orange-600 py-2 rounded-xl text-sm font-semibold active:bg-orange-100">
-                      ⚠️ Contester la suppression
+                {/* Formulaire soumission */}
+                <form onSubmit={handleSubmit} className="space-y-3 pt-2 border-t border-slate-100">
+                  <label className="text-sm font-medium text-slate-700">
+                    Lien de ton avis publie
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      placeholder="https://maps.google.com/..."
+                      value={lienAvis}
+                      onChange={e => setLienAvis(e.target.value)}
+                      required
+                      className="input flex-1"
+                    />
+                    <button
+                      type="submit"
+                      disabled={soumettre.isPending || !lienAvis.trim()}
+                      className="btn-primary px-5"
+                    >
+                      {soumettre.isPending ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <>
+                          <Send size={16} />
+                          Soumettre
+                        </>
+                      )}
                     </button>
-                  )
-                )}
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Copie le lien direct de ton avis sur Google Maps et colle-le ici.
+                  </p>
+                </form>
+              </>
+            )}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Aucun avis en cours */}
+      {!currentAvis && avisValides.length === 0 && avisRefuses.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card p-12 text-center"
+        >
+          <div className="w-16 h-16 bg-sky-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Star size={28} className="text-sky-400" />
+          </div>
+          <p className="text-slate-700 font-semibold text-lg">Aucun avis en cours</p>
+          <p className="text-slate-400 text-sm mt-2 mb-6 max-w-sm mx-auto">
+            Reserve un avis disponible et suis les etapes pour le publier sur Google Maps.
+          </p>
+          <Link to="/avis" className="btn-primary inline-flex">
+            <Star size={16} />
+            Voir les avis disponibles
+            <ArrowRight size={16} />
+          </Link>
+        </motion.div>
+      )}
+
+      {/* Avis valides en attente */}
+      {avisValides.length > 0 && (
+        <div className="card p-5">
+          <h2 className="section-title mb-4 flex items-center gap-2">
+            <CheckCircle2 size={18} className="text-emerald-500" />
+            Avis valides en attente de paiement
+          </h2>
+          <div className="space-y-2">
+            {avisValides.map(a => (
+              <div key={a.id} className="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg">
+                <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-800">{a.nom_societe}</p>
+                  <p className="text-xs text-slate-500">+{parseFloat(a.prix).toFixed(2)} EUR</p>
+                </div>
+                <span className="badge badge-green text-xs">Valide</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Avis refuses */}
+      {avisRefuses.length > 0 && (
+        <div className="card p-5">
+          <h2 className="section-title mb-4 flex items-center gap-2">
+            <XCircle size={18} className="text-red-500" />
+            Avis supprimes
+          </h2>
+          <div className="space-y-2">
+            {avisRefuses.map(a => (
+              <div key={a.id} className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
+                <XCircle size={16} className="text-red-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-800">{a.nom_societe}</p>
+                  <p className="text-xs text-slate-500">{parseFloat(a.prix).toFixed(2)} EUR</p>
+                </div>
+                <Link
+                  to={`/mon-avis/contester/${a.id}`}
+                  className="text-xs font-medium text-red-600 hover:text-red-700 flex items-center gap-1"
+                >
+                  <MessageSquare size={12} />
+                  Contester
+                </Link>
               </div>
             ))}
           </div>

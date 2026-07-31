@@ -1,165 +1,252 @@
-import { useState, useEffect } from 'react'
+// ============================================================
+// frontend/src/pages/Dashboard.jsx -- NOUVEAU (redesign)
+// ============================================================
+
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import api from '../lib/api'
+import { useSolde, useMesAvis } from '../hooks/useAvis'
+import { DashboardSkeleton } from '../components/Skeleton'
+import {
+  Wallet,
+  Star,
+  Clock,
+  AlertTriangle,
+  MessageCircle,
+  ArrowRight,
+  TrendingUp,
+  CheckCircle2,
+  XCircle,
+  Loader2
+} from 'lucide-react'
+import { motion } from 'framer-motion'
+
+const statutConfig = {
+  reserve: { label: 'En cours', class: 'badge-amber', icon: Clock },
+  en_verification: { label: 'Verification', class: 'badge-blue', icon: Loader2 },
+  valide: { label: 'Valide', class: 'badge-green', icon: CheckCircle2 },
+  refuse: { label: 'Supprime', class: 'badge-red', icon: XCircle },
+  paye: { label: 'Paye', class: 'badge-green', icon: CheckCircle2 },
+}
+
+function getDelaiRestant(avis) {
+  if (!avis.valide_at || avis.statut !== 'valide') return null
+  const valideAt = new Date(avis.valide_at)
+  const delaiJours = parseInt(avis.delai_paiement) || 30
+  const payeAt = new Date(valideAt.getTime() + delaiJours * 24 * 60 * 60 * 1000)
+  const diff = payeAt - Date.now()
+  if (diff <= 0) return 'Paiement imminent'
+  const jours = Math.ceil(diff / (24 * 60 * 60 * 1000))
+  return `${jours}j restantes`
+}
 
 export default function Dashboard() {
   const { user } = useAuth()
-  const [solde, setSolde]         = useState(0)
-  const [avis, setAvis]           = useState([])
-  const [soldeAttente, setSoldeAttente] = useState(0)
-  const [loading, setLoading]     = useState(true)
+  const { data: soldeData, isLoading: soldeLoading } = useSolde()
+  const { data: avis, isLoading: avisLoading } = useMesAvis()
 
-  useEffect(() => {
-    Promise.all([
-      api.get('/paiements/solde'),
-      api.get('/avis/mes-avis'),
-    ]).then(([s, a]) => {
-      setSolde(s.data.solde)
-      const mesAvis = a.data
-      setAvis(mesAvis.slice(0, 3))
+  const solde = soldeData?.solde || 0
+  const soldeAttente = avis?.filter(a => a.statut === 'valide').reduce((s, a) => s + parseFloat(a.prix || 0), 0) || 0
 
-      // Calculer le solde en attente (avis validés mais pas encore payés)
-      const enAttente = mesAvis
-        .filter(av => av.statut === 'valide')
-        .reduce((sum, av) => sum + parseFloat(av.prix || 0), 0)
-      setSoldeAttente(enAttente)
-    }).finally(() => setLoading(false))
-  }, [])
+  const recentAvis = avis?.slice(0, 5) || []
 
-  const statutBadge = s => ({
-    disponible:      <span className="badge-blue">Disponible</span>,
-    reserve:         <span className="badge-yellow">Réservé</span>,
-    en_verification: <span className="badge-yellow">Vérification</span>,
-    valide:          <span className="badge-green">Validé ✓</span>,
-    refuse:          <span className="badge-red">Refusé</span>,
-    paye:            <span className="badge-green">Payé 💸</span>,
-    lien_incorrect:  <span className="badge-red">🔗 Lien incorrect</span>,
-  }[s] || <span className="badge-gray">{s}</span>)
-
-  const getDelaiRestant = (avis) => {
-    if (avis.statut !== 'valide' || !avis.valide_at) return null
-    const valideAt = new Date(avis.valide_at)
-    const paiementAt = new Date(valideAt.getTime() + avis.delai_paiement * 24 * 60 * 60 * 1000)
-    const now = new Date()
-    const joursRestants = Math.ceil((paiementAt - now) / (1000 * 60 * 60 * 24))
-    if (joursRestants <= 0) return 'Paiement imminent'
-    return `Dans ${joursRestants}j`
-  }
-
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/>
-    </div>
-  )
+  if (soldeLoading || avisLoading) return <DashboardSkeleton />
 
   return (
-    <div className="p-4 space-y-4">
-      {/* Solde */}
-      <div className="bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl p-5 text-white">
-        <p className="text-brand-200 text-sm font-medium">Ton solde disponible</p>
-        <p className="text-4xl font-extrabold mt-1">{solde.toFixed(2)} €</p>
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div>
+        <h1 className="page-title">Bonjour, {user?.email?.split('@')[0]}</h1>
+        <p className="text-muted mt-1">Voici ce qui se passe sur ton compte.</p>
+      </div>
 
-        {soldeAttente > 0 && (
-          <div className="mt-2 bg-white/20 rounded-xl px-3 py-2">
-            <p className="text-sm font-medium text-white">
-              ⏳ <span className="font-bold">{soldeAttente.toFixed(2)}€</span> en attente de versement
-            </p>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Solde */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="stat-card bg-sky-500 border-sky-400 text-white"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+              <Wallet size={20} className="text-white" />
+            </div>
+            <span className="text-xs font-medium text-sky-100 bg-white/15 px-2 py-0.5 rounded-full">
+              Disponible
+            </span>
           </div>
-        )}
+          <div className="text-3xl font-extrabold tracking-tight">
+            {solde.toFixed(2)} <span className="text-lg font-semibold">EUR</span>
+          </div>
+          <p className="text-sky-100 text-sm mt-1">Solde actuel</p>
+        </motion.div>
 
-        <div className="mt-4 flex gap-2">
-          <Link to="/portefeuille"
-            className="flex-1 bg-white/20 text-white text-center py-2 rounded-xl text-sm font-semibold active:bg-white/30 transition-all">
-            💸 Retirer
-          </Link>
-          <Link to="/avis"
-            className="flex-1 bg-white text-brand-700 text-center py-2 rounded-xl text-sm font-semibold active:bg-brand-50 transition-all">
-            ⭐ Voir les avis
-          </Link>
-        </div>
+        {/* En attente */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="stat-card"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center">
+              <Clock size={20} className="text-amber-500" />
+            </div>
+            <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+              En attente
+            </span>
+          </div>
+          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
+            {soldeAttente.toFixed(2)} <span className="text-lg font-semibold text-slate-400">EUR</span>
+          </div>
+          <p className="text-slate-500 text-sm mt-1">Apres verification</p>
+        </motion.div>
+
+        {/* Avis total */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="stat-card"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
+              <Star size={20} className="text-emerald-500" />
+            </div>
+            <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+              Total
+            </span>
+          </div>
+          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
+            {avis?.length || 0}
+          </div>
+          <p className="text-slate-500 text-sm mt-1">Avis rediges</p>
+        </motion.div>
       </div>
 
       {/* Alertes */}
-      {!user?.paypal_email && (
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 flex items-start gap-2">
-          <span className="text-orange-500 text-lg">⚠️</span>
-          <div>
-            <p className="text-sm font-bold text-orange-700">Adresse PayPal manquante</p>
-            <p className="text-xs text-orange-600 mt-0.5">Ajoute ton PayPal pour pouvoir retirer ton solde.</p>
-            <Link to="/profil" className="text-xs text-orange-700 underline font-medium mt-1 block">
-              Aller dans mon profil →
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {!user?.discord_id && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3 flex items-start gap-2">
-          <span className="text-indigo-500 text-lg">💬</span>
-          <div>
-            <p className="text-sm font-bold text-indigo-700">ID Discord manquant</p>
-            <p className="text-xs text-indigo-600 mt-0.5">Renseigne ton ID Discord dans ton profil.</p>
-            <Link to="/profil" className="text-xs text-indigo-700 underline font-medium mt-1 block">
-              Aller dans mon profil →
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Comment ça marche */}
-      <div className="card">
-        <h3 className="font-bold text-gray-900 mb-3">Comment ça marche ?</h3>
-        <div className="space-y-3">
-          {[
-            { n: '1', t: 'Réserve un avis', d: 'Choisis un établissement à noter' },
-            { n: '2', t: 'Publie ton avis', d: 'Mets les étoiles demandées sur Google Maps avec le texte fourni' },
-            { n: '3', t: 'Soumets le lien', d: 'Copie le lien de ton avis publié et soumets-le' },
-            { n: '4', t: 'Reçois ton argent', d: 'Ton solde est crédité après le délai de vérification' },
-          ].map(s => (
-            <div key={s.n} className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-brand-100 text-brand-700 rounded-lg flex items-center justify-center font-bold text-sm shrink-0">
-                {s.n}
-              </div>
-              <div>
-                <p className="font-semibold text-sm text-gray-900">{s.t}</p>
-                <p className="text-xs text-gray-500">{s.d}</p>
-              </div>
+      <div className="space-y-3">
+        {!user?.paypal_email && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="card p-4 border-l-4 border-l-amber-400 flex items-start gap-3"
+          >
+            <AlertTriangle size={18} className="text-amber-500 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-slate-800">Adresse PayPal manquante</p>
+              <p className="text-sm text-slate-500 mt-0.5">Ajoute ton PayPal pour pouvoir retirer ton solde.</p>
             </div>
+            <Link to="/profil" className="btn-secondary text-xs py-2 px-3 shrink-0">
+              Profil
+            </Link>
+          </motion.div>
+        )}
+
+        {!user?.discord_id && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.05 }}
+            className="card p-4 border-l-4 border-l-sky-400 flex items-start gap-3"
+          >
+            <MessageCircle size={18} className="text-sky-500 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-slate-800">ID Discord manquant</p>
+              <p className="text-sm text-slate-500 mt-0.5">Renseigne ton ID Discord dans ton profil.</p>
+            </div>
+            <Link to="/profil" className="btn-secondary text-xs py-2 px-3 shrink-0">
+              Profil
+            </Link>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Comment ca marche */}
+      <div className="card p-5">
+        <h2 className="section-title mb-4">Comment ca marche ?</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { n: '1', t: 'Reserve un avis', d: 'Choisis un etablissement a noter', color: 'bg-sky-50 text-sky-600' },
+            { n: '2', t: 'Publie ton avis', d: 'Mets les etoiles demandees sur Google Maps', color: 'bg-emerald-50 text-emerald-600' },
+            { n: '3', t: 'Soumets le lien', d: 'Copie le lien de ton avis publie', color: 'bg-amber-50 text-amber-600' },
+            { n: '4', t: 'Recois ton argent', d: 'Ton solde est credite apres verification', color: 'bg-violet-50 text-violet-600' },
+          ].map((s, i) => (
+            <motion.div
+              key={s.n}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + i * 0.05 }}
+              className="bg-slate-50 rounded-lg p-4"
+            >
+              <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${s.color} mb-2`}>
+                {s.n}
+              </span>
+              <p className="text-sm font-semibold text-slate-800">{s.t}</p>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">{s.d}</p>
+            </motion.div>
           ))}
         </div>
       </div>
 
       {/* Derniers avis */}
-      {avis.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-gray-900">Mes derniers avis</h3>
-            <Link to="/mon-avis" className="text-sm text-brand-600 font-medium">Voir tout</Link>
+      {recentAvis.length > 0 && (
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="section-title">Mes derniers avis</h2>
+            <Link to="/mon-avis" className="text-sm font-medium text-sky-600 hover:text-sky-700 flex items-center gap-1">
+              Voir tout <ArrowRight size={14} />
+            </Link>
           </div>
           <div className="space-y-2">
-            {avis.map(a => {
+            {recentAvis.map((a) => {
+              const config = statutConfig[a.statut] || statutConfig.reserve
+              const Icon = config.icon
               const delai = getDelaiRestant(a)
               return (
-                <div key={a.id} className="card flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm text-gray-900 truncate">{a.nom_societe}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <p className="text-xs text-gray-500">{parseFloat(a.prix).toFixed(2)}€</p>
-                      {delai && (
-                        <span className="text-xs bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full font-medium">
-                          ⏳ {delai}
-                        </span>
-                      )}
-                    </div>
+                <div
+                  key={a.id}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                    a.statut === 'valide' || a.statut === 'paye' ? 'bg-emerald-50' :
+                    a.statut === 'refuse' ? 'bg-red-50' : 'bg-amber-50'
+                  }`}>
+                    <Icon size={16} className={
+                      a.statut === 'valide' || a.statut === 'paye' ? 'text-emerald-500' :
+                      a.statut === 'refuse' ? 'text-red-500' : 'text-amber-500'
+                    } />
                   </div>
-                  {statutBadge(a.statut)}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{a.nom_societe}</p>
+                    <p className="text-xs text-slate-400">{parseFloat(a.prix).toFixed(2)} EUR</p>
+                  </div>
+                  {delai && (
+                    <span className="text-xs text-slate-400 shrink-0">{delai}</span>
+                  )}
+                  <span className={`badge text-xs ${config.class}`}>
+                    {config.label}
+                  </span>
                 </div>
               )
             })}
           </div>
         </div>
       )}
+
+      {/* CTA */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Link to="/portefeuille" className="btn-primary flex-1 justify-center">
+          <Wallet size={16} />
+          Retirer mon solde
+        </Link>
+        <Link to="/avis" className="btn-secondary flex-1 justify-center">
+          <Star size={16} />
+          Voir les avis disponibles
+        </Link>
+      </div>
     </div>
   )
 }

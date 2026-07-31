@@ -1,136 +1,186 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../hooks/useAuth'
-import { useNavigate } from 'react-router-dom'
-import api from '../lib/api'
+// ============================================================
+// frontend/src/pages/Profil.jsx -- NOUVEAU (redesign)
+// ============================================================
 
-function Spinner() {
-  return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
-}
+import { useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
+import api from '../lib/api'
+import toast from 'react-hot-toast'
+import {
+  User,
+  Mail,
+  MessageCircle,
+  CreditCard,
+  Lock,
+  Save,
+  Check,
+  Shield
+} from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export default function Profil() {
-  const { user, updateUser, logout } = useAuth()
-  const navigate = useNavigate()
-  const [form, setForm] = useState({
-    discord_id:       '',
-    paypal_email:     '',
-    current_password: '',
-    new_password:     '',
-  })
-  const [msg, setMsg]           = useState(null)
-  const [saving, setSaving]     = useState(false)
-  const [loggingOut, setLoggingOut] = useState(false)
+  const { user, updateUser } = useAuth()
+  const [discordId, setDiscordId] = useState(user?.discord_id || '')
+  const [paypalEmail, setPaypalEmail] = useState(user?.paypal_email || '')
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  // Fix — synchroniser form avec user quand user change
-  useEffect(() => {
-    if (user) {
-      setForm(p => ({
-        ...p,
-        discord_id:   user.discord_id || '',
-        paypal_email: user.paypal_email || '',
-      }))
-    }
-  }, [user])
-
-  const showMsg = (type, text) => {
-    setMsg({ type, text })
-    setTimeout(() => setMsg(null), 4000)
-  }
-
-  const save = async () => {
+  const handleSave = async (e) => {
+    e.preventDefault()
     setSaving(true)
     try {
-      await api.put('/auth/profile', form)
-      const r = await api.get('/auth/me')
-      // Fix — utiliser updateUser au lieu de setUser
-      updateUser(r.data)
-      showMsg('success', '✅ Profil mis à jour !')
-      setForm(p => ({ ...p, current_password: '', new_password: '' }))
-    } catch (e) {
-      showMsg('error', e.response?.data?.error || 'Erreur')
+      await api.put('/auth/profile', {
+        discord_id: discordId || null,
+        paypal_email: paypalEmail || null,
+        new_password: newPassword || null,
+        current_password: currentPassword || null,
+      })
+      updateUser({ discord_id: discordId, paypal_email: paypalEmail })
+      toast.success('Profil mis a jour')
+      setCurrentPassword('')
+      setNewPassword('')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur')
     } finally {
       setSaving(false)
     }
   }
 
-  const handleLogout = () => {
-    setLoggingOut(true)
-    logout()
-    navigate('/login')
-  }
+  const roleLabel = {
+    admin: { text: 'Administrateur', color: 'bg-violet-50 text-violet-700 border-violet-200' },
+    client: { text: 'Client', color: 'bg-sky-50 text-sky-700 border-sky-200' },
+    membre: { text: 'Membre', color: 'bg-slate-100 text-slate-600 border-slate-200' },
+  }[user?.role] || { text: user?.role, color: 'bg-slate-100 text-slate-600' }
 
   return (
-    <div className="p-4 space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">Mon profil</h2>
+    <div className="space-y-6 animate-fade-in">
+      <h1 className="page-title">Mon profil</h1>
 
-      <div className="card">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-brand-100 rounded-2xl flex items-center justify-center">
-            <span className="text-brand-700 font-bold text-xl">{user?.email?.[0]?.toUpperCase()}</span>
+      {/* Info card */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="card p-5"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-sky-50 rounded-xl flex items-center justify-center">
+            <User size={24} className="text-sky-500" />
           </div>
-          <div>
-            <p className="font-bold text-gray-900">{user?.email}</p>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-              user?.role === 'admin'  ? 'bg-purple-100 text-purple-700' :
-              user?.role === 'client' ? 'bg-blue-100 text-blue-700' :
-              'bg-green-100 text-green-700'
-            }`}>
-              {user?.role === 'admin' ? '⚡ Admin' : user?.role === 'client' ? '🏢 Client' : '⭐ Membre'}
-            </span>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold text-slate-900">{user?.email}</h2>
+              <span className={`badge ${roleLabel.color}`}>{roleLabel.text}</span>
+            </div>
+            <p className="text-sm text-slate-500 mt-0.5">
+              Membre depuis {new Date(user?.created_at).toLocaleDateString('fr-FR')}
+            </p>
           </div>
         </div>
+      </motion.div>
 
-        {msg && (
-          <div className={`rounded-xl p-3 text-sm mb-4 font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-            {msg.text}
-          </div>
-        )}
+      {/* Edit form */}
+      <motion.form
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        onSubmit={handleSave}
+        className="card p-5 space-y-5"
+      >
+        <h2 className="section-title flex items-center gap-2">
+          <Shield size={18} className="text-sky-500" />
+          Informations
+        </h2>
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">ID Discord</label>
-            <input className="input" placeholder="123456789012345678"
-              value={form.discord_id} onChange={e => setForm(p => ({ ...p, discord_id: e.target.value }))} />
-            {!user?.discord_id && (
-              <p className="text-xs text-orange-500 mt-1">⚠️ ID Discord non renseigné</p>
-            )}
+            <label className="block text-sm font-medium text-slate-700 mb-1.5 flex items-center gap-1.5">
+              <Mail size={14} className="text-slate-400" />
+              Email
+            </label>
+            <input
+              type="email"
+              value={user?.email || ''}
+              disabled
+              className="input bg-slate-50 text-slate-400 cursor-not-allowed"
+            />
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">Email PayPal</label>
-            <input className="input" type="email" placeholder="ton@paypal.com"
-              value={form.paypal_email} onChange={e => setForm(p => ({ ...p, paypal_email: e.target.value }))} />
-            {!user?.paypal_email && (
-              <p className="text-xs text-orange-500 mt-1">⚠️ Adresse PayPal requise pour les retraits</p>
-            )}
+            <label className="block text-sm font-medium text-slate-700 mb-1.5 flex items-center gap-1.5">
+              <MessageCircle size={14} className="text-slate-400" />
+              ID Discord
+            </label>
+            <input
+              type="text"
+              value={discordId}
+              onChange={e => setDiscordId(e.target.value)}
+              placeholder="123456789012345678"
+              className="input"
+            />
+            <p className="text-xs text-slate-400 mt-1">Requis pour les communications</p>
           </div>
 
-          <div className="border-t border-gray-100 pt-4">
-            <p className="text-sm font-semibold text-gray-700 mb-3">Changer le mot de passe</p>
-            <div className="space-y-3">
-              <input className="input" type="password" placeholder="Mot de passe actuel"
-                value={form.current_password} onChange={e => setForm(p => ({ ...p, current_password: e.target.value }))} />
-              <input className="input" type="password" placeholder="Nouveau mot de passe (6 car. min)"
-                value={form.new_password} onChange={e => setForm(p => ({ ...p, new_password: e.target.value }))} />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5 flex items-center gap-1.5">
+              <CreditCard size={14} className="text-slate-400" />
+              Email PayPal
+            </label>
+            <input
+              type="email"
+              value={paypalEmail}
+              onChange={e => setPaypalEmail(e.target.value)}
+              placeholder="paypal@email.com"
+              className="input"
+            />
+            <p className="text-xs text-slate-400 mt-1">Requis pour les retraits</p>
           </div>
-
-          <button
-            className="btn-primary flex items-center justify-center gap-2 disabled:opacity-70"
-            onClick={save}
-            disabled={saving}
-          >
-            {saving ? <><Spinner /> Enregistrement...</> : 'Enregistrer'}
-          </button>
         </div>
-      </div>
 
-      <button
-        className="btn-danger flex items-center justify-center gap-2 disabled:opacity-70"
-        onClick={handleLogout}
-        disabled={loggingOut}
-      >
-        {loggingOut ? <><Spinner /> Déconnexion...</> : 'Se déconnecter'}
-      </button>
+        <div className="border-t border-slate-100 pt-5 space-y-4">
+          <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+            <Lock size={14} className="text-slate-400" />
+            Changer le mot de passe
+          </h3>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Mot de passe actuel</label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
+              placeholder="••••••••"
+              className="input"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Nouveau mot de passe</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              placeholder="Min. 8 caracteres"
+              className="input"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="btn-primary w-full"
+        >
+          {saving ? (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <>
+              <Save size={16} />
+              Enregistrer les modifications
+            </>
+          )}
+        </button>
+      </motion.form>
     </div>
   )
 }

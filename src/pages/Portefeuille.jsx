@@ -1,146 +1,172 @@
-import { useState, useEffect } from 'react'
-import api from '../lib/api'
+// ============================================================
+// frontend/src/pages/Portefeuille.jsx -- NOUVEAU (redesign)
+// ============================================================
 
-function Spinner() {
-  return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+import { useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
+import { useSolde, useTransactions, useDemanderRetrait } from '../hooks/useAvis'
+import {
+  Wallet,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Clock,
+  AlertTriangle,
+  ChevronRight,
+  CreditCard
+} from 'lucide-react'
+import { motion } from 'framer-motion'
+
+const typeConfig = {
+  credit: { label: 'Credit', color: 'text-emerald-600', bg: 'bg-emerald-50', icon: ArrowDownLeft },
+  debit: { label: 'Debit', color: 'text-red-600', bg: 'bg-red-50', icon: ArrowUpRight },
+  retrait: { label: 'Retrait', color: 'text-amber-600', bg: 'bg-amber-50', icon: ArrowUpRight },
+  penalite: { label: 'Penalite', color: 'text-red-600', bg: 'bg-red-50', icon: ArrowUpRight },
 }
 
 export default function Portefeuille() {
-  const [solde, setSolde]       = useState(0)
-  const [transactions, setTx]   = useState([])
-  const [retraits, setRetraits] = useState([])
-  const [montant, setMontant]   = useState('')
-  const [msg, setMsg]           = useState(null)
-  const [loading, setLoading]   = useState(true)
-  const [submitting, setSub]    = useState(false)
-  const [tab, setTab]           = useState('transactions')
+  const { user } = useAuth()
+  const { data: soldeData } = useSolde()
+  const { data: transactions, isLoading } = useTransactions()
+  const retrait = useDemanderRetrait()
 
-  const load = async () => {
-    const [s, tx, r] = await Promise.all([
-      api.get('/paiements/solde'),
-      api.get('/paiements/transactions'),
-      api.get('/paiements/retraits'),
-    ])
-    setSolde(s.data.solde)
-    setTx(tx.data)
-    setRetraits(r.data)
-    setLoading(false)
-  }
+  const [montant, setMontant] = useState('')
 
-  useEffect(() => { load() }, [])
+  const solde = soldeData?.solde || 0
+  const hasPaypal = !!user?.paypal_email
 
-  const showMsg = (type, text) => {
-    setMsg({ type, text })
-    setTimeout(() => setMsg(null), 4000)
-  }
-
-  const retirer = async () => {
+  const handleRetrait = (e) => {
+    e.preventDefault()
     const m = parseFloat(montant)
-    if (!m || m < 1) return showMsg('error', 'Montant minimum : 1€')
-    setSub(true)
-    try {
-      const r = await api.post('/paiements/retrait', { montant: m })
-      showMsg('success', r.data.message)
-      setMontant('')
-      load()
-    } catch (e) {
-      showMsg('error', e.response?.data?.error || 'Erreur')
-    }
-    setSub(false)
+    if (!m || m < 5) return
+    retrait.mutate(m, {
+      onSuccess: () => setMontant('')
+    })
   }
-
-  const txIcon  = t => ({ credit: '💰', debit: '📤', retrait: '🏦', penalite: '⚠️' }[t] || '💳')
-  const txColor = t => t === 'credit' ? 'text-green-600' : 'text-red-500'
-
-  const retraitBadge = s => ({
-    en_attente: <span className="badge-yellow">En attente</span>,
-    paye:       <span className="badge-green">Payé ✓</span>,
-    refuse:     <span className="badge-red">Refusé</span>,
-  }[s])
-
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/>
-    </div>
-  )
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl p-5 text-white">
-        <p className="text-brand-200 text-sm">Solde disponible</p>
-        <p className="text-4xl font-extrabold mt-1">{solde.toFixed(2)} €</p>
-      </div>
+    <div className="space-y-6 animate-fade-in">
+      <h1 className="page-title">Portefeuille</h1>
 
-      <div className="card space-y-3">
-        <h3 className="font-bold text-gray-900">Demander un retrait</h3>
+      {/* Solde card */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="card p-6 bg-sky-500 border-sky-400 text-white"
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sky-100 text-sm font-medium">Solde disponible</span>
+          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+            <Wallet size={20} className="text-white" />
+          </div>
+        </div>
+        <div className="text-4xl font-extrabold tracking-tight">
+          {solde.toFixed(2)} <span className="text-xl font-semibold">EUR</span>
+        </div>
+        <p className="text-sky-100 text-sm mt-2">Retrait minimum : 5 EUR</p>
+      </motion.div>
 
-        {msg && (
-          <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-            {msg.text}
+      {/* Retrait form */}
+      {!hasPaypal ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="card p-5 border-l-4 border-l-amber-400 flex items-start gap-3"
+        >
+          <AlertTriangle size={18} className="text-amber-500 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-slate-800">PayPal requis</p>
+            <p className="text-sm text-slate-500 mt-0.5">
+              Ajoute ton adresse PayPal dans ton profil pour pouvoir retirer ton solde.
+            </p>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.form
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          onSubmit={handleRetrait}
+          className="card p-5"
+        >
+          <h2 className="section-title mb-4 flex items-center gap-2">
+            <CreditCard size={18} className="text-sky-500" />
+            Demander un retrait
+          </h2>
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">EUR</span>
+              <input
+                type="number"
+                min="5"
+                step="0.01"
+                max={solde}
+                value={montant}
+                onChange={e => setMontant(e.target.value)}
+                placeholder="0.00"
+                required
+                className="input pl-12"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={retrait.isPending || parseFloat(montant) > solde || parseFloat(montant) < 5}
+              className="btn-primary px-6"
+            >
+              {retrait.isPending ? 'Envoi...' : 'Retirer'}
+            </button>
+          </div>
+          <p className="text-xs text-slate-400 mt-2">
+            Paiement effectue sous 24 a 48h sur : {user.paypal_email}
+          </p>
+        </motion.form>
+      )}
+
+      {/* Historique */}
+      <div className="card p-5">
+        <h2 className="section-title mb-4">Historique des transactions</h2>
+        {isLoading ? (
+          <div className="space-y-2 animate-pulse">
+            {[1,2,3].map(i => (
+              <div key={i} className="h-14 bg-slate-100 rounded-lg" />
+            ))}
+          </div>
+        ) : !transactions?.length ? (
+          <div className="text-center py-8">
+            <Clock size={24} className="text-slate-300 mx-auto mb-2" />
+            <p className="text-sm text-slate-400">Aucune transaction pour le moment</p>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {transactions.map((t) => {
+              const config = typeConfig[t.type] || typeConfig.debit
+              const Icon = config.icon
+              const isPositive = t.type === 'credit'
+              return (
+                <div
+                  key={t.id}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${config.bg}`}>
+                    <Icon size={16} className={config.color} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800">{config.label}</p>
+                    <p className="text-xs text-slate-400">{t.note || '-'}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={`text-sm font-bold ${isPositive ? 'text-emerald-600' : 'text-slate-700'}`}>
+                      {isPositive ? '+' : '-'}{parseFloat(t.montant).toFixed(2)} EUR
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {new Date(t.created_at).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
-
-        <div className="relative">
-          <input className="input pr-12" type="number" min="1" step="0.01" placeholder="Montant"
-            value={montant} onChange={e => setMontant(e.target.value)} />
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">€</span>
-        </div>
-
-        <button
-          className="btn-primary flex items-center justify-center gap-2 disabled:opacity-70"
-          onClick={retirer}
-          disabled={submitting}
-        >
-          {submitting ? <><Spinner /> Envoi en cours...</> : '💸 Demander le paiement PayPal'}
-        </button>
-        <p className="text-xs text-gray-400 text-center">Paiement sous 24-48h · Minimum 1€</p>
       </div>
-
-      <div className="flex bg-gray-100 rounded-xl p-1">
-        <button onClick={() => setTab('transactions')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${tab === 'transactions' ? 'bg-white shadow text-brand-700' : 'text-gray-500'}`}>
-          Transactions
-        </button>
-        <button onClick={() => setTab('retraits')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${tab === 'retraits' ? 'bg-white shadow text-brand-700' : 'text-gray-500'}`}>
-          Retraits
-        </button>
-      </div>
-
-      {tab === 'transactions' && (
-        <div className="space-y-2">
-          {transactions.length === 0 ? (
-            <div className="card text-center py-8 text-gray-400">Aucune transaction</div>
-          ) : transactions.map(t => (
-            <div key={t.id} className="card flex items-center gap-3">
-              <span className="text-2xl">{txIcon(t.type)}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-700 truncate">{t.note || t.type}</p>
-                <p className="text-xs text-gray-400">{new Date(t.created_at).toLocaleDateString('fr-FR')}</p>
-              </div>
-              <span className={`font-bold ${txColor(t.type)}`}>
-                {t.type === 'credit' ? '+' : '-'}{parseFloat(t.montant).toFixed(2)}€
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {tab === 'retraits' && (
-        <div className="space-y-2">
-          {retraits.length === 0 ? (
-            <div className="card text-center py-8 text-gray-400">Aucun retrait</div>
-          ) : retraits.map(r => (
-            <div key={r.id} className="card flex items-center justify-between">
-              <div>
-                <p className="font-bold text-gray-900">{parseFloat(r.montant).toFixed(2)}€</p>
-                <p className="text-xs text-gray-400">{r.paypal} · {new Date(r.created_at).toLocaleDateString('fr-FR')}</p>
-              </div>
-              {retraitBadge(r.statut)}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

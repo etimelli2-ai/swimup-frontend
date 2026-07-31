@@ -1,90 +1,161 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+// ============================================================
+// frontend/src/components/Layout.jsx -- NOUVEAU
+// ============================================================
+
+import { useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import {
+  LayoutDashboard,
+  Star,
+  FileText,
+  Wallet,
+  User,
+  LogOut,
+  Menu,
+  X,
+  Shield,
+  Ticket,
+  ChevronRight,
+  Bell
+} from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
-const icons = {
-  home: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
-  star: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>,
-  wallet: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>,
-  user: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
-  lottery: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>,
-  cart: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
-  logout: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>,
-}
-
-export default function Layout() {
+export default function Layout({ children }) {
   const { user, logout } = useAuth()
+  const location = useLocation()
   const navigate = useNavigate()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-  const handleLogout = () => {
-    logout()
+  const isAdmin = user?.role === 'admin'
+  const isClient = user?.role === 'client'
+
+  const navItems = [
+    { path: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
+    { path: '/avis', label: 'Avis disponibles', icon: Star },
+    { path: '/mon-avis', label: 'Mon avis', icon: FileText },
+    { path: '/portefeuille', label: 'Portefeuille', icon: Wallet },
+    { path: '/profil', label: 'Profil', icon: User },
+    ...(isAdmin ? [
+      { path: '/admin', label: 'Admin', icon: Shield },
+    ] : []),
+    ...(isClient ? [
+      { path: '/client', label: 'Espace client', icon: Shield },
+    ] : []),
+    { path: '/loterie', label: 'Loterie', icon: Ticket },
+  ]
+
+  const handleLogout = async () => {
+    await logout()
     navigate('/login')
   }
 
-  const navItems = user?.role === 'admin'
-    ? [
-        { to: '/admin',          label: 'Stats',    icon: icons.home },
-        { to: '/admin/avis',     label: 'Avis',     icon: icons.star },
-        { to: '/admin/users',    label: 'Membres',  icon: icons.user },
-        { to: '/admin/retraits', label: 'Retraits', icon: icons.wallet },
-        { to: '/admin/loterie',  label: 'Loterie',  icon: icons.lottery },
-        { to: '/admin/commande', label: 'Commande', icon: icons.cart },
-      ]
-    : user?.role === 'client'
-    ? [
-        { to: '/client', label: 'Dashboard', icon: icons.home },
-        { to: '/profil', label: 'Profil',    icon: icons.user },
-      ]
-    : [
-        { to: '/',             label: 'Accueil', icon: icons.home },
-        { to: '/avis',         label: 'Avis',    icon: icons.star },
-        { to: '/portefeuille', label: 'Solde',   icon: icons.wallet },
-        { to: '/loterie',      label: 'Loterie', icon: icons.lottery },
-        { to: '/profil',       label: 'Profil',  icon: icons.user },
-      ]
-
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">S</span>
-          </div>
-          <span className="font-bold text-brand-900 text-lg">SwimUp</span>
+    <div className="min-h-screen bg-slate-50 flex">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 fixed h-full z-20">
+        <div className="p-5 border-b border-slate-100">
+          <Link to="/dashboard" className="flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-sky-500 rounded-lg flex items-center justify-center shadow-sm">
+              <Star size={18} className="text-white fill-white" />
+            </div>
+            <span className="text-lg font-bold text-slate-900 tracking-tight">SwimUp</span>
+          </Link>
         </div>
-        <div className="flex items-center gap-2">
-          {user?.role === 'admin' && <span className="badge-blue">⚡ Admin</span>}
-          {user?.role !== 'admin' && (
-            <span className="text-sm text-gray-500 font-medium">{user?.email?.split('@')[0]}</span>
-          )}
-          <button onClick={handleLogout} className="p-2 text-gray-400 active:text-red-500 transition-colors">
-            {icons.logout}
+
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+          {navItems.map((item) => {
+            const active = location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+            const Icon = item.icon
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  active
+                    ? 'bg-sky-50 text-sky-700'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                }`}
+              >
+                <Icon size={18} className={active ? 'text-sky-500' : 'text-slate-400'} />
+                {item.label}
+                {active && <ChevronRight size={14} className="ml-auto text-sky-400" />}
+              </Link>
+            )
+          })}
+        </nav>
+
+        <div className="p-3 border-t border-slate-100">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all"
+          >
+            <LogOut size={18} />
+            Deconnexion
           </button>
         </div>
-      </header>
+      </aside>
 
-      <main className="flex-1 pb-24 overflow-auto">
-        <Outlet />
-      </main>
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-200 z-30 flex items-center justify-between px-4">
+        <Link to="/dashboard" className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center">
+            <Star size={15} className="text-white fill-white" />
+          </div>
+          <span className="font-bold text-slate-900">SwimUp</span>
+        </Link>
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 text-slate-500">
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-10">
-        <div className="flex">
-          {navItems.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/' || item.to === '/admin' || item.to === '/client'}
-              className={({ isActive }) =>
-                `flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
-                  isActive ? 'text-brand-600' : 'text-gray-400'
-                }`
-              }
-            >
-              {item.icon}
-              <span className="text-xs font-medium">{item.label}</span>
-            </NavLink>
-          ))}
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="lg:hidden fixed inset-0 z-20 bg-white pt-14"
+          >
+            <nav className="p-3 space-y-0.5">
+              {navItems.map((item) => {
+                const active = location.pathname === item.path
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
+                      active
+                        ? 'bg-sky-50 text-sky-700'
+                        : 'text-slate-500 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Icon size={18} />
+                    {item.label}
+                  </Link>
+                )
+              })}
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-3 py-3 w-full rounded-lg text-sm font-medium text-red-500 hover:bg-red-50"
+              >
+                <LogOut size={18} />
+                Deconnexion
+              </button>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content */}
+      <main className="flex-1 lg:ml-64 pt-14 lg:pt-0">
+        <div className="max-w-5xl mx-auto p-4 lg:p-8">
+          {children}
         </div>
-      </nav>
+      </main>
     </div>
   )
 }
