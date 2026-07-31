@@ -4,33 +4,68 @@
 
 @layer base {
   * { -webkit-tap-highlight-color: transparent; }
-  body { @apply bg-gray-50 text-gray-900 font-sans; }
+  body { @apply bg-slate-50 text-slate-900 font-sans; }
 }
 
 @layer components {
+  /* Buttons */
   .btn-primary {
-    @apply w-full py-3.5 px-4 bg-brand-600 text-white font-semibold rounded-xl 
-           active:bg-brand-700 transition-all text-base disabled:opacity-50;
+    @apply inline-flex items-center gap-2 py-2.5 px-4 bg-sky-500 text-white font-semibold rounded-lg
+           hover:bg-sky-600 active:bg-sky-700 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-secondary {
-    @apply w-full py-3.5 px-4 bg-white text-brand-600 font-semibold rounded-xl 
-           border-2 border-brand-600 active:bg-brand-50 transition-all text-base;
+    @apply inline-flex items-center gap-2 py-2.5 px-4 bg-white text-slate-700 font-semibold rounded-lg
+           border border-slate-200 hover:bg-slate-50 active:bg-slate-100 transition-all text-sm;
   }
   .btn-danger {
-    @apply w-full py-3 px-4 bg-red-500 text-white font-semibold rounded-xl 
-           active:bg-red-600 transition-all text-sm;
+    @apply inline-flex items-center gap-2 py-2.5 px-4 bg-red-500 text-white font-semibold rounded-lg
+           hover:bg-red-600 active:bg-red-700 transition-all text-sm disabled:opacity-50;
   }
+
+  /* Inputs */
   .input {
-    @apply w-full px-4 py-3.5 border border-gray-200 rounded-xl text-base
-           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
-           bg-white placeholder-gray-400;
+    @apply w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm
+           focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent
+           bg-white placeholder-slate-400 transition-all;
   }
+
+  /* Cards */
   .card {
-    @apply bg-white rounded-2xl p-4 shadow-sm border border-gray-100;
+    @apply bg-white rounded-xl border border-slate-200 shadow-sm;
   }
-  .badge-green  { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700; }
-  .badge-yellow { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700; }
-  .badge-blue   { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700; }
-  .badge-red    { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700; }
-  .badge-gray   { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600; }
+  .stat-card {
+    @apply bg-white rounded-xl border border-slate-200 shadow-sm p-5;
+  }
+
+  /* Typography */
+  .page-title {
+    @apply text-2xl font-bold text-slate-900 tracking-tight;
+  }
+  .section-title {
+    @apply text-base font-semibold text-slate-800;
+  }
+  .text-muted {
+    @apply text-sm text-slate-500;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+  .badge-green  { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700; }
+  .badge-yellow { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700; }
+  .badge-amber  { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700; }
+  .badge-blue   { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-700; }
+  .badge-red    { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700; }
+  .badge-gray   { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600; }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 }
