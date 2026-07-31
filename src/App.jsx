@@ -14,6 +14,9 @@ import AdminUsers from './pages/admin/AdminUsers'
 import AdminRetraits from './pages/admin/AdminRetraits'
 import AdminLoterie from './pages/admin/AdminLoterie'
 import ClientDashboard from './pages/client/ClientDashboard'
+import ClientPaiement from './pages/client/ClientPaiement'
+import ClientCommandes from './pages/client/ClientCommandes'
+import ClientSuccess from './pages/client/ClientSuccess'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children, roles }) {
@@ -54,8 +57,17 @@ export default function App() {
       </Route>
 
       <Route path="/client" element={<PrivateRoute roles={['client','admin']}><Layout /></PrivateRoute>}>
-        <Route index element={<ClientDashboard />} />
+        <Route index            element={<ClientDashboard />} />
+        <Route path="payer"     element={<ClientPaiement />} />
+        <Route path="commandes" element={<ClientCommandes />} />
       </Route>
+
+      {/* Page success Stripe — sans Layout car page standalone */}
+      <Route path="/client/success" element={
+        <PrivateRoute roles={['client','admin']}>
+          <ClientSuccess />
+        </PrivateRoute>
+      } />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
