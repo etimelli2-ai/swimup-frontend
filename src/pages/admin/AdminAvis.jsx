@@ -1,11 +1,24 @@
- import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import api from '../../lib/api'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
 }
 
-const STATUT_FILTRES = ['tous', 'disponible', 'reserve', 'valide', 'refuse', 'paye']
+const STATUT_FILTRES = ['tous', 'disponible', 'reserve', 'en_verification', 'valide', 'refuse', 'paye']
+
+// Fix — nettoyer les entités HTML dans le texte
+function cleanText(text) {
+  if (!text) return ''
+  return String(text)
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;/g, "'")
+    .replace(/&ldquo;/g, '"')
+    .replace(/&rdquo;/g, '"')
+}
 
 export default function AdminAvis() {
   const [avis, setAvis]               = useState([])
@@ -178,6 +191,13 @@ export default function AdminAvis() {
     return <span className="text-xs text-blue-600">🔍 Vérifié {date} ({a.nb_checks}x)</span>
   }
 
+  // Fix — afficher le bon nom d'établissement
+  const getNomEtablissement = (a) => {
+    if (a.nom_etablissement) return a.nom_etablissement
+    if (a.nom_societe && !a.nom_societe.includes('@')) return a.nom_societe
+    return 'Établissement inconnu'
+  }
+
   const formatDate = d => d ? new Date(d).toLocaleString('fr-FR') : '—'
   const closeDetail = () => { setDetail(null); setEditForm(null); setNewLien(''); setVerifResult(null) }
 
@@ -186,20 +206,20 @@ export default function AdminAvis() {
   let avisFiltres = [...avis]
   if (filtre !== 'tous') avisFiltres = avisFiltres.filter(a => a.statut === filtre)
   if (search) avisFiltres = avisFiltres.filter(a =>
-    a.nom_societe?.toLowerCase().includes(search.toLowerCase()) ||
+    getNomEtablissement(a).toLowerCase().includes(search.toLowerCase()) ||
     a.membre_email?.toLowerCase().includes(search.toLowerCase()) ||
     String(a.id).includes(search)
   )
   if (tri === 'recent') avisFiltres.sort((a, b) => new Date(b.soumis_at || b.created_at) - new Date(a.soumis_at || a.created_at))
   if (tri === 'ancien') avisFiltres.sort((a, b) => new Date(a.soumis_at || a.created_at) - new Date(b.soumis_at || b.created_at))
   if (tri === 'valide') avisFiltres.sort((a, b) => new Date(b.valide_at || 0) - new Date(a.valide_at || 0))
-  if (tri === 'verif') avisFiltres.sort((a, b) => new Date(b.last_check || 0) - new Date(a.last_check || 0))
-  if (tri === 'id') avisFiltres.sort((a, b) => b.id - a.id)
+  if (tri === 'verif')  avisFiltres.sort((a, b) => new Date(b.last_check || 0) - new Date(a.last_check || 0))
+  if (tri === 'id')     avisFiltres.sort((a, b) => b.id - a.id)
 
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Avis ({avis.length})</h2>
+        <h2 className="text-xl font-bold dark:text-white">Avis ({avis.length})</h2>
         <div className="flex gap-2">
           {nbMenuage > 0 && (
             <button onClick={faireLeMenuage} disabled={loadingAction === 'menage'}
@@ -207,7 +227,7 @@ export default function AdminAvis() {
               {loadingAction === 'menage' ? <Spinner /> : '🗑️'} Ménage ({nbMenuage})
             </button>
           )}
-          <button onClick={() => setShow(!show)} className="bg-brand-600 text-white px-4 py-2 rounded-xl font-medium text-sm">
+          <button onClick={() => setShow(!show)} className="bg-sky-500 text-white px-4 py-2 rounded-xl font-medium text-sm">
             + Ajouter
           </button>
         </div>
@@ -234,7 +254,7 @@ export default function AdminAvis() {
         {STATUT_FILTRES.map(f => (
           <button key={f} onClick={() => setFiltre(f)}
             className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-              filtre === f ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-600'
+              filtre === f ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
             }`}>
             {f === 'tous' ? `Tous (${avis.length})` : f}
           </button>
@@ -244,24 +264,24 @@ export default function AdminAvis() {
       {/* Modal détail */}
       {detail && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={closeDetail}>
-          <div className="bg-white rounded-t-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-white dark:bg-slate-800 rounded-t-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-lg">Avis #{detail.id}</h3>
+              <h3 className="font-bold text-lg dark:text-white">Avis #{detail.id}</h3>
               <button onClick={closeDetail} className="text-gray-400 text-2xl">×</button>
             </div>
 
             <div className="space-y-2">
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-500 mb-1">Établissement</p>
-                <p className="font-medium">{detail.nom_societe}</p>
+              <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-3">
+                <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Établissement</p>
+                <p className="font-medium dark:text-white">{getNomEtablissement(detail)}</p>
               </div>
 
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-500 mb-1">Statut</p>
+              <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-3">
+                <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Statut</p>
                 {statutBadge(detail.statut)}
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 space-y-2">
                 <p className="text-xs text-blue-600 font-medium">🔍 Vérification Outscraper</p>
                 <div>{verifBadge(detail)}</div>
                 {verifResult && (
@@ -276,47 +296,51 @@ export default function AdminAvis() {
               </div>
 
               {detail.membre_email && (
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs text-gray-500 mb-1">Membre</p>
-                  <p className="font-medium">{detail.membre_email}</p>
+                <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Membre</p>
+                  <p className="font-medium dark:text-white">{detail.membre_email}</p>
                 </div>
               )}
 
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-500 mb-1">Texte de l'avis</p>
-                <p className="text-sm text-gray-700 leading-relaxed">{detail.texte}</p>
+              <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-3">
+                <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Texte de l'avis</p>
+                {/* Fix — nettoyer les entités HTML */}
+                <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
+                  {cleanText(detail.texte)}
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs text-gray-500 mb-1">Soumis le</p>
-                  <p className="text-xs font-medium">{formatDate(detail.soumis_at)}</p>
+                <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Soumis le</p>
+                  <p className="text-xs font-medium dark:text-white">{formatDate(detail.soumis_at)}</p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs text-gray-500 mb-1">Validé le</p>
-                  <p className="text-xs font-medium">{formatDate(detail.valide_at)}</p>
+                <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Validé le</p>
+                  <p className="text-xs font-medium dark:text-white">{formatDate(detail.valide_at)}</p>
                 </div>
               </div>
 
               {detail.lien_avis_poste && (
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs text-gray-500 mb-1">Lien publié</p>
+                <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Lien publié</p>
                   <a href={detail.lien_avis_poste} target="_blank" rel="noreferrer"
-                    className="text-brand-600 text-xs break-all underline">{detail.lien_avis_poste}</a>
+                    className="text-sky-500 text-xs break-all underline">{detail.lien_avis_poste}</a>
                 </div>
               )}
             </div>
 
+            {/* Modifier */}
             {editForm ? (
-              <div className="space-y-3 border-t border-gray-100 pt-3">
-                <p className="text-sm font-bold">✏️ Modifier</p>
+              <div className="space-y-3 border-t border-gray-100 dark:border-slate-700 pt-3">
+                <p className="text-sm font-bold dark:text-white">✏️ Modifier</p>
                 <textarea className="input text-sm min-h-[80px]" value={editForm.texte}
                   onChange={e => setEditForm(p => ({ ...p, texte: e.target.value }))} />
                 <input className="input text-sm" value={editForm.lien_maps}
                   onChange={e => setEditForm(p => ({ ...p, lien_maps: e.target.value }))} />
                 <div className="flex gap-2">
                   <button onClick={() => modifierAvis(detail.id)} disabled={loadingAction === 'modifier'}
-                    className="flex-1 bg-brand-600 text-white py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+                    className="flex-1 bg-sky-500 text-white py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
                     {loadingAction === 'modifier' ? <><Spinner /> Sauvegarde...</> : '💾 Sauvegarder'}
                   </button>
                   <button onClick={() => setEditForm(null)}
@@ -327,13 +351,14 @@ export default function AdminAvis() {
               </div>
             ) : (
               <button onClick={() => setEditForm({ lien_maps: detail.lien_maps, texte: detail.texte, prix: detail.prix, delai_paiement: detail.delai_paiement, statut: detail.statut })}
-                className="w-full bg-gray-100 text-gray-700 py-2.5 rounded-xl text-sm font-semibold">
+                className="w-full bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 py-2.5 rounded-xl text-sm font-semibold">
                 ✏️ Modifier l'avis
               </button>
             )}
 
-            <div className="space-y-2 border-t border-gray-100 pt-3">
-              <p className="text-sm font-bold">⚡ Actions</p>
+            {/* Actions */}
+            <div className="space-y-2 border-t border-gray-100 dark:border-slate-700 pt-3">
+              <p className="text-sm font-bold dark:text-white">⚡ Actions</p>
 
               {detail.statut !== 'valide' && detail.statut !== 'paye' && (
                 <button onClick={() => valider(detail.id)} disabled={loadingAction === 'valider'}
@@ -364,25 +389,28 @@ export default function AdminAvis() {
               )}
 
               <div className="space-y-2 pt-1">
-                <p className="text-xs text-gray-500">Modifier le lien et valider :</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Modifier le lien et valider :</p>
                 <input className="input text-sm" placeholder="Nouveau lien..."
                   value={newLien} onChange={e => setNewLien(e.target.value)} />
                 <button onClick={() => modifierLienEtValider(detail.id)}
                   disabled={loadingAction === 'modifier_lien' || !newLien.trim()}
-                  className="w-full bg-brand-600 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+                  className="w-full bg-sky-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
                   {loadingAction === 'modifier_lien' ? <><Spinner /> Traitement...</> : '🔗 Modifier et valider'}
                 </button>
               </div>
             </div>
 
-            <button onClick={closeDetail} className="btn-secondary">Fermer</button>
+            <button onClick={closeDetail} className="w-full bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 py-2.5 rounded-xl text-sm font-semibold">
+              Fermer
+            </button>
           </div>
         </div>
       )}
 
+      {/* Formulaire ajout */}
       {show && (
-        <div className="card space-y-3 border-2 border-brand-200">
-          <h3 className="font-bold">Nouvel avis</h3>
+        <div className="card space-y-3 border-2 border-sky-200">
+          <h3 className="font-bold dark:text-white">Nouvel avis</h3>
           <select className="input" value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))}>
             <option value="">Sélectionner un client</option>
             {clients.map(c => <option key={c.id} value={c.id}>{c.nom_societe} ({c.email})</option>)}
@@ -394,8 +422,8 @@ export default function AdminAvis() {
           <input className="input" type="number" placeholder="Délai (jours)"
             value={form.delai_paiement} onChange={e => setForm(p => ({ ...p, delai_paiement: e.target.value }))} />
           <button onClick={ajouter} disabled={loadingAction === 'ajouter'}
-            className="btn-primary flex items-center justify-center gap-2 disabled:opacity-70">
-            {loadingAction === 'ajouter' ? <><Spinner /> Ajout...</> : 'Ajouter l\'avis'}
+            className="w-full bg-sky-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+            {loadingAction === 'ajouter' ? <><Spinner /> Ajout...</> : "Ajouter l'avis"}
           </button>
         </div>
       )}
@@ -404,16 +432,19 @@ export default function AdminAvis() {
 
       <div className="space-y-2">
         {avisFiltres.map(a => (
-          <div key={a.id} className="card space-y-1 cursor-pointer active:bg-gray-50"
+          <div key={a.id} className="card space-y-1 cursor-pointer active:bg-gray-50 dark:active:bg-slate-700"
             onClick={() => { setDetail(a); setEditForm(null); setNewLien(''); setVerifResult(null) }}>
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs text-gray-400 font-mono shrink-0">#{a.id}</span>
-                  <p className="font-bold text-sm truncate">{a.nom_societe}</p>
+                  <p className="font-bold text-sm truncate dark:text-white">{getNomEtablissement(a)}</p>
                 </div>
-                <p className="text-xs text-gray-500 truncate">{a.texte?.slice(0, 50)}...</p>
-                <p className="text-xs text-gray-400">
+                {/* Fix — nettoyer le texte dans la liste */}
+                <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
+                  {cleanText(a.texte)?.slice(0, 60)}...
+                </p>
+                <p className="text-xs text-gray-400 dark:text-slate-500">
                   {a.membre_email ? `👤 ${a.membre_email}` : 'Non réservé'}
                   {a.soumis_at ? ` · 📅 ${new Date(a.soumis_at).toLocaleDateString('fr-FR')}` : ''}
                 </p>
@@ -433,7 +464,7 @@ export default function AdminAvis() {
             {a.lien_avis_poste && (
               <a href={a.lien_avis_poste} target="_blank" rel="noreferrer"
                 onClick={e => e.stopPropagation()}
-                className="text-xs text-brand-600 underline truncate block">
+                className="text-xs text-sky-500 underline truncate block">
                 🔗 Voir l'avis
               </a>
             )}
