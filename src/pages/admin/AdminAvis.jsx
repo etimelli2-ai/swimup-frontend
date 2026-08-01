@@ -7,17 +7,18 @@ function Spinner() {
 
 const STATUT_FILTRES = ['tous', 'disponible', 'reserve', 'en_verification', 'valide', 'refuse', 'paye']
 
-// Fix — nettoyer les entités HTML dans le texte
 function cleanText(text) {
   if (!text) return ''
   return String(text)
     .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
-    .replace(/&#39;/g, "'")
     .replace(/&ldquo;/g, '"')
     .replace(/&rdquo;/g, '"')
+    .replace(/&lsquo;/g, "'")
+    .replace(/&rsquo;/g, "'")
 }
 
 export default function AdminAvis() {
@@ -34,6 +35,7 @@ export default function AdminAvis() {
   const [tri, setTri]                 = useState('recent')
   const [search, setSearch]           = useState('')
   const [verifResult, setVerifResult] = useState(null)
+  const [prixPrioritaire, setPrixPrio] = useState('2')
 
   const load = async () => {
     const [a, c] = await Promise.all([api.get('/admin/avis'), api.get('/admin/clients')])
@@ -104,6 +106,20 @@ export default function AdminAvis() {
       await api.put(`/admin/avis/${avisId}/remettre-dispo`)
       showMsg('success', '🔄 Avis remis en disponible !')
       setDetail(null)
+      load()
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
+  const togglePrioritaire = async (avisId, estPrioritaire) => {
+    setLA('prioritaire')
+    try {
+      await api.put(`/admin/avis/${avisId}/prioritaire`, {
+        prioritaire: !estPrioritaire,
+        prix_membre: parseFloat(prixPrioritaire) || 2,
+      })
+      showMsg('success', !estPrioritaire ? '🔥 Avis marqué prioritaire !' : '✅ Priorité retirée')
+      setDetail(p => ({ ...p, prioritaire: !estPrioritaire ? 1 : 0, prix_membre: parseFloat(prixPrioritaire) || 2 }))
       load()
     } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
     setLA(null)
@@ -191,7 +207,6 @@ export default function AdminAvis() {
     return <span className="text-xs text-blue-600">🔍 Vérifié {date} ({a.nb_checks}x)</span>
   }
 
-  // Fix — afficher le bon nom d'établissement
   const getNomEtablissement = (a) => {
     if (a.nom_etablissement) return a.nom_etablissement
     if (a.nom_societe && !a.nom_societe.includes('@')) return a.nom_societe
@@ -215,6 +230,8 @@ export default function AdminAvis() {
   if (tri === 'valide') avisFiltres.sort((a, b) => new Date(b.valide_at || 0) - new Date(a.valide_at || 0))
   if (tri === 'verif')  avisFiltres.sort((a, b) => new Date(b.last_check || 0) - new Date(a.last_check || 0))
   if (tri === 'id')     avisFiltres.sort((a, b) => b.id - a.id)
+  // Prioritaires toujours en premier
+  avisFiltres.sort((a, b) => (b.prioritaire || 0) - (a.prioritaire || 0))
 
   return (
     <div className="p-4 space-y-4">
@@ -266,7 +283,10 @@ export default function AdminAvis() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={closeDetail}>
           <div className="bg-white dark:bg-slate-800 rounded-t-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-lg dark:text-white">Avis #{detail.id}</h3>
+              <h3 className="font-bold text-lg dark:text-white flex items-center gap-2">
+                Avis #{detail.id}
+                {detail.prioritaire ? <span className="text-sm bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">🔥 Prioritaire</span> : null}
+              </h3>
               <button onClick={closeDetail} className="text-gray-400 text-2xl">×</button>
             </div>
 
@@ -304,7 +324,6 @@ export default function AdminAvis() {
 
               <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-3">
                 <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Texte de l'avis</p>
-                {/* Fix — nettoyer les entités HTML */}
                 <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
                   {cleanText(detail.texte)}
                 </p>
@@ -359,6 +378,35 @@ export default function AdminAvis() {
             {/* Actions */}
             <div className="space-y-2 border-t border-gray-100 dark:border-slate-700 pt-3">
               <p className="text-sm font-bold dark:text-white">⚡ Actions</p>
+
+              {/* Prioritaire */}
+              <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-3 space-y-2">
+                <p className="text-xs text-orange-600 font-medium">🔥 Avis prioritaire</p>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-500 mb-1 block">Gain membre (€)</label>
+                    <input className="input text-sm" type="number" min="1" step="0.5"
+                      value={prixPrioritaire}
+                      onChange={e => setPrixPrio(e.target.value)} />
+                  </div>
+                  <button
+                    onClick={() => togglePrioritaire(detail.id, !!detail.prioritaire)}
+                    disabled={loadingAction === 'prioritaire'}
+                    className={`flex-1 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70 ${
+                      detail.prioritaire
+                        ? 'bg-gray-200 text-gray-700'
+                        : 'bg-orange-500 text-white'
+                    }`}
+                  >
+                    {loadingAction === 'prioritaire' ? <Spinner /> : detail.prioritaire ? '❌ Retirer priorité' : '🔥 Marquer prioritaire'}
+                  </button>
+                </div>
+                {detail.prioritaire && (
+                  <p className="text-xs text-orange-600">
+                    Gain actuel : {parseFloat(detail.prix_membre || 1).toFixed(2)}€
+                  </p>
+                )}
+              </div>
 
               {detail.statut !== 'valide' && detail.statut !== 'paye' && (
                 <button onClick={() => valider(detail.id)} disabled={loadingAction === 'valider'}
@@ -432,21 +480,23 @@ export default function AdminAvis() {
 
       <div className="space-y-2">
         {avisFiltres.map(a => (
-          <div key={a.id} className="card space-y-1 cursor-pointer active:bg-gray-50 dark:active:bg-slate-700"
+          <div key={a.id}
+            className={`card space-y-1 cursor-pointer active:bg-gray-50 dark:active:bg-slate-700 ${a.prioritaire ? 'border-2 border-orange-300 dark:border-orange-700' : ''}`}
             onClick={() => { setDetail(a); setEditForm(null); setNewLien(''); setVerifResult(null) }}>
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs text-gray-400 font-mono shrink-0">#{a.id}</span>
+                  {a.prioritaire ? <span className="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full shrink-0">🔥</span> : null}
                   <p className="font-bold text-sm truncate dark:text-white">{getNomEtablissement(a)}</p>
                 </div>
-                {/* Fix — nettoyer le texte dans la liste */}
                 <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
-                  {cleanText(a.texte)?.slice(0, 60)}...
+                  {cleanText(a.texte)?.slice(0, 50)}...
                 </p>
                 <p className="text-xs text-gray-400 dark:text-slate-500">
                   {a.membre_email ? `👤 ${a.membre_email}` : 'Non réservé'}
                   {a.soumis_at ? ` · 📅 ${new Date(a.soumis_at).toLocaleDateString('fr-FR')}` : ''}
+                  {a.prioritaire ? ` · 💰 ${parseFloat(a.prix_membre || 1).toFixed(2)}€` : ''}
                 </p>
                 <div className="mt-1">{verifBadge(a)}</div>
               </div>
