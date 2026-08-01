@@ -17,6 +17,8 @@ import ClientDashboard from './pages/client/ClientDashboard'
 import ClientPaiement from './pages/client/ClientPaiement'
 import ClientCommandes from './pages/client/ClientCommandes'
 import ClientSuccess from './pages/client/ClientSuccess'
+import PublicCommander from './pages/PublicCommander'
+import PublicSuivi from './pages/PublicSuivi'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children, roles }) {
@@ -34,6 +36,10 @@ function PrivateRoute({ children, roles }) {
 export default function App() {
   return (
     <Routes>
+      {/* Pages publiques — sans auth */}
+      <Route path="/commander" element={<PublicCommander />} />
+      <Route path="/suivi"     element={<PublicSuivi />} />
+
       <Route path="/login"    element={<Login />} />
       <Route path="/register" element={<Register />} />
 
@@ -62,7 +68,6 @@ export default function App() {
         <Route path="commandes" element={<ClientCommandes />} />
       </Route>
 
-      {/* Page success Stripe — sans Layout car page standalone */}
       <Route path="/client/success" element={
         <PrivateRoute roles={['client','admin']}>
           <ClientSuccess />
