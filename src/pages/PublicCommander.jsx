@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { MapPin, Mail, Star, ChevronRight, AlertCircle } from 'lucide-react'
+import { MapPin, Mail, Star, ChevronRight, AlertCircle, Loader2, Sparkles } from 'lucide-react'
 import { motion } from 'framer-motion'
 import axios from 'axios'
 
 const API = import.meta.env.VITE_API_URL || 'https://swimup-backend-production.up.railway.app/api'
+const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY
+const PRIX_UNITAIRE = 4
 
 const TONS = [
   { id: 'enthousiaste', label: 'Enthousiaste', emoji: '🔥' },
@@ -41,8 +43,49 @@ function EtoilesPicker({ value, onChange }) {
   )
 }
 
+async function genererTexteIA(nom, type, etoiles, ton) {
+  try {
+    const tonDesc = {
+      enthousiaste: 'très enthousiaste et positif',
+      naturel: 'naturel et authentique',
+      neutre: 'neutre et factuel',
+      drole: 'drôle et léger',
+      poetique: 'poétique et imagé',
+      severe: 'critique et sévère',
+    }[ton] || 'naturel'
+
+    const positif = etoiles >= 4
+    const negatif = etoiles <= 2
+
+    const prompt = `Écris un avis Google ${positif ? 'positif' : negatif ? 'négatif' : 'mitigé'} en français pour "${nom}" (${type || 'établissement'}). Ton : ${tonDesc}. ${etoiles} étoiles sur 5. 2-3 phrases naturelles. Sans guillemets. Sans introduction. Juste le texte de l'avis.`
+
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: 'Tu génères des avis Google authentiques. UNIQUEMENT le texte, sans guillemets, sans entités HTML.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 200,
+        temperature: 1.1,
+      }),
+    })
+    const data = await res.json()
+    return data.choices?.[0]?.message?.content?.trim()
+      .replace(/^["'«»]|["'«»]$/g, '')
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'") || ''
+  } catch {
+    return ''
+  }
+}
+
 export default function PublicCommander() {
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const wasCancelled = searchParams.get('cancel') === '1'
 
@@ -51,25 +94,53 @@ export default function PublicCommander() {
     lien_maps:          '',
     nom_etablissement:  '',
     type_etablissement: '',
+    type_autre:         '',
     texte_avis:         '',
     nb_etoiles:         5,
     ton:                'naturel',
+    quantite:           1,
   })
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState(null)
+  const [loading, setLoading]       = useState(false)
+  const [generating, setGenerating] = useState(false)
+  const [error, setError]           = useState(null)
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
+
+  const typeEffectif = form.type_etablissement === 'Autre' ? form.type_autre : form.type_etablissement
+  const total = form.quantite * PRIX_UNITAIRE
+
+  const handleGenerer = async () => {
+    const nom = form.nom_etablissement || 'cet établissement'
+    setGenerating(true)
+    const texte = await genererTexteIA(nom, typeEffectif, form.nb_etoiles, form.ton)
+    if (texte) set('texte_avis', texte)
+    else setError('Impossible de générer le texte — réessaie ou écris-le toi-même')
+    setGenerating(false)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
 
-    if (!form.email)     return setError('Entre ton adresse email')
-    if (!form.lien_maps) return setError('Entre le lien Google Maps de ton établissement')
+    if (!form.email) return setError('Entre ton adresse email')
+    if (!form.lien_maps) return setError('Entre le lien Google Maps')
+    if (form.quantite < 1) return setError('Minimum 1 avis')
+    if (form.type_etablissement === 'Autre' && !form.type_autre.trim()) {
+      return setError('Précise le type d\'établissement')
+    }
 
     setLoading(true)
     try {
-      const r = await axios.post(`${API}/stripe/public-checkout`, form)
+      const r = await axios.post(`${API}/stripe/public-checkout`, {
+        email:              form.email,
+        lien_maps:          form.lien_maps,
+        nom_etablissement:  form.nom_etablissement,
+        type_etablissement: typeEffectif,
+        texte_avis:         form.texte_avis,
+        nb_etoiles:         form.nb_etoiles,
+        ton:                form.ton,
+        quantite:           form.quantite,
+      })
       window.location.href = r.data.url
     } catch (e) {
       setError(e.response?.data?.error || 'Erreur — réessaie dans quelques secondes')
@@ -84,10 +155,7 @@ export default function PublicCommander() {
       <header className="border-b-2 border-[#1A1A1A] bg-[#F7F5F0] sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 bg-[#C73E1D] flex items-center justify-center"
-              style={{ transform: 'rotate(3deg)' }}
-            >
+            <div className="w-8 h-8 bg-[#C73E1D] flex items-center justify-center" style={{ transform: 'rotate(3deg)' }}>
               <span className="text-white font-black text-sm">S</span>
             </div>
             <span className="font-black text-lg tracking-tight">SwimUp</span>
@@ -111,12 +179,21 @@ export default function PublicCommander() {
             Sans compte · Sans abonnement
           </div>
           <h1 className="text-4xl font-black tracking-tight leading-tight">
-            Un avis Google,<br />4€, livré vite.
+            Des avis Google,<br />{PRIX_UNITAIRE}€ pièce, livrés vite.
           </h1>
           <p className="text-[#1A1A1A]/70 text-lg leading-relaxed">
             Tu remplis le formulaire, tu paies, on s'occupe du reste.
             Aucune création de compte. Ton lien de suivi arrive par email.
           </p>
+
+          {/* Garantie */}
+          <div className="border-2 border-[#1A1A1A] bg-white p-4">
+            <p className="font-bold text-sm">🛡️ Garantie 30 jours</p>
+            <p className="text-sm text-[#1A1A1A]/70 mt-1">
+              Si un avis est supprimé par Google dans les 30 jours suivant la livraison,
+              on le refait gratuitement. Pas de remboursement — on remet un nouvel avis.
+            </p>
+          </div>
         </motion.div>
 
         {/* Alerte annulation */}
@@ -134,7 +211,7 @@ export default function PublicCommander() {
 
           {/* Email */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-widest text-[#1A1A1A]">
+            <label className="block text-xs font-bold uppercase tracking-widest">
               Ton adresse email *
             </label>
             <div className="relative">
@@ -153,7 +230,7 @@ export default function PublicCommander() {
 
           {/* Lien Maps */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-widest text-[#1A1A1A]">
+            <label className="block text-xs font-bold uppercase tracking-widest">
               Lien Google Maps de ton établissement *
             </label>
             <div className="relative">
@@ -174,7 +251,7 @@ export default function PublicCommander() {
 
           {/* Nom établissement */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-widest text-[#1A1A1A]">
+            <label className="block text-xs font-bold uppercase tracking-widest">
               Nom de l'établissement
             </label>
             <input
@@ -188,7 +265,7 @@ export default function PublicCommander() {
 
           {/* Type établissement */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-widest text-[#1A1A1A]">
+            <label className="block text-xs font-bold uppercase tracking-widest">
               Type d'établissement
             </label>
             <select
@@ -199,11 +276,22 @@ export default function PublicCommander() {
               <option value="">Sélectionner...</option>
               {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
+
+            {/* Champ libre si "Autre" */}
+            {form.type_etablissement === 'Autre' && (
+              <input
+                type="text"
+                placeholder="Précise le type d'établissement..."
+                value={form.type_autre}
+                onChange={e => set('type_autre', e.target.value)}
+                className="w-full border-2 border-[#C73E1D] bg-white px-4 py-3 text-sm rounded-none focus:outline-none transition-colors mt-2"
+              />
+            )}
           </div>
 
           {/* Note étoiles */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-widest text-[#1A1A1A]">
+            <label className="block text-xs font-bold uppercase tracking-widest">
               Note à mettre ({form.nb_etoiles} étoile{form.nb_etoiles > 1 ? 's' : ''})
             </label>
             <EtoilesPicker value={form.nb_etoiles} onChange={v => set('nb_etoiles', v)} />
@@ -211,7 +299,7 @@ export default function PublicCommander() {
 
           {/* Ton */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-widest text-[#1A1A1A]">
+            <label className="block text-xs font-bold uppercase tracking-widest">
               Ton de l'avis
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -232,18 +320,70 @@ export default function PublicCommander() {
             </div>
           </div>
 
-          {/* Texte personnalisé */}
+          {/* Texte personnalisé + bouton générer */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-widest text-[#1A1A1A]">
-              Texte personnalisé <span className="font-normal normal-case tracking-normal text-[#1A1A1A]/50">(optionnel — sinon on génère)</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold uppercase tracking-widest">
+                Texte de l'avis{' '}
+                <span className="font-normal normal-case tracking-normal text-[#1A1A1A]/50">
+                  (optionnel)
+                </span>
+              </label>
+              <button
+                type="button"
+                onClick={handleGenerer}
+                disabled={generating}
+                className="flex items-center gap-1.5 border-2 border-[#1A1A1A] bg-white px-3 py-1.5 text-xs font-bold hover:bg-[#F0EDE8] transition-colors disabled:opacity-50"
+              >
+                {generating
+                  ? <><Loader2 size={12} className="animate-spin" /> Génération...</>
+                  : <><Sparkles size={12} /> Générer avec l'IA</>
+                }
+              </button>
+            </div>
             <textarea
-              placeholder="Si tu as un texte précis en tête, mets-le ici. Sinon on s'en occupe."
+              placeholder="Si tu as un texte précis en tête, mets-le ici. Sinon clique sur Générer ou laisse vide."
               value={form.texte_avis}
               onChange={e => set('texte_avis', e.target.value)}
               rows={4}
               className="w-full border-2 border-[#1A1A1A] bg-white px-4 py-3 text-sm rounded-none focus:outline-none focus:border-[#C73E1D] resize-none transition-colors"
             />
+          </div>
+
+          {/* Quantité */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-widest">
+              Nombre d'avis
+            </label>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => set('quantite', Math.max(1, form.quantite - 1))}
+                className="w-10 h-10 border-2 border-[#1A1A1A] bg-white text-xl font-bold hover:bg-[#F0EDE8] transition-colors flex items-center justify-center"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min="1"
+                value={form.quantite}
+                onChange={e => set('quantite', Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-20 border-2 border-[#1A1A1A] bg-white px-3 py-2 text-center text-lg font-bold rounded-none focus:outline-none focus:border-[#C73E1D]"
+              />
+              <button
+                type="button"
+                onClick={() => set('quantite', form.quantite + 1)}
+                className="w-10 h-10 border-2 border-[#1A1A1A] bg-white text-xl font-bold hover:bg-[#F0EDE8] transition-colors flex items-center justify-center"
+              >
+                +
+              </button>
+              <span className="text-sm text-[#1A1A1A]/60">
+                × {PRIX_UNITAIRE}€ = <strong className="text-[#1A1A1A]">{total}€</strong>
+              </span>
+            </div>
+            <p className="text-xs text-[#1A1A1A]/50">
+              Chaque avis sera publié par un membre différent. Même texte, différents profils.
+            </p>
           </div>
 
           {/* Erreur */}
@@ -257,10 +397,14 @@ export default function PublicCommander() {
           {/* Récap prix */}
           <div className="border-2 border-[#1A1A1A] bg-white p-5 flex items-center justify-between">
             <div>
-              <p className="font-bold text-lg">1 avis Google Maps</p>
-              <p className="text-sm text-[#1A1A1A]/60">Livraison sous 48h · Suivi par email</p>
+              <p className="font-bold text-lg">
+                {form.quantite} avis Google Map{form.quantite > 1 ? 's' : ''}
+              </p>
+              <p className="text-sm text-[#1A1A1A]/60">
+                Livraison sous 48h · Suivi par email · Garantie 30j
+              </p>
             </div>
-            <p className="text-3xl font-black">4€</p>
+            <p className="text-3xl font-black">{total}€</p>
           </div>
 
           {/* Bouton */}
@@ -271,30 +415,31 @@ export default function PublicCommander() {
           >
             {loading ? (
               <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <Loader2 size={18} className="animate-spin" />
                 Redirection vers le paiement...
               </>
             ) : (
               <>
-                Payer et commander — 4€
+                Payer {total}€ et commander
                 <ChevronRight size={18} />
               </>
             )}
           </button>
 
           <p className="text-center text-xs text-[#1A1A1A]/50">
-            Paiement sécurisé par Stripe · Aucun abonnement · Remboursement si non livré
+            Paiement sécurisé par Stripe · Aucun abonnement · Garantie 30 jours
           </p>
         </form>
 
-        {/* FAQ rapide */}
+        {/* FAQ */}
         <div className="border-t-2 border-[#1A1A1A] pt-8 space-y-4">
           <h2 className="font-black text-lg">Questions fréquentes</h2>
           {[
             { q: 'Comment ça marche ?', r: 'Tu paies, un membre de notre réseau publie un vrai avis Google sur ton établissement. Tu reçois un lien de suivi par email.' },
-            { q: 'C\'est quoi la différence avec un compte ?', r: 'Avec un compte tu as accès à des tarifs réduits (3€/avis au lieu de 4€) et tu peux commander plusieurs avis à la fois.' },
+            { q: 'C\'est quoi la garantie 30 jours ?', r: 'Si Google supprime l\'avis dans les 30 jours suivant la livraison, on te refait un nouvel avis gratuitement. Pas de remboursement — on garantit la livraison, pas la pérennité de Google.' },
+            { q: 'Pourquoi des avis différents si je commande plusieurs ?', r: 'Chaque avis est publié par un membre différent avec un profil différent. C\'est plus naturel et moins risqué pour toi.' },
             { q: 'Sous combien de temps ?', r: 'En général sous 24-48h selon la disponibilité de nos membres.' },
-            { q: 'Et si l\'avis est supprimé ?', r: 'On vérifie que l\'avis reste en ligne. Si Google le supprime dans les 30 jours, on te rembourse.' },
+            { q: 'C\'est quoi la différence avec un compte ?', r: 'Avec un compte tu paies 3€/avis au lieu de 4€, tu as un historique et des notifications.' },
           ].map((f, i) => (
             <div key={i} className="border-2 border-[#1A1A1A] p-4 space-y-1">
               <p className="font-bold text-sm">{f.q}</p>
