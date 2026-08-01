@@ -247,20 +247,16 @@ export default function PublicSuivi() {
           </div>
         </div>
 
-        {/* Lien de l'avis si soumis */}
         {avisPublic?.lien_avis_poste && (
-          <div className="border-2 border-emerald-500 bg-emerald-50 p-5 space-y-2">
-            <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Avis publié</p>
-            
-              href={avisPublic.lien_avis_poste}
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm text-emerald-700 underline break-all font-medium"
-            >
-              {avisPublic.lien_avis_poste}
-            </a>
-          </div>
-        )}
+  <div className="border-2 border-emerald-500 bg-emerald-50 p-5 space-y-2">
+    <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Avis publié</p>
+    <p className="text-sm text-emerald-700 underline break-all font-medium">
+      <a href={avisPublic.lien_avis_poste} target="_blank" rel="noreferrer">
+        {avisPublic.lien_avis_poste}
+      </a>
+    </p>
+  </div>
+)}
 
         {/* Copier le lien de suivi */}
         <div className="border-2 border-[#1A1A1A] bg-white p-4 space-y-3">
