@@ -1,120 +1,153 @@
-// ============================================================
-// frontend/src/pages/Avis.jsx -- NOUVEAU (redesign)
-// ============================================================
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import api from '../lib/api'
 
-import { useState } from 'react'
-import { useAuth } from '../hooks/useAuth'
-import { useAvisDisponibles, useReserverAvis, useMesAvis } from '../hooks/useAvis'
-import AvisCard from '../components/AvisCard'
-import { AvisListSkeleton } from '../components/Skeleton'
-import { Search, Filter, Star, ArrowRight, AlertCircle } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+function Spinner() {
+  return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+}
 
 export default function Avis() {
-  const { user } = useAuth()
-  const { data: avis, isLoading } = useAvisDisponibles()
-  const { data: mesAvis } = useMesAvis()
-  const reserver = useReserverAvis()
+  const [avis, setAvis]           = useState([])
+  const [loading, setLoading]     = useState(true)
+  const [reserving, setReserving] = useState(null)
+  const [msg, setMsg]             = useState(null)
+  const navigate                  = useNavigate()
 
-  const [search, setSearch] = useState('')
-  const [etoileFilter, setEtoileFilter] = useState(null)
+  useEffect(() => {
+    api.get('/avis')
+      .then(r => {
+        // Prioritaires en premier, puis par date
+        const sorted = r.data.sort((a, b) => {
+          if ((b.prioritaire || 0) !== (a.prioritaire || 0)) {
+            return (b.prioritaire || 0) - (a.prioritaire || 0)
+          }
+          return new Date(b.created_at) - new Date(a.created_at)
+        })
+        setAvis(sorted)
+      })
+      .finally(() => setLoading(false))
+  }, [])
 
-  const hasAvisEnCours = mesAvis?.some(a => a.statut === 'reserve' || a.statut === 'en_verification')
+  const showMsg = (type, text) => {
+    setMsg({ type, text })
+    setTimeout(() => setMsg(null), 4000)
+  }
 
-  const filtered = avis?.filter(a => {
-    const matchSearch = !search ||
-      (a.nom_societe || '').toLowerCase().includes(search.toLowerCase()) ||
-      (a.texte || '').toLowerCase().includes(search.toLowerCase())
-    const matchStars = !etoileFilter || parseInt(a.nb_etoiles) === etoileFilter
-    return matchSearch && matchStars
-  })
+  const reserver = async (id) => {
+    setReserving(id)
+    try {
+      await api.post(`/avis/${id}/reserver`)
+      showMsg('success', '✅ Avis réservé ! Tu as 1h pour le publier.')
+      navigate('/mon-avis')
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
+    }
+    setReserving(null)
+  }
+
+  const etoilesDisplay = n => {
+    const nb = parseInt(n) || 5
+    return { stars: '⭐'.repeat(nb), label: `${nb} étoile${nb > 1 ? 's' : ''}` }
+  }
+
+  const etoilesColor = n => {
+    const nb = parseInt(n) || 5
+    if (nb <= 2) return 'bg-red-50 border-red-200 text-red-700'
+    if (nb === 3) return 'bg-yellow-50 border-yellow-200 text-yellow-700'
+    return 'bg-green-50 border-green-200 text-green-700'
+  }
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"/>
+    </div>
+  )
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="page-title">Avis disponibles</h1>
-          <p className="text-muted mt-1">
-            {avis?.length || 0} avis en attente de redaction
-          </p>
-        </div>
-        {hasAvisEnCours && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="badge badge-amber shrink-0"
-          >
-            <AlertCircle size={12} />
-            Tu as deja un avis en cours
-          </motion.div>
-        )}
+    <div className="p-4 space-y-4">
+      <div>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Avis disponibles</h2>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{avis.length} avis en attente de rédaction</p>
       </div>
 
-      {/* Filtres */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Rechercher un etablissement..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="input pl-9"
-          />
+      {msg && (
+        <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+          {msg.text}
         </div>
-        <div className="flex gap-2">
-          {[null, 1, 2, 3, 4, 5].map(n => (
-            <button
-              key={n ?? 'all'}
-              onClick={() => setEtoileFilter(n)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                etoileFilter === n
-                  ? 'bg-sky-500 text-white shadow-sm'
-                  : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50'
-              }`}
-            >
-              {n === null ? 'Tout' : (
-                <span className="flex items-center gap-1">
-                  {n} <Star size={12} className={etoileFilter === n ? 'fill-white' : 'fill-amber-400 text-amber-400'} />
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
-      {/* Liste */}
-      {isLoading ? (
-        <AvisListSkeleton />
-      ) : filtered?.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="card p-12 text-center"
-        >
-          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search size={24} className="text-slate-400" />
-          </div>
-          <p className="text-slate-500 font-medium">Aucun avis ne correspond a ta recherche</p>
-          <p className="text-slate-400 text-sm mt-1">Essaye avec d'autres mots-cles ou filtres</p>
-        </motion.div>
+      {avis.length === 0 ? (
+        <div className="card text-center py-10">
+          <p className="text-4xl mb-3">🎯</p>
+          <p className="font-semibold text-gray-700 dark:text-slate-300">Aucun avis disponible</p>
+          <p className="text-sm text-gray-400 mt-1">Reviens plus tard !</p>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AnimatePresence mode="popLayout">
-            {filtered.map((a, i) => (
-              <AvisCard
-                key={a.id}
-                avis={a}
-                index={i}
-                onReserve={(id) => {
-                  if (hasAvisEnCours) return
-                  reserver.mutate(id)
-                }}
-                isReserving={reserver.isPending}
-              />
-            ))}
-          </AnimatePresence>
+        <div className="space-y-3">
+          {avis.map(a => {
+            const { stars, label } = etoilesDisplay(a.nb_etoiles)
+            const gain = parseFloat(a.prix_membre || a.prix || 1)
+            const isPrioritaire = !!a.prioritaire
+
+            return (
+              <div key={a.id} className={`card space-y-3 ${isPrioritaire ? 'border-2 border-orange-300 dark:border-orange-600' : ''}`}>
+
+                {/* Badge prioritaire */}
+                {isPrioritaire && (
+                  <div className="flex items-center gap-2 bg-orange-50 dark:bg-orange-900/20 rounded-xl px-3 py-2">
+                    <span className="text-lg">🔥</span>
+                    <div>
+                      <p className="text-sm font-bold text-orange-700 dark:text-orange-400">Avis prioritaire</p>
+                      <p className="text-xs text-orange-500">Traite cet avis en priorité !</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-900 dark:text-white">{a.nom_societe}</p>
+                  </div>
+                  {/* Gain — défini par l'admin */}
+                  <div className={`shrink-0 rounded-xl px-3 py-2 text-center ${
+                    isPrioritaire
+                      ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700'
+                      : 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700'
+                  }`}>
+                    <p className={`font-bold text-lg ${isPrioritaire ? 'text-orange-600 dark:text-orange-400' : 'text-green-700 dark:text-green-400'}`}>
+                      +{gain.toFixed(2)}€
+                    </p>
+                    <p className={`text-xs ${isPrioritaire ? 'text-orange-500' : 'text-green-600 dark:text-green-500'}`}>
+                      à gagner
+                    </p>
+                  </div>
+                </div>
+
+                {/* Étoiles */}
+                <div className={`rounded-xl p-3 border ${etoilesColor(a.nb_etoiles)}`}>
+                  <p className="text-xs font-medium mb-1">Note à mettre sur Google :</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{stars}</span>
+                    <span className="font-bold text-sm">{label}</span>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 dark:text-slate-400 font-medium mb-1">Texte à copier :</p>
+                  <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed line-clamp-3">{a.texte}</p>
+                </div>
+
+                <button
+                  className={`w-full py-3 text-white text-sm font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-70 ${
+                    isPrioritaire ? 'bg-orange-500 hover:bg-orange-600' : 'bg-sky-500 hover:bg-sky-600'
+                  }`}
+                  onClick={() => reserver(a.id)}
+                  disabled={reserving !== null}
+                >
+                  {reserving === a.id ? <><Spinner /> Réservation...</> : isPrioritaire ? '🔥 Réserver cet avis prioritaire' : '✋ Réserver cet avis'}
+                </button>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
