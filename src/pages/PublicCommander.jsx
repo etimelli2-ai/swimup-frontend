@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MapPin, Mail, Star, ChevronRight, AlertCircle, Loader2, Sparkles } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -88,6 +88,26 @@ async function genererTexteIA(nom, type, etoiles, ton) {
 export default function PublicCommander() {
   const [searchParams] = useSearchParams()
   const wasCancelled = searchParams.get('cancel') === '1'
+
+  useEffect(() => {
+    document.title = 'Acheter un avis Google Maps — SwimUp | 4€ sans compte'
+
+    let meta = document.querySelector('meta[name="description"]')
+    if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta) }
+    meta.content = 'Obtenez un vrai avis Google Maps en 24h pour seulement 4€. Sans inscription, paiement sécurisé par Stripe, garantie 30 jours.'
+
+    const metas = [
+      { property: 'og:title',       content: 'Acheter un avis Google Maps — SwimUp' },
+      { property: 'og:description', content: 'Un vrai avis Google Maps en 24h pour 4€. Sans compte, paiement Stripe, garantie 30 jours.' },
+      { property: 'og:url',         content: 'https://swimup.net/commander' },
+      { property: 'og:type',        content: 'website' },
+    ]
+    metas.forEach(({ property, content }) => {
+      let el = document.querySelector(`meta[property="${property}"]`)
+      if (!el) { el = document.createElement('meta'); el.setAttribute('property', property); document.head.appendChild(el) }
+      el.content = content
+    })
+  }, [])
 
   const [form, setForm] = useState({
     email:              '',
