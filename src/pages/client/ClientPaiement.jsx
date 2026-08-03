@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../hooks/useAuth'
 import api from '../../lib/api'
 import { CreditCard, Star, Building, Link, Clock, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -13,6 +14,9 @@ const PRIX_AVIS = 3
 
 export default function ClientPaiement() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
+
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     nom_etablissement:  '',
@@ -41,10 +45,15 @@ export default function ClientPaiement() {
         delai_paiement:     parseInt(form.delai_paiement) || 30,
         nb_etoiles:         parseInt(form.nb_etoiles) || 5,
       })
-      // Rediriger vers Stripe Checkout
-      window.location.href = r.data.url
+
+      if (isAdmin) {
+        // Admin — redirection directe sans Stripe
+        navigate('/client/success?session_id=' + r.data.session_id)
+      } else {
+        window.location.href = r.data.url
+      }
     } catch (e) {
-      toast.error(e.response?.data?.error || 'Erreur lors de la création du paiement')
+      toast.error(e.response?.data?.error || 'Erreur lors de la création')
       setLoading(false)
     }
   }
@@ -57,9 +66,27 @@ export default function ClientPaiement() {
   return (
     <div className="space-y-6 animate-fade-in max-w-lg mx-auto">
       <div>
-        <h1 className="page-title">Commander des avis</h1>
-        <p className="text-muted mt-1">Remplis les informations et paye pour débloquer tes avis</p>
+        <h1 className="page-title">
+          {isAdmin ? '✅ Commander des avis (Admin)' : 'Commander des avis'}
+        </h1>
+        <p className="text-muted mt-1">
+          {isAdmin
+            ? 'En tant qu\'admin, les avis sont créés gratuitement et immédiatement.'
+            : 'Remplis les informations et paie pour débloquer tes avis'
+          }
+        </p>
       </div>
+
+      {isAdmin && (
+        <div className="card p-4 border-2 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
+          <p className="text-sm font-semibold text-green-700 dark:text-green-400">
+            🛡️ Mode admin — paiement Stripe bypassé
+          </p>
+          <p className="text-xs text-green-600 dark:text-green-500 mt-1">
+            Les avis seront créés directement sans facturation.
+          </p>
+        </div>
+      )}
 
       <div className="card p-5 space-y-4">
         <h2 className="section-title flex items-center gap-2">
@@ -128,7 +155,7 @@ export default function ClientPaiement() {
       <div className="card p-5 space-y-4">
         <h2 className="section-title flex items-center gap-2">
           <CreditCard size={18} className="text-sky-500" />
-          Quantité et paiement
+          Quantité {!isAdmin && 'et paiement'}
         </h2>
 
         <div>
@@ -141,30 +168,44 @@ export default function ClientPaiement() {
         </div>
 
         {/* Récap prix */}
-        <div className="bg-sky-50 dark:bg-sky-900/20 rounded-xl p-4 space-y-2">
+        <div className={`rounded-xl p-4 space-y-2 ${isAdmin ? 'bg-green-50 dark:bg-green-900/20' : 'bg-sky-50 dark:bg-sky-900/20'}`}>
           <div className="flex justify-between text-sm">
-            <span className="text-slate-600 dark:text-slate-400">{nb} avis × {PRIX_AVIS}€</span>
-            <span className="font-bold text-slate-900 dark:text-white">{total.toFixed(2)}€</span>
+            <span className="text-slate-600 dark:text-slate-400">
+              {nb} avis × {isAdmin ? '0€ (admin)' : `${PRIX_AVIS}€`}
+            </span>
+            <span className="font-bold text-slate-900 dark:text-white">
+              {isAdmin ? '0.00€' : `${total.toFixed(2)}€`}
+            </span>
           </div>
-          <div className="flex justify-between text-sm border-t border-sky-100 dark:border-sky-800 pt-2">
-            <span className="font-semibold text-slate-700 dark:text-slate-300">Total à payer</span>
-            <span className="font-extrabold text-sky-600 dark:text-sky-400 text-lg">{total.toFixed(2)}€</span>
+          <div className={`flex justify-between text-sm border-t pt-2 ${isAdmin ? 'border-green-100 dark:border-green-800' : 'border-sky-100 dark:border-sky-800'}`}>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Total</span>
+            <span className={`font-extrabold text-lg ${isAdmin ? 'text-green-600 dark:text-green-400' : 'text-sky-600 dark:text-sky-400'}`}>
+              {isAdmin ? '✅ Gratuit' : `${total.toFixed(2)}€`}
+            </span>
           </div>
         </div>
 
-        <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
-          <p>✅ Paiement sécurisé par Stripe</p>
-          <p>✅ Après paiement, tu pourras remplir les textes de tes avis</p>
-          <p>✅ Les avis seront visibles par les membres une fois les textes validés</p>
-        </div>
+        {!isAdmin && (
+          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
+            <p>✅ Paiement sécurisé par Stripe</p>
+            <p>✅ Après paiement, tu pourras remplir les textes de tes avis</p>
+            <p>✅ Les avis seront visibles par les membres une fois les textes validés</p>
+          </div>
+        )}
 
         <button
           onClick={handlePayer}
           disabled={loading || !form.nom_etablissement || !form.lien_maps}
-          className="btn-primary w-full text-base py-3 disabled:opacity-50"
+          className={`w-full text-base py-3 font-semibold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 transition-all ${
+            isAdmin
+              ? 'bg-green-500 hover:bg-green-600 text-white'
+              : 'btn-primary'
+          }`}
         >
           {loading ? (
-            <><Spinner /> Redirection vers Stripe...</>
+            <><Spinner /> {isAdmin ? 'Création...' : 'Redirection vers Stripe...'}</>
+          ) : isAdmin ? (
+            <><span>✅</span> Créer {nb} avis gratuitement</>
           ) : (
             <><CreditCard size={18} /> Payer {total.toFixed(2)}€ avec Stripe</>
           )}
