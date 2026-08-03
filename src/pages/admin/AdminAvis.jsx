@@ -460,24 +460,41 @@ export default function AdminAvis() {
 
       {/* Formulaire ajout */}
       {show && (
-        <div className="card space-y-3 border-2 border-sky-200">
-          <h3 className="font-bold dark:text-white">Nouvel avis</h3>
-          <select className="input" value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))}>
-            <option value="">Sélectionner un client</option>
-            {clients.map(c => <option key={c.id} value={c.id}>{c.nom_societe} ({c.email})</option>)}
-          </select>
-          <input className="input" placeholder="Lien Google Maps"
-            value={form.lien_maps} onChange={e => setForm(p => ({ ...p, lien_maps: e.target.value }))} />
-          <textarea className="input min-h-[100px]" placeholder="Texte"
-            value={form.texte} onChange={e => setForm(p => ({ ...p, texte: e.target.value }))} />
-          <input className="input" type="number" placeholder="Délai (jours)"
-            value={form.delai_paiement} onChange={e => setForm(p => ({ ...p, delai_paiement: e.target.value }))} />
-          <button onClick={ajouter} disabled={loadingAction === 'ajouter'}
-            className="w-full bg-sky-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
-            {loadingAction === 'ajouter' ? <><Spinner /> Ajout...</> : "Ajouter l'avis"}
-          </button>
-        </div>
-      )}
+  <div className="card space-y-3 border-2 border-sky-200">
+    <h3 className="font-bold dark:text-white">Nouvel avis</h3>
+    <select className="input" value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))}>
+      <option value="">Sélectionner un client</option>
+      {clients.map(c => <option key={c.id} value={c.id}>{c.nom_societe} ({c.email})</option>)}
+    </select>
+    <input className="input" placeholder="Nom établissement"
+      value={form.nom_etablissement || ''} onChange={e => setForm(p => ({ ...p, nom_etablissement: e.target.value }))} />
+    <input className="input" placeholder="Lien Google Maps"
+      value={form.lien_maps} onChange={e => setForm(p => ({ ...p, lien_maps: e.target.value }))} />
+    <textarea className="input min-h-[100px]" placeholder="Texte de l'avis"
+      value={form.texte} onChange={e => setForm(p => ({ ...p, texte: e.target.value }))} />
+    <div className="grid grid-cols-2 gap-2">
+      <div>
+        <label className="text-xs text-gray-500 mb-1 block">Étoiles</label>
+        <select className="input" value={form.nb_etoiles || '5'} onChange={e => setForm(p => ({ ...p, nb_etoiles: e.target.value }))}>
+          <option value="1">⭐ 1</option>
+          <option value="2">⭐⭐ 2</option>
+          <option value="3">⭐⭐⭐ 3</option>
+          <option value="4">⭐⭐⭐⭐ 4</option>
+          <option value="5">⭐⭐⭐⭐⭐ 5</option>
+        </select>
+      </div>
+      <div>
+        <label className="text-xs text-gray-500 mb-1 block">Délai paiement (jours)</label>
+        <input className="input" type="number" placeholder="30"
+          value={form.delai_paiement} onChange={e => setForm(p => ({ ...p, delai_paiement: e.target.value }))} />
+      </div>
+    </div>
+    <button onClick={ajouter} disabled={loadingAction === 'ajouter'}
+      className="w-full bg-sky-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+      {loadingAction === 'ajouter' ? <><Spinner /> Ajout...</> : "✅ Ajouter l'avis directement"}
+    </button>
+  </div>
+)}
 
       <p className="text-xs text-gray-400">{avisFiltres.length} avis</p>
 
