@@ -24,7 +24,7 @@ function cleanText(text) {
 export default function AdminAvis() {
   const [avis, setAvis]               = useState([])
   const [clients, setClients]         = useState([])
-  const [form, setForm]               = useState({ client_id: '', lien_maps: '', texte: '', delai_paiement: '30' })
+  const [form, setForm]               = useState({ client_id: '', lien_maps: '', texte: '', delai_paiement: '30', nom_etablissement: '', nb_etoiles: '5' })
   const [show, setShow]               = useState(false)
   const [msg, setMsg]                 = useState(null)
   const [detail, setDetail]           = useState(null)
