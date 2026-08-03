@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /commander
+Allow: /suivi
+Disallow: /admin
+Disallow: /dashboard
+Sitemap: https://swimup.net/sitemap.xml
