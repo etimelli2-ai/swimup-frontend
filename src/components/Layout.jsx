@@ -10,7 +10,6 @@ import {
   LogOut,
   Menu,
   X,
-  Shield,
   Ticket,
   ChevronRight,
   CreditCard,
@@ -34,17 +33,19 @@ export default function Layout() {
     { path: '/admin/retraits', label: 'Retraits',    icon: Wallet },
     { path: '/admin/loterie',  label: 'Loterie',     icon: Ticket },
     { path: '/admin/commande', label: 'Commande',    icon: FileText },
+    { path: '/admin/boutique', label: 'Boutique',    icon: ShoppingBag },
   ] : isClient ? [
-    { path: '/client',            label: 'Dashboard',    icon: LayoutDashboard },
-    { path: '/client/payer',      label: 'Commander',    icon: CreditCard },
-    { path: '/client/commandes',  label: 'Mes commandes', icon: ShoppingBag },
-    { path: '/profil',            label: 'Profil',       icon: User },
+    { path: '/client',           label: 'Dashboard',    icon: LayoutDashboard },
+    { path: '/client/payer',     label: 'Commander',    icon: CreditCard },
+    { path: '/client/commandes', label: 'Mes commandes', icon: ShoppingBag },
+    { path: '/profil',           label: 'Profil',       icon: User },
   ] : [
     { path: '/dashboard',    label: 'Tableau de bord',  icon: LayoutDashboard },
     { path: '/avis',         label: 'Avis disponibles', icon: Star },
     { path: '/mon-avis',     label: 'Mon avis',         icon: FileText },
     { path: '/portefeuille', label: 'Portefeuille',     icon: Wallet },
     { path: '/loterie',      label: 'Loterie',          icon: Ticket },
+    { path: '/boutique',     label: 'Boutique',         icon: ShoppingBag },
     { path: '/profil',       label: 'Profil',           icon: User },
   ]
 
