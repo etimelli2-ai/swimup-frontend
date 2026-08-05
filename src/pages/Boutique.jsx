@@ -1,92 +1,59 @@
 import { useState, useEffect } from 'react'
-import api from '../../lib/api'
-import { Package, Plus, Trash2, Edit3, ShoppingBag, Loader2 } from 'lucide-react'
+import api from '../lib/api'
+import { useAuth } from '../hooks/useAuth'
+import { ShoppingBag, Package, Loader2 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
 }
 
-const STATUTS = ['en_attente', 'confirmee', 'livree', 'annulee']
-
-export default function AdminBoutique() {
-  const [produits, setProduits]     = useState([])
-  const [commandes, setCommandes]   = useState([])
-  const [tab, setTab]               = useState('produits')
-  const [loading, setLoading]       = useState(true)
-  const [loadingAction, setLA]      = useState(null)
-  const [showForm, setShowForm]     = useState(false)
-  const [editProduit, setEdit]      = useState(null)
-  const [form, setForm] = useState({
-    nom: '', description: '', prix: '', stock: '-1', image_url: '', actif: true
-  })
+export default function Boutique() {
+  const { user } = useAuth()
+  const [produits, setProduits]   = useState([])
+  const [commandes, setCommandes] = useState([])
+  const [loading, setLoading]     = useState(true)
+  const [ordering, setOrdering]   = useState(null)
+  const [tab, setTab]             = useState('boutique')
+  const [quantites, setQuantites] = useState({})
 
   const load = async () => {
     try {
       const [p, c] = await Promise.all([
-        api.get('/boutique/admin/produits'),
-        api.get('/boutique/admin/commandes'),
+        api.get('/boutique/produits'),
+        api.get('/boutique/mes-commandes'),
       ])
       setProduits(p.data)
       setCommandes(c.data)
-    } catch { toast.error('Erreur chargement') }
-    finally { setLoading(false) }
+    } catch {
+      toast.error('Erreur chargement')
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [])
 
-  const resetForm = () => {
-    setForm({ nom: '', description: '', prix: '', stock: '-1', image_url: '', actif: true })
-    setEdit(null)
-    setShowForm(false)
-  }
+  const commander = async (produit) => {
+    const qty = quantites[produit.id] || 1
+    const total = produit.prix * qty
 
-  const sauvegarder = async () => {
-    if (!form.nom || !form.prix) return toast.error('Nom et prix requis')
-    setLA('save')
+    if (parseFloat(user?.solde || 0) < total) {
+      return toast.error(`Solde insuffisant — tu as ${parseFloat(user?.solde || 0).toFixed(2)}€, il faut ${total.toFixed(2)}€`)
+    }
+
+    if (!confirm(`Commander ${produit.nom} x${qty} pour ${total.toFixed(2)}€ ?`)) return
+
+    setOrdering(produit.id)
     try {
-      if (editProduit) {
-        await api.put(`/boutique/admin/produits/${editProduit.id}`, form)
-        toast.success('Produit modifié !')
-      } else {
-        await api.post('/boutique/admin/produits', form)
-        toast.success('Produit ajouté !')
-      }
-      resetForm()
+      const r = await api.post('/boutique/commander', { produit_id: produit.id, quantite: qty })
+      toast.success(r.data.message)
       load()
-    } catch (e) { toast.error(e.response?.data?.error || 'Erreur') }
-    setLA(null)
-  }
-
-  const supprimer = async (id) => {
-    if (!confirm('Supprimer ce produit ?')) return
-    setLA(`del_${id}`)
-    try {
-      await api.delete(`/boutique/admin/produits/${id}`)
-      toast.success('Produit supprimé !')
-      load()
-    } catch { toast.error('Erreur') }
-    setLA(null)
-  }
-
-  const changerStatut = async (commandeId, statut) => {
-    setLA(`statut_${commandeId}`)
-    try {
-      await api.put(`/boutique/admin/commandes/${commandeId}`, { statut })
-      toast.success('Statut mis à jour !')
-      load()
-    } catch (e) { toast.error(e.response?.data?.error || 'Erreur') }
-    setLA(null)
-  }
-
-  const ouvrirEdit = (p) => {
-    setEdit(p)
-    setForm({
-      nom: p.nom, description: p.description || '',
-      prix: String(p.prix), stock: String(p.stock),
-      image_url: p.image_url || '', actif: !!p.actif
-    })
-    setShowForm(true)
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Erreur')
+    }
+    setOrdering(null)
   }
 
   const statutBadge = s => ({
@@ -105,189 +72,171 @@ export default function AdminBoutique() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="page-title">🛍️ Boutique</h1>
-        {tab === 'produits' && (
-          <button onClick={() => { resetForm(); setShowForm(!showForm) }} className="btn-primary">
-            <Plus size={16} /> Ajouter
-          </button>
-        )}
+        <div>
+          <h1 className="page-title">🛍️ Boutique</h1>
+          <p className="text-muted mt-1">Dépense ton solde SwimUp sur des produits exclusifs</p>
+        </div>
+        <div className="stat-card px-4 py-2 text-center">
+          <p className="text-lg font-black text-sky-600 dark:text-sky-400">
+            {parseFloat(user?.solde || 0).toFixed(2)}€
+          </p>
+          <p className="text-xs text-slate-400">ton solde</p>
+        </div>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-2">
-        <button onClick={() => setTab('produits')}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'produits' ? 'bg-sky-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
-          📦 Produits ({produits.length})
+        <button
+          onClick={() => setTab('boutique')}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+            tab === 'boutique'
+              ? 'bg-sky-500 text-white'
+              : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+          }`}
+        >
+          🛍️ Produits
         </button>
-        <button onClick={() => setTab('commandes')}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'commandes' ? 'bg-sky-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
-          🛍️ Commandes ({commandes.length})
+        <button
+          onClick={() => setTab('commandes')}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+            tab === 'commandes'
+              ? 'bg-sky-500 text-white'
+              : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+          }`}
+        >
+          📦 Mes commandes {commandes.length > 0 && `(${commandes.length})`}
         </button>
       </div>
 
-      {/* Formulaire ajout/edit */}
-      {tab === 'produits' && showForm && (
-        <div className="card p-5 space-y-4 border-2 border-sky-200 dark:border-sky-800">
-          <h2 className="section-title">{editProduit ? '✏️ Modifier le produit' : '➕ Nouveau produit'}</h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nom *</label>
-              <input className="input" placeholder="Ex: Carte cadeau Amazon"
-                value={form.nom} onChange={e => setForm(p => ({ ...p, nom: e.target.value }))} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Prix (€) *</label>
-              <input className="input" type="number" step="0.01" min="0" placeholder="9.99"
-                value={form.prix} onChange={e => setForm(p => ({ ...p, prix: e.target.value }))} />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
-            <textarea className="input min-h-[80px] resize-none" placeholder="Description du produit..."
-              value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Stock (-1 = illimité)
-              </label>
-              <input className="input" type="number" min="-1" placeholder="-1"
-                value={form.stock} onChange={e => setForm(p => ({ ...p, stock: e.target.value }))} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">URL Image</label>
-              <input className="input" placeholder="https://..."
-                value={form.image_url} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} />
-            </div>
-          </div>
-
-          {form.image_url && (
-            <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-              <img src={form.image_url} alt="Preview" className="w-full h-40 object-cover"
-                onError={e => { e.target.style.display = 'none' }} />
-            </div>
-          )}
-
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.actif}
-                onChange={e => setForm(p => ({ ...p, actif: e.target.checked }))}
-                className="w-4 h-4 accent-sky-500" />
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Produit actif (visible)</span>
-            </label>
-          </div>
-
-          <div className="flex gap-3">
-            <button onClick={sauvegarder} disabled={loadingAction === 'save'} className="btn-primary flex-1">
-              {loadingAction === 'save' ? <><Spinner /> Sauvegarde...</> : '💾 Sauvegarder'}
-            </button>
-            <button onClick={resetForm} className="btn-secondary flex-1">Annuler</button>
-          </div>
-        </div>
-      )}
-
-      {/* Liste produits */}
-      {tab === 'produits' && (
-        <div className="space-y-3">
+      {/* Produits */}
+      {tab === 'boutique' && (
+        <div className="space-y-4">
           {produits.length === 0 ? (
             <div className="card p-10 text-center">
-              <Package size={32} className="text-slate-300 mx-auto mb-3" />
-              <p className="font-medium text-slate-500">Aucun produit — clique sur Ajouter !</p>
+              <ShoppingBag size={32} className="text-slate-300 mx-auto mb-3" />
+              <p className="font-medium text-slate-600 dark:text-slate-400">Aucun produit disponible</p>
+              <p className="text-sm text-slate-400 mt-1">Reviens plus tard !</p>
             </div>
-          ) : produits.map(p => (
-            <div key={p.id} className={`card p-4 flex items-center gap-4 ${!p.actif ? 'opacity-50' : ''}`}>
-              {p.image_url ? (
-                <img src={p.image_url} alt={p.nom}
-                  className="w-16 h-16 object-cover rounded-xl shrink-0"
-                  onError={e => { e.target.style.display = 'none' }} />
-              ) : (
-                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center shrink-0">
-                  <Package size={24} className="text-slate-400" />
-                </div>
-              )}
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {produits.map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="card p-0 overflow-hidden"
+                >
+                  {/* Image */}
+                  {p.image_url ? (
+                    <img
+                      src={p.image_url}
+                      alt={p.nom}
+                      className="w-full h-48 object-cover"
+                      onError={e => { e.target.style.display = 'none' }}
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                      <Package size={40} className="text-slate-300" />
+                    </div>
+                  )}
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="font-bold text-slate-900 dark:text-white truncate">{p.nom}</p>
-                  {!p.actif && <span className="badge-gray text-xs">Masqué</span>}
-                </div>
-                {p.description && (
-                  <p className="text-xs text-slate-400 truncate">{p.description}</p>
-                )}
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-sky-600 dark:text-sky-400 font-bold">{parseFloat(p.prix).toFixed(2)}€</span>
-                  <span className="text-xs text-slate-400">
-                    Stock : {p.stock === -1 ? '∞ illimité' : p.stock === 0 ? '❌ épuisé' : `${p.stock} restant(s)`}
-                  </span>
-                </div>
-              </div>
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="font-bold text-slate-900 dark:text-white">{p.nom}</h3>
+                        {p.description && (
+                          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{p.description}</p>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xl font-black text-sky-600 dark:text-sky-400">
+                          {parseFloat(p.prix).toFixed(2)}€
+                        </p>
+                        {p.stock === -1 ? (
+                          <p className="text-xs text-emerald-500">∞ En stock</p>
+                        ) : p.stock === 0 ? (
+                          <p className="text-xs text-red-500">Rupture</p>
+                        ) : (
+                          <p className="text-xs text-slate-400">{p.stock} restant{p.stock > 1 ? 's' : ''}</p>
+                        )}
+                      </div>
+                    </div>
 
-              <div className="flex gap-2 shrink-0">
-                <button onClick={() => ouvrirEdit(p)}
-                  className="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
-                  <Edit3 size={16} className="text-slate-600 dark:text-slate-300" />
-                </button>
-                <button onClick={() => supprimer(p.id)} disabled={loadingAction === `del_${p.id}`}
-                  className="p-2 bg-red-50 dark:bg-red-900/20 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
-                  {loadingAction === `del_${p.id}`
-                    ? <Spinner />
-                    : <Trash2 size={16} className="text-red-500" />
-                  }
-                </button>
-              </div>
+                    {/* Quantité */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setQuantites(q => ({ ...q, [p.id]: Math.max(1, (q[p.id] || 1) - 1) }))}
+                        className="w-8 h-8 border-2 border-slate-200 dark:border-slate-600 rounded-lg flex items-center justify-center font-bold hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >−</button>
+                      <span className="w-8 text-center font-bold dark:text-white">{quantites[p.id] || 1}</span>
+                      <button
+                        onClick={() => setQuantites(q => ({ ...q, [p.id]: (q[p.id] || 1) + 1 }))}
+                        className="w-8 h-8 border-2 border-slate-200 dark:border-slate-600 rounded-lg flex items-center justify-center font-bold hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >+</button>
+                      <span className="text-sm text-slate-400 ml-1">
+                        = <strong className="text-slate-700 dark:text-slate-200">
+                          {(parseFloat(p.prix) * (quantites[p.id] || 1)).toFixed(2)}€
+                        </strong>
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => commander(p)}
+                      disabled={ordering === p.id || p.stock === 0}
+                      className="btn-primary w-full disabled:opacity-50"
+                    >
+                      {ordering === p.id
+                        ? <><Spinner /> Commande...</>
+                        : p.stock === 0
+                          ? '❌ Rupture de stock'
+                          : '🛍️ Commander'
+                      }
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 
-      {/* Commandes */}
+      {/* Mes commandes */}
       {tab === 'commandes' && (
         <div className="space-y-3">
           {commandes.length === 0 ? (
             <div className="card p-10 text-center">
-              <ShoppingBag size={32} className="text-slate-300 mx-auto mb-3" />
-              <p className="font-medium text-slate-500">Aucune commande pour le moment</p>
+              <Package size={32} className="text-slate-300 mx-auto mb-3" />
+              <p className="font-medium text-slate-600 dark:text-slate-400">Aucune commande</p>
+              <p className="text-sm text-slate-400 mt-1">Commande un produit pour commencer !</p>
             </div>
-          ) : commandes.map(c => (
-            <div key={c.id} className="card p-4 space-y-3">
-              <div className="flex items-start justify-between gap-3">
+          ) : (
+            commandes.map(c => (
+              <div key={c.id} className="card p-4 flex items-center gap-4">
+                {c.image_url ? (
+                  <img src={c.image_url} alt={c.nom}
+                    className="w-16 h-16 object-cover rounded-xl shrink-0"
+                    onError={e => { e.target.style.display = 'none' }} />
+                ) : (
+                  <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center shrink-0">
+                    <Package size={24} className="text-slate-400" />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-slate-900 dark:text-white">{c.produit_nom}</p>
+                  <p className="font-bold text-slate-900 dark:text-white truncate">{c.nom}</p>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {c.email} · x{c.quantite} · {parseFloat(c.montant).toFixed(2)}€
+                    x{c.quantite} · {parseFloat(c.montant).toFixed(2)}€
                   </p>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    {new Date(c.created_at).toLocaleString('fr-FR')}
+                    {new Date(c.created_at).toLocaleDateString('fr-FR')}
                   </p>
                 </div>
-                <div>{statutBadge(c.statut)}</div>
-              </div>
-
-              {c.statut !== 'livree' && c.statut !== 'annulee' && (
-                <div className="flex gap-2 flex-wrap">
-                  {STATUTS.filter(s => s !== c.statut).map(s => (
-                    <button key={s} onClick={() => changerStatut(c.id, s)}
-                      disabled={loadingAction === `statut_${c.id}`}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-50 ${
-                        s === 'annulee' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-                        s === 'livree'  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                        'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
-                      }`}>
-                      {loadingAction === `statut_${c.id}` ? '...' : {
-                        en_attente: '⏳ En attente',
-                        confirmee:  '✅ Confirmer',
-                        livree:     '📦 Marquer livrée',
-                        annulee:    '❌ Annuler',
-                      }[s]}
-                    </button>
-                  ))}
+                <div className="shrink-0">
+                  {statutBadge(c.statut)}
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            ))
+          )}
         </div>
       )}
     </div>
