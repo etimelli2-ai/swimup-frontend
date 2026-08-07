@@ -16,6 +16,7 @@ import {
   ShoppingBag,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import React from 'react'
 
 const DiscordIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -24,16 +25,16 @@ const DiscordIcon = () => (
 )
 
 function DiscordButton() {
-  return (
-    
-      href="https://discord.gg/Dt2rmcHB5u"
-      target="_blank"
-      rel="noreferrer"
-      className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 dark:text-indigo-400 transition-all"
-    >
-      <DiscordIcon />
-      Rejoindre Discord
-    </a>
+  return React.createElement(
+    'a',
+    {
+      href: 'https://discord.gg/Dt2rmcHB5u',
+      target: '_blank',
+      rel: 'noreferrer',
+      className: 'flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 dark:text-indigo-400 transition-all'
+    },
+    React.createElement(DiscordIcon),
+    'Rejoindre Discord'
   )
 }
 
