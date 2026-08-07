@@ -88,18 +88,17 @@ export default function Layout() {
       </Link>
     )
   }
-
-  const DiscordButton = () => (
-    
-      href="https://discord.gg/Dt2rmcHB5u"
-      target="_blank"
-      rel="noreferrer"
-      className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 dark:text-indigo-400 transition-all"
-    >
-      <DiscordIcon />
-      Rejoindre Discord
-    </a>
-  )
+const DiscordButton = () => (
+  
+    href="https://discord.gg/Dt2rmcHB5u"
+    target="_blank"
+    rel="noreferrer"
+    className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 dark:text-indigo-400 transition-all"
+  >
+    <DiscordIcon />
+    Rejoindre Discord
+  </a>
+)
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
