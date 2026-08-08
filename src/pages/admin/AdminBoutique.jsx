@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
-import { Package, Plus, Trash2, Edit3, ShoppingBag, Loader2 } from 'lucide-react'
+import { Package, Plus, Trash2, Edit3, ShoppingBag, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 function Spinner() {
@@ -10,13 +10,15 @@ function Spinner() {
 const STATUTS = ['en_attente', 'confirmee', 'livree', 'annulee']
 
 export default function AdminBoutique() {
-  const [produits, setProduits]     = useState([])
-  const [commandes, setCommandes]   = useState([])
-  const [tab, setTab]               = useState('produits')
-  const [loading, setLoading]       = useState(true)
-  const [loadingAction, setLA]      = useState(null)
-  const [showForm, setShowForm]     = useState(false)
-  const [editProduit, setEdit]      = useState(null)
+  const [produits, setProduits]       = useState([])
+  const [commandes, setCommandes]     = useState([])
+  const [tab, setTab]                 = useState('produits')
+  const [loading, setLoading]         = useState(true)
+  const [loadingAction, setLA]        = useState(null)
+  const [showForm, setShowForm]       = useState(false)
+  const [editProduit, setEdit]        = useState(null)
+  const [expandedCmd, setExpandedCmd] = useState(null)
+  const [cmdForms, setCmdForms]       = useState({})
   const [form, setForm] = useState({
     nom: '', description: '', prix: '', stock: '-1', image_url: '', actif: true
   })
@@ -29,6 +31,15 @@ export default function AdminBoutique() {
       ])
       setProduits(p.data)
       setCommandes(c.data)
+      // Init forms instructions/code
+      const forms = {}
+      c.data.forEach(cmd => {
+        forms[cmd.id] = {
+          instructions: cmd.instructions || '',
+          code: cmd.code || '',
+        }
+      })
+      setCmdForms(forms)
     } catch { toast.error('Erreur chargement') }
     finally { setLoading(false) }
   }
@@ -74,6 +85,17 @@ export default function AdminBoutique() {
     try {
       await api.put(`/boutique/admin/commandes/${commandeId}`, { statut })
       toast.success('Statut mis à jour !')
+      load()
+    } catch (e) { toast.error(e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
+  const sauvegarderInstructions = async (commandeId) => {
+    setLA(`instr_${commandeId}`)
+    try {
+      const { instructions, code } = cmdForms[commandeId] || {}
+      await api.put(`/boutique/admin/commandes/${commandeId}`, { instructions, code })
+      toast.success('Instructions sauvegardées ! Membre notifié.')
       load()
     } catch (e) { toast.error(e.response?.data?.error || 'Erreur') }
     setLA(null)
@@ -151,9 +173,7 @@ export default function AdminBoutique() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Stock (-1 = illimité)
-              </label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Stock (-1 = illimité)</label>
               <input className="input" type="number" min="-1" placeholder="-1"
                 value={form.stock} onChange={e => setForm(p => ({ ...p, stock: e.target.value }))} />
             </div>
@@ -171,14 +191,12 @@ export default function AdminBoutique() {
             </div>
           )}
 
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.actif}
-                onChange={e => setForm(p => ({ ...p, actif: e.target.checked }))}
-                className="w-4 h-4 accent-sky-500" />
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Produit actif (visible)</span>
-            </label>
-          </div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={form.actif}
+              onChange={e => setForm(p => ({ ...p, actif: e.target.checked }))}
+              className="w-4 h-4 accent-sky-500" />
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Produit actif (visible)</span>
+          </label>
 
           <div className="flex gap-3">
             <button onClick={sauvegarder} disabled={loadingAction === 'save'} className="btn-primary flex-1">
@@ -208,15 +226,12 @@ export default function AdminBoutique() {
                   <Package size={24} className="text-slate-400" />
                 </div>
               )}
-
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="font-bold text-slate-900 dark:text-white truncate">{p.nom}</p>
                   {!p.actif && <span className="badge-gray text-xs">Masqué</span>}
                 </div>
-                {p.description && (
-                  <p className="text-xs text-slate-400 truncate">{p.description}</p>
-                )}
+                {p.description && <p className="text-xs text-slate-400 truncate">{p.description}</p>}
                 <div className="flex items-center gap-3 mt-1">
                   <span className="text-sky-600 dark:text-sky-400 font-bold">{parseFloat(p.prix).toFixed(2)}€</span>
                   <span className="text-xs text-slate-400">
@@ -224,7 +239,6 @@ export default function AdminBoutique() {
                   </span>
                 </div>
               </div>
-
               <div className="flex gap-2 shrink-0">
                 <button onClick={() => ouvrirEdit(p)}
                   className="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
@@ -232,10 +246,7 @@ export default function AdminBoutique() {
                 </button>
                 <button onClick={() => supprimer(p.id)} disabled={loadingAction === `del_${p.id}`}
                   className="p-2 bg-red-50 dark:bg-red-900/20 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
-                  {loadingAction === `del_${p.id}`
-                    ? <Spinner />
-                    : <Trash2 size={16} className="text-red-500" />
-                  }
+                  {loadingAction === `del_${p.id}` ? <Spinner /> : <Trash2 size={16} className="text-red-500" />}
                 </button>
               </div>
             </div>
@@ -252,9 +263,13 @@ export default function AdminBoutique() {
               <p className="font-medium text-slate-500">Aucune commande pour le moment</p>
             </div>
           ) : commandes.map(c => (
-            <div key={c.id} className="card p-4 space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
+            <div key={c.id} className="card p-0 overflow-hidden">
+              {/* Header commande */}
+              <button
+                onClick={() => setExpandedCmd(expandedCmd === c.id ? null : c.id)}
+                className="w-full p-4 flex items-start justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+              >
+                <div className="flex-1 text-left">
                   <p className="font-bold text-slate-900 dark:text-white">{c.produit_nom}</p>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
                     {c.email} · x{c.quantite} · {parseFloat(c.montant).toFixed(2)}€
@@ -263,27 +278,79 @@ export default function AdminBoutique() {
                     {new Date(c.created_at).toLocaleString('fr-FR')}
                   </p>
                 </div>
-                <div>{statutBadge(c.statut)}</div>
-              </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {statutBadge(c.statut)}
+                  {expandedCmd === c.id
+                    ? <ChevronUp size={16} className="text-slate-400" />
+                    : <ChevronDown size={16} className="text-slate-400" />
+                  }
+                </div>
+              </button>
 
-              {c.statut !== 'livree' && c.statut !== 'annulee' && (
-                <div className="flex gap-2 flex-wrap">
-                  {STATUTS.filter(s => s !== c.statut).map(s => (
-                    <button key={s} onClick={() => changerStatut(c.id, s)}
-                      disabled={loadingAction === `statut_${c.id}`}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-50 ${
-                        s === 'annulee' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-                        s === 'livree'  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                        'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
-                      }`}>
-                      {loadingAction === `statut_${c.id}` ? '...' : {
-                        en_attente: '⏳ En attente',
-                        confirmee:  '✅ Confirmer',
-                        livree:     '📦 Marquer livrée',
-                        annulee:    '❌ Annuler',
-                      }[s]}
+              {/* Détails expandés */}
+              {expandedCmd === c.id && (
+                <div className="border-t border-slate-100 dark:border-slate-700 p-4 space-y-4">
+
+                  {/* Instructions et code */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      📋 Instructions pour l'acheteur
+                    </h4>
+                    <div>
+                      <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
+                        Instructions / consignes de livraison
+                      </label>
+                      <textarea
+                        className="input min-h-[100px] resize-none text-sm"
+                        placeholder="Ex: Va sur amazon.fr, connecte-toi avec le code ci-dessous, puis..."
+                        value={cmdForms[c.id]?.instructions || ''}
+                        onChange={e => setCmdForms(f => ({ ...f, [c.id]: { ...f[c.id], instructions: e.target.value } }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
+                        Code / identifiants
+                      </label>
+                      <input
+                        className="input font-mono text-sm"
+                        placeholder="Ex: ABCD-1234-EFGH-5678"
+                        value={cmdForms[c.id]?.code || ''}
+                        onChange={e => setCmdForms(f => ({ ...f, [c.id]: { ...f[c.id], code: e.target.value } }))}
+                      />
+                    </div>
+                    <button
+                      onClick={() => sauvegarderInstructions(c.id)}
+                      disabled={loadingAction === `instr_${c.id}`}
+                      className="btn-primary w-full"
+                    >
+                      {loadingAction === `instr_${c.id}` ? <><Spinner /> Sauvegarde...</> : '💾 Sauvegarder les instructions'}
                     </button>
-                  ))}
+                  </div>
+
+                  {/* Changer statut */}
+                  {c.statut !== 'livree' && c.statut !== 'annulee' && (
+                    <div className="space-y-2 border-t border-slate-100 dark:border-slate-700 pt-4">
+                      <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">⚡ Changer le statut</h4>
+                      <div className="flex gap-2 flex-wrap">
+                        {STATUTS.filter(s => s !== c.statut).map(s => (
+                          <button key={s} onClick={() => changerStatut(c.id, s)}
+                            disabled={loadingAction === `statut_${c.id}`}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-50 ${
+                              s === 'annulee' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                              s === 'livree'  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                              'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                            }`}>
+                            {loadingAction === `statut_${c.id}` ? '...' : {
+                              en_attente: '⏳ En attente',
+                              confirmee:  '✅ Confirmer',
+                              livree:     '📦 Marquer livrée',
+                              annulee:    '❌ Annuler',
+                            }[s]}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
