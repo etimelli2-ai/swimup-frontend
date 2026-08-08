@@ -10,7 +10,6 @@ function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
 }
 
-// Modal choix paiement
 function ModalPaiement({ produit, quantite, onClose, onSolde, onStripe, loading }) {
   const total = parseFloat(produit.prix) * quantite
   return (
@@ -44,7 +43,7 @@ function ModalPaiement({ produit, quantite, onClose, onSolde, onStripe, loading 
               <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center shrink-0">
                 <Wallet size={20} className="text-emerald-600 dark:text-emerald-400" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="font-bold text-slate-900 dark:text-white text-sm">Payer avec mon solde</p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400">Instantané — déduit de ton solde SwimUp</p>
               </div>
@@ -61,7 +60,7 @@ function ModalPaiement({ produit, quantite, onClose, onSolde, onStripe, loading 
               <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/40 rounded-lg flex items-center justify-center shrink-0">
                 <CreditCard size={20} className="text-sky-600 dark:text-sky-400" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="font-bold text-slate-900 dark:text-white text-sm">Payer par carte</p>
                 <p className="text-xs text-sky-600 dark:text-sky-400">Paiement sécurisé via Stripe</p>
               </div>
@@ -72,6 +71,15 @@ function ModalPaiement({ produit, quantite, onClose, onSolde, onStripe, loading 
       </motion.div>
     </div>
   )
+}
+
+function statutBadge(s) {
+  return ({
+    en_attente: <span className="badge-yellow">⏳ En attente</span>,
+    confirmee:  <span className="badge-blue">✅ Confirmée</span>,
+    livree:     <span className="badge-green">📦 Livrée</span>,
+    annulee:    <span className="badge-red">❌ Annulée</span>,
+  }[s] || <span className="badge-gray">{s}</span>)
 }
 
 export default function Boutique() {
@@ -110,18 +118,12 @@ export default function Boutique() {
     }
   }, [])
 
-  const ouvrirModal = (produit) => {
-    setModalProduit(produit)
-  }
-
   const payerSolde = async () => {
     const qty = quantites[modalProduit.id] || 1
     const total = modalProduit.prix * qty
-
     if (parseFloat(user?.solde || 0) < total) {
       return toast.error(`Solde insuffisant — tu as ${parseFloat(user?.solde || 0).toFixed(2)}€, il faut ${total.toFixed(2)}€`)
     }
-
     setPayLoading('solde')
     try {
       const r = await api.post('/boutique/commander', { produit_id: modalProduit.id, quantite: qty })
@@ -148,13 +150,6 @@ export default function Boutique() {
       setPayLoading(null)
     }
   }
-
-  const statutBadge = s => ({
-    en_attente: <span className="badge-yellow">⏳ En attente</span>,
-    confirmee:  <span className="badge-blue">✅ Confirmée</span>,
-    livree:     <span className="badge-green">📦 Livrée</span>,
-    annulee:    <span className="badge-red">❌ Annulée</span>,
-  }[s] || <span className="badge-gray">{s}</span>)
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
@@ -253,7 +248,6 @@ export default function Boutique() {
                       </div>
                     </div>
 
-                    {/* Quantité */}
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setQuantites(q => ({ ...q, [p.id]: Math.max(1, (q[p.id] || 1) - 1) }))}
@@ -272,7 +266,7 @@ export default function Boutique() {
                     </div>
 
                     <button
-                      onClick={() => ouvrirModal(p)}
+                      onClick={() => setModalProduit(p)}
                       disabled={p.stock === 0}
                       className="btn-primary w-full disabled:opacity-50"
                     >
@@ -297,45 +291,55 @@ export default function Boutique() {
             </div>
           ) : (
             commandes.map(c => (
-  <div key={c.id} className="card p-4 space-y-3">
-    <div className="flex items-center gap-4">
-      {c.image_url ? (
-        <img src={c.image_url} alt={c.nom}
-          className="w-16 h-16 object-cover rounded-xl shrink-0"
-          onError={e => { e.target.style.display = 'none' }} />
-      ) : (
-        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center shrink-0">
-          <Package size={24} className="text-slate-400" />
+              <div key={c.id} className="card p-4 space-y-3">
+                <div className="flex items-center gap-4">
+                  {c.image_url ? (
+                    <img src={c.image_url} alt={c.nom}
+                      className="w-16 h-16 object-cover rounded-xl shrink-0"
+                      onError={e => { e.target.style.display = 'none' }} />
+                  ) : (
+                    <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center shrink-0">
+                      <Package size={24} className="text-slate-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-900 dark:text-white truncate">{c.nom}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      x{c.quantite} · {parseFloat(c.montant).toFixed(2)}€
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {new Date(c.created_at).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                  <div className="shrink-0">{statutBadge(c.statut)}</div>
+                </div>
+
+                {/* Instructions de l'admin */}
+                {(c.instructions || c.code) && (
+                  <div className="border-t border-slate-100 dark:border-slate-700 pt-3 space-y-2">
+                    <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                      📋 Instructions
+                    </p>
+                    {c.instructions && (
+                      <p className="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-xl p-3 leading-relaxed">
+                        {c.instructions}
+                      </p>
+                    )}
+                    {c.code && (
+                      <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mb-1">🔑 Code / Identifiants</p>
+                        <p className="font-mono text-sm font-bold text-emerald-700 dark:text-emerald-300 break-all select-all">
+                          {c.code}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
       )}
-      <div className="flex-1 min-w-0">
-        <p className="font-bold text-slate-900 dark:text-white truncate">{c.nom}</p>
-        <p className="text-sm text-slate-500 dark:text-slate-400">x{c.quantite} · {parseFloat(c.montant).toFixed(2)}€</p>
-        <p className="text-xs text-slate-400 mt-0.5">{new Date(c.created_at).toLocaleDateString('fr-FR')}</p>
-      </div>
-      <div className="shrink-0">{statutBadge(c.statut)}</div>
     </div>
-
-    {/* Instructions de l'admin */}
-    {(c.instructions || c.code) && (
-      <div className="border-t border-slate-100 dark:border-slate-700 pt-3 space-y-2">
-        <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-          📋 Instructions
-        </p>
-        {c.instructions && (
-          <p className="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-xl p-3 leading-relaxed">
-            {c.instructions}
-          </p>
-        )}
-        {c.code && (
-          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mb-1">🔑 Code / Identifiants</p>
-            <p className="font-mono text-sm font-bold text-emerald-700 dark:text-emerald-300 break-all select-all">
-              {c.code}
-            </p>
-          </div>
-        )}
-      </div>
-    )}
-  </div>
-))
+  )
+}
