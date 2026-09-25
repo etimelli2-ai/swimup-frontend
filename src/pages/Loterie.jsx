@@ -174,15 +174,15 @@ export default function Loterie() {
         )}
       </AnimatePresence>
 
-      <h2 className="text-xl font-bold text-gray-900 dark:text-white">🎰 Loterie</h2>
+      <h2 className="page-title dark:text-white">Loterie</h2>
 
-      <div className="flex bg-gray-100 dark:bg-slate-700 rounded-xl p-1">
+      <div className="inline-flex bg-gray-100 dark:bg-slate-700 rounded-full p-1 gap-1">
         <button onClick={() => setTab('loterie')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${tab === 'loterie' ? 'bg-white dark:bg-slate-600 shadow text-sky-700 dark:text-sky-400' : 'text-gray-500 dark:text-slate-400'}`}>
+          className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${tab === 'loterie' ? 'bg-white dark:bg-slate-600 text-sky-700 dark:text-sky-400' : 'text-gray-500 dark:text-slate-400'}`}>
           En cours
         </button>
         <button onClick={() => setTab('historique')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${tab === 'historique' ? 'bg-white dark:bg-slate-600 shadow text-sky-700 dark:text-sky-400' : 'text-gray-500 dark:text-slate-400'}`}>
+          className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${tab === 'historique' ? 'bg-white dark:bg-slate-600 text-sky-700 dark:text-sky-400' : 'text-gray-500 dark:text-slate-400'}`}>
           Historique
         </button>
       </div>
@@ -221,7 +221,7 @@ export default function Loterie() {
 
               {/* Acheter des tickets */}
               <div className="card space-y-4">
-                <h3 className="font-bold text-gray-900 dark:text-white">🎟️ Acheter des tickets</h3>
+                <h3 className="section-title dark:text-white">Acheter des tickets</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
                   Prix : <strong className="text-sky-600">{data.loterie.prix_ticket}€</strong> / ticket
                 </p>
@@ -229,7 +229,7 @@ export default function Loterie() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setNbTickets(n => Math.max(1, n - 1))}
-                    className="w-10 h-10 border-2 border-slate-200 dark:border-slate-600 rounded-lg flex items-center justify-center font-bold text-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                    className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-600 flex items-center justify-center font-medium text-lg hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 transition-all"
                   >−</button>
                   <input
                     type="number" min="1"
@@ -239,7 +239,7 @@ export default function Loterie() {
                   />
                   <button
                     onClick={() => setNbTickets(n => n + 1)}
-                    className="w-10 h-10 border-2 border-slate-200 dark:border-slate-600 rounded-lg flex items-center justify-center font-bold text-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                    className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-600 flex items-center justify-center font-medium text-lg hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 transition-all"
                   >+</button>
                   <span className="text-sm text-slate-400">
                     = <strong className="text-slate-700 dark:text-slate-200">
@@ -252,13 +252,13 @@ export default function Loterie() {
                   onClick={() => setShowModal(true)}
                   className="btn-primary w-full"
                 >
-                  🎟️ Acheter {nbTickets} ticket{nbTickets > 1 ? 's' : ''} — {(data.loterie.prix_ticket * nbTickets).toFixed(2)}€
+                  Acheter {nbTickets} ticket{nbTickets > 1 ? 's' : ''} — {(data.loterie.prix_ticket * nbTickets).toFixed(2)}€
                 </button>
               </div>
 
               {/* Comment ça marche */}
               <div className="card space-y-2">
-                <h3 className="font-bold text-gray-900 dark:text-white">Comment participer ?</h3>
+                <h3 className="section-title dark:text-white">Comment participer ?</h3>
                 <div className="space-y-2 text-sm text-gray-600 dark:text-slate-400">
                   <div className="flex items-start gap-2">
                     <span>1️⃣</span>
