@@ -80,7 +80,7 @@ export default function AdminLoterie() {
 
   return (
     <div className="p-4 space-y-4">
-      <h2 className="text-xl font-bold">🎰 Gestion Loterie</h2>
+      <h2 className="page-title">Gestion Loterie</h2>
 
       {msg && (
         <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
@@ -147,8 +147,8 @@ export default function AdminLoterie() {
                 value={ticketForm.nb_tickets}
                 onChange={e => setTF(p => ({ ...p, nb_tickets: e.target.value }))} />
               <button onClick={ajouterTickets} disabled={loadingAction === 'tickets'}
-                className="bg-brand-600 text-white px-4 rounded-xl font-medium text-sm flex items-center gap-2 disabled:opacity-70 whitespace-nowrap">
-                {loadingAction === 'tickets' ? <Spinner /> : '+ Ajouter'}
+                className="bg-sky-500 hover:bg-sky-600 text-white px-5 rounded-full font-medium text-sm flex items-center gap-2 active:scale-95 transition-all disabled:opacity-70 whitespace-nowrap">
+                {loadingAction === 'tickets' ? <Spinner /> : 'Ajouter'}
               </button>
             </div>
           </div>
@@ -168,8 +168,8 @@ export default function AdminLoterie() {
           )}
 
           <button onClick={lancerTirage} disabled={loadingAction === 'tirage'}
-            className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-extrabold rounded-2xl text-lg flex items-center justify-center gap-2 disabled:opacity-70">
-            {loadingAction === 'tirage' ? <><Spinner /> Tirage en cours...</> : '🎲 Lancer le tirage au sort'}
+            className="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white font-semibold rounded-full text-lg flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
+            {loadingAction === 'tirage' ? <><Spinner /> Tirage en cours...</> : 'Lancer le tirage au sort'}
           </button>
         </div>
       )}
