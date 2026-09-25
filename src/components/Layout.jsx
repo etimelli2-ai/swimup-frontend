@@ -99,7 +99,6 @@ export default function Layout() {
       >
         <Icon size={18} className={active ? 'text-sky-500' : 'text-slate-400 dark:text-slate-500'} />
         {item.label}
-        {active && <ChevronRight size={14} className="ml-auto text-sky-400" />}
       </Link>
     )
   }
