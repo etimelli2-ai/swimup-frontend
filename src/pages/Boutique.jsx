@@ -13,7 +13,7 @@ function Spinner() {
 function ModalPaiement({ produit, quantite, onClose, onSolde, onStripe, loading }) {
   const total = parseFloat(produit.prix) * quantite
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end lg:items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-end lg:items-center justify-center p-4" onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -22,30 +22,30 @@ function ModalPaiement({ produit, quantite, onClose, onSolde, onStripe, loading 
         className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 space-y-5"
       >
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-lg dark:text-white">Comment payer ?</h3>
-          <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600">
-            <X size={20} />
+          <h3 className="font-semibold text-[19px] tracking-tight dark:text-white">Comment payer ?</h3>
+          <button onClick={onClose} className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+            <X size={18} />
           </button>
         </div>
 
-        <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4">
-          <p className="font-semibold text-slate-900 dark:text-white">{produit.nom} x{quantite}</p>
-          <p className="text-2xl font-black text-sky-600 dark:text-sky-400 mt-1">{total.toFixed(2)}€</p>
+        <div className="rounded-2xl bg-slate-50 dark:bg-slate-700 p-4">
+          <p className="font-medium text-[15px] text-slate-900 dark:text-white">{produit.nom} x{quantite}</p>
+          <p className="text-[26px] font-semibold tracking-tight text-sky-600 dark:text-sky-400 mt-1">{total.toFixed(2)}€</p>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           <button
             onClick={onSolde}
             disabled={!!loading}
-            className="w-full border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 text-left hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all disabled:opacity-50"
+            className="w-full rounded-2xl p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50 active:scale-[0.98] transition-all disabled:opacity-50"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center shrink-0">
-                <Wallet size={20} className="text-emerald-600 dark:text-emerald-400" />
+              <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 rounded-full flex items-center justify-center shrink-0">
+                <Wallet size={19} className="text-emerald-600 dark:text-emerald-400" />
               </div>
               <div className="flex-1">
-                <p className="font-bold text-slate-900 dark:text-white text-sm">Payer avec mon solde</p>
-                <p className="text-xs text-emerald-600 dark:text-emerald-400">Instantané — déduit de ton solde SwimUp</p>
+                <p className="font-medium text-slate-900 dark:text-white text-[15px]">Payer avec mon solde</p>
+                <p className="text-[13px] text-slate-500 dark:text-slate-400">Instantané — déduit de ton solde SwimUp</p>
               </div>
               {loading === 'solde' && <Spinner />}
             </div>
@@ -54,15 +54,15 @@ function ModalPaiement({ produit, quantite, onClose, onSolde, onStripe, loading 
           <button
             onClick={onStripe}
             disabled={!!loading}
-            className="w-full border-2 border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/20 rounded-xl p-4 text-left hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-all disabled:opacity-50"
+            className="w-full rounded-2xl p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50 active:scale-[0.98] transition-all disabled:opacity-50"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/40 rounded-lg flex items-center justify-center shrink-0">
-                <CreditCard size={20} className="text-sky-600 dark:text-sky-400" />
+              <div className="w-10 h-10 bg-sky-50 dark:bg-sky-900/30 rounded-full flex items-center justify-center shrink-0">
+                <CreditCard size={19} className="text-sky-600 dark:text-sky-400" />
               </div>
               <div className="flex-1">
-                <p className="font-bold text-slate-900 dark:text-white text-sm">Payer par carte</p>
-                <p className="text-xs text-sky-600 dark:text-sky-400">Paiement sécurisé via Stripe</p>
+                <p className="font-medium text-slate-900 dark:text-white text-[15px]">Payer par carte</p>
+                <p className="text-[13px] text-slate-500 dark:text-slate-400">Paiement sécurisé via Stripe</p>
               </div>
               {loading === 'stripe' && <Spinner />}
             </div>
@@ -75,10 +75,10 @@ function ModalPaiement({ produit, quantite, onClose, onSolde, onStripe, loading 
 
 function statutBadge(s) {
   return ({
-    en_attente: <span className="badge-yellow">⏳ En attente</span>,
-    confirmee:  <span className="badge-blue">✅ Confirmée</span>,
-    livree:     <span className="badge-green">📦 Livrée</span>,
-    annulee:    <span className="badge-red">❌ Annulée</span>,
+    en_attente: <span className="badge-yellow">En attente</span>,
+    confirmee:  <span className="badge-blue">Confirmée</span>,
+    livree:     <span className="badge-green">Livrée</span>,
+    annulee:    <span className="badge-red">Annulée</span>,
   }[s] || <span className="badge-gray">{s}</span>)
 }
 
@@ -111,7 +111,7 @@ export default function Boutique() {
   useEffect(() => {
     load()
     if (searchParams.get('success') === '1') {
-      toast.success('🛍️ Commande confirmée ! Tu recevras une notification.')
+      toast.success('Commande confirmée ! Tu recevras une notification.')
     }
     if (searchParams.get('cancel') === '1') {
       toast.error('Paiement annulé.')
@@ -158,7 +158,7 @@ export default function Boutique() {
   )
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       <AnimatePresence>
         {modalProduit && (
           <ModalPaiement
@@ -174,26 +174,26 @@ export default function Boutique() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-title">🛍️ Boutique</h1>
+          <h1 className="page-title">Boutique</h1>
           <p className="text-muted mt-1">Dépense ton solde SwimUp ou paie par carte</p>
         </div>
-        <div className="stat-card px-4 py-2 text-center">
-          <p className="text-lg font-black text-sky-600 dark:text-sky-400">
+        <div className="text-right">
+          <p className="text-[22px] font-semibold tracking-tight text-sky-600 dark:text-sky-400">
             {parseFloat(user?.solde || 0).toFixed(2)}€
           </p>
-          <p className="text-xs text-slate-400">ton solde</p>
+          <p className="text-[12px] text-slate-400">ton solde</p>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2">
+      {/* Tabs — segmented control pilule */}
+      <div className="inline-flex bg-slate-100 dark:bg-slate-800 rounded-full p-1 gap-1">
         <button onClick={() => setTab('boutique')}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'boutique' ? 'bg-sky-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
-          🛍️ Produits
+          className={`px-4 py-2 rounded-full text-[14px] font-medium transition-all ${tab === 'boutique' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+          Produits
         </button>
         <button onClick={() => setTab('commandes')}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'commandes' ? 'bg-sky-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
-          📦 Mes commandes {commandes.length > 0 && `(${commandes.length})`}
+          className={`px-4 py-2 rounded-full text-[14px] font-medium transition-all ${tab === 'commandes' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+          Mes commandes {commandes.length > 0 && `(${commandes.length})`}
         </button>
       </div>
 
@@ -207,59 +207,59 @@ export default function Boutique() {
               <p className="text-sm text-slate-400 mt-1">Reviens plus tard !</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {produits.map((p, i) => (
                 <motion.div
                   key={p.id}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className="card p-0 overflow-hidden"
+                  className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800"
                 >
                   {p.image_url ? (
                     <img src={p.image_url} alt={p.nom}
                       className="w-full h-48 object-cover"
                       onError={e => { e.target.style.display = 'none' }} />
                   ) : (
-                    <div className="w-full h-48 bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                    <div className="w-full h-48 bg-slate-50 dark:bg-slate-700 flex items-center justify-center">
                       <Package size={40} className="text-slate-300" />
                     </div>
                   )}
 
-                  <div className="p-4 space-y-3">
+                  <div className="p-5 space-y-4">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-bold text-slate-900 dark:text-white">{p.nom}</h3>
+                        <h3 className="font-semibold text-[17px] text-slate-900 dark:text-white">{p.nom}</h3>
                         {p.description && (
-                          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{p.description}</p>
+                          <p className="text-[14px] text-slate-500 dark:text-slate-400 mt-1">{p.description}</p>
                         )}
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-xl font-black text-sky-600 dark:text-sky-400">
+                        <p className="text-[19px] font-semibold tracking-tight text-sky-600 dark:text-sky-400">
                           {parseFloat(p.prix).toFixed(2)}€
                         </p>
                         {p.stock === -1 ? (
-                          <p className="text-xs text-emerald-500">∞ En stock</p>
+                          <p className="text-[12px] text-emerald-500">En stock</p>
                         ) : p.stock === 0 ? (
-                          <p className="text-xs text-red-500">Rupture</p>
+                          <p className="text-[12px] text-red-500">Rupture</p>
                         ) : (
-                          <p className="text-xs text-slate-400">{p.stock} restant{p.stock > 1 ? 's' : ''}</p>
+                          <p className="text-[12px] text-slate-400">{p.stock} restant{p.stock > 1 ? 's' : ''}</p>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <button
                         onClick={() => setQuantites(q => ({ ...q, [p.id]: Math.max(1, (q[p.id] || 1) - 1) }))}
-                        className="w-8 h-8 border-2 border-slate-200 dark:border-slate-600 rounded-lg flex items-center justify-center font-bold hover:bg-slate-50 dark:hover:bg-slate-700"
+                        className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-600 flex items-center justify-center font-medium hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 transition-all"
                       >−</button>
-                      <span className="w-8 text-center font-bold dark:text-white">{quantites[p.id] || 1}</span>
+                      <span className="w-6 text-center font-medium dark:text-white">{quantites[p.id] || 1}</span>
                       <button
                         onClick={() => setQuantites(q => ({ ...q, [p.id]: (q[p.id] || 1) + 1 }))}
-                        className="w-8 h-8 border-2 border-slate-200 dark:border-slate-600 rounded-lg flex items-center justify-center font-bold hover:bg-slate-50 dark:hover:bg-slate-700"
+                        className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-600 flex items-center justify-center font-medium hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 transition-all"
                       >+</button>
-                      <span className="text-sm text-slate-400 ml-1">
-                        = <strong className="text-slate-700 dark:text-slate-200">
+                      <span className="text-[13px] text-slate-400 ml-1">
+                        = <strong className="text-slate-700 dark:text-slate-200 font-semibold">
                           {(parseFloat(p.prix) * (quantites[p.id] || 1)).toFixed(2)}€
                         </strong>
                       </span>
@@ -270,7 +270,7 @@ export default function Boutique() {
                       disabled={p.stock === 0}
                       className="btn-primary w-full disabled:opacity-50"
                     >
-                      {p.stock === 0 ? '❌ Rupture de stock' : '🛍️ Commander'}
+                      {p.stock === 0 ? 'Rupture de stock' : 'Commander'}
                     </button>
                   </div>
                 </motion.div>
@@ -291,23 +291,23 @@ export default function Boutique() {
             </div>
           ) : (
             commandes.map(c => (
-              <div key={c.id} className="card p-4 space-y-3">
+              <div key={c.id} className="card p-5 space-y-4">
                 <div className="flex items-center gap-4">
                   {c.image_url ? (
                     <img src={c.image_url} alt={c.nom}
-                      className="w-16 h-16 object-cover rounded-xl shrink-0"
+                      className="w-16 h-16 object-cover rounded-2xl shrink-0"
                       onError={e => { e.target.style.display = 'none' }} />
                   ) : (
-                    <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center shrink-0">
+                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-700 rounded-2xl flex items-center justify-center shrink-0">
                       <Package size={24} className="text-slate-400" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-slate-900 dark:text-white truncate">{c.nom}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="font-semibold text-[16px] text-slate-900 dark:text-white truncate">{c.nom}</p>
+                    <p className="text-[14px] text-slate-500 dark:text-slate-400">
                       x{c.quantite} · {parseFloat(c.montant).toFixed(2)}€
                     </p>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-[12px] text-slate-400 mt-0.5">
                       {new Date(c.created_at).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
@@ -316,19 +316,19 @@ export default function Boutique() {
 
                 {/* Instructions de l'admin */}
                 {(c.instructions || c.code) && (
-                  <div className="border-t border-slate-100 dark:border-slate-700 pt-3 space-y-2">
-                    <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-                      📋 Instructions
+                  <div className="border-t border-slate-100 dark:border-slate-700 pt-4 space-y-2">
+                    <p className="text-[12px] font-semibold text-slate-500 dark:text-slate-400">
+                      Instructions
                     </p>
                     {c.instructions && (
-                      <p className="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-xl p-3 leading-relaxed">
+                      <p className="text-[14px] text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-2xl p-3.5 leading-relaxed">
                         {c.instructions}
                       </p>
                     )}
                     {c.code && (
-                      <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mb-1">🔑 Code / Identifiants</p>
-                        <p className="font-mono text-sm font-bold text-emerald-700 dark:text-emerald-300 break-all select-all">
+                      <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-3.5">
+                        <p className="text-[12px] text-emerald-600 dark:text-emerald-400 font-semibold mb-1">Code / Identifiants</p>
+                        <p className="font-mono text-[14px] font-semibold text-emerald-700 dark:text-emerald-300 break-all select-all">
                           {c.code}
                         </p>
                       </div>
