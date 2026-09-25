@@ -239,15 +239,15 @@ export default function AdminAvis() {
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold dark:text-white">Avis ({avis.length})</h2>
+        <h2 className="page-title dark:text-white">Avis ({avis.length})</h2>
         <div className="flex gap-2">
           {nbMenuage > 0 && (
             <button onClick={faireLeMenuage} disabled={loadingAction === 'menage'}
-              className="bg-red-100 text-red-600 px-3 py-2 rounded-xl font-medium text-sm flex items-center gap-1 disabled:opacity-70">
-              {loadingAction === 'menage' ? <Spinner /> : '🗑️'} Ménage ({nbMenuage})
+              className="bg-red-50 text-red-600 px-4 py-2 rounded-full font-medium text-sm flex items-center gap-1 active:scale-95 transition-all disabled:opacity-70">
+              {loadingAction === 'menage' ? <Spinner /> : null} Ménage ({nbMenuage})
             </button>
           )}
-          <button onClick={() => setShow(!show)} className="bg-sky-500 text-white px-4 py-2 rounded-xl font-medium text-sm">
+          <button onClick={() => setShow(!show)} className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-full font-medium text-sm active:scale-95 transition-all">
             + Ajouter
           </button>
         </div>
@@ -273,7 +273,7 @@ export default function AdminAvis() {
       <div className="flex gap-1 overflow-x-auto pb-1">
         {STATUT_FILTRES.map(f => (
           <button key={f} onClick={() => setFiltre(f)}
-            className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
               filtre === f ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
             }`}>
             {f === 'tous' ? `Tous (${avis.length})` : f}
@@ -313,7 +313,7 @@ export default function AdminAvis() {
                   </div>
                 )}
                 <button onClick={() => verifierMaintenant(detail.id)} disabled={loadingAction === 'verifier'}
-                  className="w-full bg-blue-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
+                  className="w-full bg-blue-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
                   {loadingAction === 'verifier' ? <><Spinner /> Lancé...</> : '🔍 Vérifier maintenant via Outscraper'}
                 </button>
               </div>
@@ -373,8 +373,8 @@ export default function AdminAvis() {
               </div>
             ) : (
               <button onClick={() => setEditForm({ lien_maps: detail.lien_maps, texte: detail.texte, prix: detail.prix, delai_paiement: detail.delai_paiement, statut: detail.statut })}
-                className="w-full bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 py-2.5 rounded-xl text-sm font-semibold">
-                ✏️ Modifier l'avis
+                className="w-full bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 py-2.5 rounded-full text-sm font-medium active:scale-95 transition-all">
+                Modifier l'avis
               </button>
             )}
 
@@ -395,13 +395,13 @@ export default function AdminAvis() {
                   <button
                     onClick={() => togglePrioritaire(detail.id, !!detail.prioritaire)}
                     disabled={loadingAction === 'prioritaire'}
-                    className={`flex-1 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70 ${
+                    className={`flex-1 py-2 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70 ${
                       detail.prioritaire
                         ? 'bg-gray-200 text-gray-700'
                         : 'bg-orange-500 text-white'
                     }`}
                   >
-                    {loadingAction === 'prioritaire' ? <Spinner /> : detail.prioritaire ? '❌ Retirer priorité' : '🔥 Marquer prioritaire'}
+                    {loadingAction === 'prioritaire' ? <Spinner /> : detail.prioritaire ? 'Retirer priorité' : 'Marquer prioritaire'}
                   </button>
                 </div>
                 {detail.prioritaire && (
@@ -413,29 +413,29 @@ export default function AdminAvis() {
 
               {detail.statut !== 'valide' && detail.statut !== 'paye' && (
                 <button onClick={() => valider(detail.id)} disabled={loadingAction === 'valider'}
-                  className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
-                  {loadingAction === 'valider' ? <><Spinner /> Validation...</> : '✅ Valider manuellement'}
+                  className="w-full bg-green-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
+                  {loadingAction === 'valider' ? <><Spinner /> Validation...</> : 'Valider manuellement'}
                 </button>
               )}
 
               {['refuse', 'valide', 'reserve', 'en_verification'].includes(detail.statut) && (
                 <button onClick={() => remettreEnDispo(detail.id)} disabled={loadingAction === 'dispo'}
-                  className="w-full bg-blue-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
-                  {loadingAction === 'dispo' ? <><Spinner /> Traitement...</> : '🔄 Remettre en disponible'}
+                  className="w-full bg-blue-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
+                  {loadingAction === 'dispo' ? <><Spinner /> Traitement...</> : 'Remettre en disponible'}
                 </button>
               )}
 
               {detail.statut !== 'refuse' && detail.statut !== 'disponible' && (
                 <button onClick={() => refuser(detail.id)} disabled={loadingAction === 'refuser'}
-                  className="w-full bg-red-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
-                  {loadingAction === 'refuser' ? <><Spinner /> Traitement...</> : '❌ Refuser — plus sur Google'}
+                  className="w-full bg-red-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
+                  {loadingAction === 'refuser' ? <><Spinner /> Traitement...</> : 'Refuser — plus sur Google'}
                 </button>
               )}
 
               {(detail.statut === 'valide' || detail.statut === 'reserve') && (
                 <button onClick={() => lienIncorrect(detail.id)} disabled={loadingAction === 'lien'}
-                  className="w-full bg-orange-400 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
-                  {loadingAction === 'lien' ? <><Spinner /> Envoi...</> : '🔗 Lien incorrect — demander correction'}
+                  className="w-full bg-orange-400 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
+                  {loadingAction === 'lien' ? <><Spinner /> Envoi...</> : 'Lien incorrect — demander correction'}
                 </button>
               )}
 
@@ -445,13 +445,13 @@ export default function AdminAvis() {
                   value={newLien} onChange={e => setNewLien(e.target.value)} />
                 <button onClick={() => modifierLienEtValider(detail.id)}
                   disabled={loadingAction === 'modifier_lien' || !newLien.trim()}
-                  className="w-full bg-sky-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
-                  {loadingAction === 'modifier_lien' ? <><Spinner /> Traitement...</> : '🔗 Modifier et valider'}
+                  className="w-full bg-sky-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
+                  {loadingAction === 'modifier_lien' ? <><Spinner /> Traitement...</> : 'Modifier et valider'}
                 </button>
               </div>
             </div>
 
-            <button onClick={closeDetail} className="w-full bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 py-2.5 rounded-xl text-sm font-semibold">
+            <button onClick={closeDetail} className="w-full bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 py-2.5 rounded-full text-sm font-medium active:scale-95 transition-all">
               Fermer
             </button>
           </div>
@@ -460,8 +460,8 @@ export default function AdminAvis() {
 
       {/* Formulaire ajout */}
       {show && (
-  <div className="card space-y-3 border-2 border-sky-200">
-    <h3 className="font-bold dark:text-white">Nouvel avis</h3>
+  <div className="card space-y-3 border border-sky-200 rounded-2xl">
+    <h3 className="section-title dark:text-white">Nouvel avis</h3>
     <select className="input" value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))}>
       <option value="">Sélectionner un client</option>
       {clients.map(c => <option key={c.id} value={c.id}>{c.nom_societe} ({c.email})</option>)}
@@ -490,8 +490,8 @@ export default function AdminAvis() {
       </div>
     </div>
     <button onClick={ajouter} disabled={loadingAction === 'ajouter'}
-      className="w-full bg-sky-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70">
-      {loadingAction === 'ajouter' ? <><Spinner /> Ajout...</> : "✅ Ajouter l'avis directement"}
+      className="w-full bg-sky-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
+      {loadingAction === 'ajouter' ? <><Spinner /> Ajout...</> : "Ajouter l'avis directement"}
     </button>
   </div>
 )}
