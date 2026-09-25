@@ -102,7 +102,7 @@ export default function AdminDashboard() {
 
   if (!stats) return (
     <div className="flex items-center justify-center h-64">
-      <div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/>
+      <div className="w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"/>
     </div>
   )
 
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="p-4 space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">Tableau de bord</h2>
+      <h2 className="page-title">Tableau de bord</h2>
 
       {msg && (
         <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
                   )}
                   {c.lien_avis_poste && (
                     <a href={c.lien_avis_poste} target="_blank" rel="noreferrer"
-                      className="text-xs text-brand-600 underline block mt-1">
+                      className="text-xs text-sky-500 underline block mt-1">
                       🔗 Voir l'avis
                     </a>
                   )}
@@ -164,14 +164,14 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => traiterContestation(c.id, 'acceptee', c.avis_id, c.user_id, c.prix)}
                     disabled={loadingAction === `contest_${c.id}`}
-                    className="flex-1 bg-green-500 text-white py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
+                    className="flex-1 bg-emerald-500 text-white py-2 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
                   >
-                    {loadingAction === `contest_${c.id}` ? <><Spinner /> Traitement...</> : '✅ Accepter'}
+                    {loadingAction === `contest_${c.id}` ? <><Spinner /> Traitement...</> : 'Accepter'}
                   </button>
                   <button
                     onClick={() => traiterContestation(c.id, 'refusee', c.avis_id, c.user_id, c.prix)}
                     disabled={loadingAction === `contest_${c.id}`}
-                    className="flex-1 bg-red-100 text-red-600 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
+                    className="flex-1 bg-red-50 text-red-600 py-2 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
                   >
                     {loadingAction === `contest_${c.id}` ? <><Spinner /> Traitement...</> : '❌ Refuser'}
                   </button>
@@ -226,11 +226,11 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => validerPaiement(c.id, c.email, parseFloat(c.solde_depot))}
                     disabled={loadingAction === `paiement_${c.id}`}
-                    className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
+                    className="w-full bg-emerald-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
                   >
                     {loadingAction === `paiement_${c.id}`
                       ? <><Spinner /> Validation...</>
-                      : `✅ Valider paiement de ${parseFloat(c.solde_depot).toFixed(2)}€`
+                      : `Valider paiement de ${parseFloat(c.solde_depot).toFixed(2)}€`
                     }
                   </button>
                 )}
@@ -249,11 +249,11 @@ export default function AdminDashboard() {
         <button
           onClick={lancerVerifTous}
           disabled={loadingAction === 'verif_all'}
-          className="w-full bg-blue-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
+          className="w-full bg-sky-500 hover:bg-sky-600 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
         >
           {loadingAction === 'verif_all'
             ? <><Spinner /> Lancé en arrière-plan...</>
-            : '🔍 Vérifier tous les avis maintenant'
+            : 'Vérifier tous les avis maintenant'
           }
         </button>
       </div>
@@ -275,7 +275,7 @@ export default function AdminDashboard() {
           <div className="space-y-2">
             <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
               <p className="text-xs text-gray-500 mb-1">Lien :</p>
-              <p className="text-xs text-brand-600 break-all font-mono">{lienInvit}</p>
+              <p className="text-xs text-sky-500 break-all font-mono">{lienInvit}</p>
             </div>
             <button className="btn-secondary py-2.5 text-sm" onClick={copier}>
               {copying ? '✅ Copié !' : '📋 Copier le lien'}
