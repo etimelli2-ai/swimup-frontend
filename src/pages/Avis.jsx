@@ -100,10 +100,10 @@ export default function Avis() {
         </div>
 
         <button
-          className={`w-full py-3 text-white text-sm font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-70 transition-colors ${
+          className={`w-full py-3 text-white text-sm font-medium rounded-full flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70 transition-all ${
             isPrioritaire
-              ? 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700'
-              : 'bg-sky-500 hover:bg-sky-600 active:bg-sky-700'
+              ? 'bg-orange-500 hover:bg-orange-600'
+              : 'bg-sky-500 hover:bg-sky-600'
           }`}
           onClick={() => reserver(a.id)}
           disabled={reserving !== null}
@@ -111,8 +111,8 @@ export default function Avis() {
           {reserving === a.id
             ? <><Spinner /> Réservation...</>
             : isPrioritaire
-              ? '🔥 Réserver cet avis prioritaire'
-              : '✋ Réserver cet avis'
+              ? 'Réserver cet avis prioritaire'
+              : 'Réserver cet avis'
           }
         </button>
       </div>
@@ -131,7 +131,7 @@ export default function Avis() {
   return (
     <div className="p-4 space-y-4">
       <div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Avis disponibles</h2>
+        <h2 className="page-title dark:text-white">Avis disponibles</h2>
         <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{avis.length} avis en attente de rédaction</p>
       </div>
 
