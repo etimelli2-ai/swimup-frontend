@@ -41,8 +41,8 @@ export default function AdminRetraits() {
   return (
     <div className="p-4 space-y-4">
       <div>
-        <h2 className="text-xl font-bold">Retraits</h2>
-        <p className="text-sm text-brand-600 font-semibold mt-1">
+        <h2 className="page-title">Retraits</h2>
+        <p className="text-sm text-sky-500 font-semibold mt-1">
           À payer : {totalAttente.toFixed(2)}€
         </p>
       </div>
@@ -56,12 +56,12 @@ export default function AdminRetraits() {
       <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
         {[['en_attente', 'En attente'], ['paye', 'Payés'], ['tous', 'Tous']].map(([v, l]) => (
           <button key={v} onClick={() => setFilter(v)}
-            className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
-              filter === v ? 'bg-white shadow text-brand-700' : 'text-gray-500'
+            className={`flex-1 py-2 text-xs font-medium rounded-full transition-all ${
+              filter === v ? 'bg-white text-sky-700' : 'text-gray-500'
             }`}>
             {l}
             {v === 'en_attente' && retraits.filter(r => r.statut === 'en_attente').length > 0 && (
-              <span className="ml-1 bg-brand-600 text-white text-xs rounded-full px-1.5">
+              <span className="ml-1 bg-sky-500 text-white text-xs rounded-full px-1.5">
                 {retraits.filter(r => r.statut === 'en_attente').length}
               </span>
             )}
@@ -94,16 +94,16 @@ export default function AdminRetraits() {
                 <button
                   onClick={() => traiter(r.id, 'paye')}
                   disabled={loadingAction !== null}
-                  className="flex-1 bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
+                  className="flex-1 bg-emerald-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
                 >
-                  {loadingAction === `paye_${r.id}` ? <><Spinner /> Traitement...</> : '✅ Marquer payé'}
+                  {loadingAction === `paye_${r.id}` ? <><Spinner /> Traitement...</> : 'Marquer payé'}
                 </button>
                 <button
                   onClick={() => traiter(r.id, 'refuse')}
                   disabled={loadingAction !== null}
-                  className="flex-1 bg-red-100 text-red-600 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
+                  className="flex-1 bg-red-50 text-red-600 py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
                 >
-                  {loadingAction === `refuse_${r.id}` ? <><Spinner /> Traitement...</> : '❌ Refuser'}
+                  {loadingAction === `refuse_${r.id}` ? <><Spinner /> Traitement...</> : 'Refuser'}
                 </button>
               </div>
             )}
