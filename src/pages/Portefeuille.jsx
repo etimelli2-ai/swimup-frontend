@@ -70,9 +70,11 @@ export default function Portefeuille() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="card p-5 border-l-4 border-l-amber-400 flex items-start gap-3"
+          className="card p-5 flex items-center gap-3"
         >
-          <AlertTriangle size={18} className="text-amber-500 mt-0.5 shrink-0" />
+          <div className="w-9 h-9 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+            <AlertTriangle size={16} className="text-amber-500" />
+          </div>
           <div>
             <p className="text-sm font-semibold text-slate-800">PayPal requis</p>
             <p className="text-sm text-slate-500 mt-0.5">
