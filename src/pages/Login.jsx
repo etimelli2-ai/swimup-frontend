@@ -41,15 +41,15 @@ export default function Login() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-sky-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-sky-200">
+          <div className="w-14 h-14 bg-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Star size={26} className="text-white fill-white" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">SwimUp</h1>
-          <p className="text-sm text-slate-500 mt-1">Connecte-toi a ton compte</p>
+          <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">SwimUp</h1>
+          <p className="text-[15px] text-slate-500 mt-1">Connecte-toi à ton compte</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-lg p-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6">
           {error && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
