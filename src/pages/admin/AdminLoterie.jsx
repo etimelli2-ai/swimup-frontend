@@ -1,176 +1,360 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
+import { Package, Plus, Trash2, Edit3, ShoppingBag, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
 }
 
-export default function AdminLoterie() {
-  const [data, setData]         = useState(null)
-  const [participants, setPart] = useState([])
-  const [users, setUsers]       = useState([])
-  const [form, setForm]         = useState({ titre: '', montant_gain: '', prix_ticket: '1' })
-  const [ticketForm, setTF]     = useState({ user_id: '', nb_tickets: '1' })
-  const [msg, setMsg]           = useState(null)
-  const [tirage, setTirage]     = useState(null)
-  const [loadingAction, setLA]  = useState(null)
+const STATUTS = ['en_attente', 'confirmee', 'livree', 'annulee']
+
+export default function AdminBoutique() {
+  const [produits, setProduits]       = useState([])
+  const [commandes, setCommandes]     = useState([])
+  const [tab, setTab]                 = useState('produits')
+  const [loading, setLoading]         = useState(true)
+  const [loadingAction, setLA]        = useState(null)
+  const [showForm, setShowForm]       = useState(false)
+  const [editProduit, setEdit]        = useState(null)
+  const [expandedCmd, setExpandedCmd] = useState(null)
+  const [cmdForms, setCmdForms]       = useState({})
+  const [form, setForm] = useState({
+    nom: '', description: '', prix: '', stock: '-1', image_url: '', actif: true
+  })
 
   const load = async () => {
-    const [l, u] = await Promise.all([
-      api.get('/loterie'),
-      api.get('/admin/users'),
-    ])
-    setData(l.data)
-    setUsers(u.data)
-    if (l.data?.loterie) {
-      const p = await api.get(`/loterie/${l.data.loterie.id}/participants`)
-      setPart(p.data)
-    }
+    try {
+      const [p, c] = await Promise.all([
+        api.get('/boutique/admin/produits'),
+        api.get('/boutique/admin/commandes'),
+      ])
+      setProduits(p.data)
+      setCommandes(c.data)
+      // Init forms instructions/code
+      const forms = {}
+      c.data.forEach(cmd => {
+        forms[cmd.id] = {
+          instructions: cmd.instructions || '',
+          code: cmd.code || '',
+        }
+      })
+      setCmdForms(forms)
+    } catch { toast.error('Erreur chargement') }
+    finally { setLoading(false) }
   }
 
   useEffect(() => { load() }, [])
 
-  const showMsg = (type, text) => {
-    setMsg({ type, text })
-    setTimeout(() => setMsg(null), 3000)
+  const resetForm = () => {
+    setForm({ nom: '', description: '', prix: '', stock: '-1', image_url: '', actif: true })
+    setEdit(null)
+    setShowForm(false)
   }
 
-  const creerLoterie = async () => {
-    if (!form.titre || !form.montant_gain) return showMsg('error', 'Titre et montant requis')
-    setLA('creer')
+  const sauvegarder = async () => {
+    if (!form.nom || !form.prix) return toast.error('Nom et prix requis')
+    setLA('save')
     try {
-      await api.post('/loterie', form)
-      showMsg('success', 'Loterie créée !')
-      setForm({ titre: '', montant_gain: '', prix_ticket: '1' })
-      // Fix — réinitialiser tirage quand on crée une nouvelle loterie
-      setTirage(null)
+      if (editProduit) {
+        await api.put(`/boutique/admin/produits/${editProduit.id}`, form)
+        toast.success('Produit modifié !')
+      } else {
+        await api.post('/boutique/admin/produits', form)
+        toast.success('Produit ajouté !')
+      }
+      resetForm()
       load()
-    } catch (e) {
-      showMsg('error', e.response?.data?.error || 'Erreur')
-    }
+    } catch (e) { toast.error(e.response?.data?.error || 'Erreur') }
     setLA(null)
   }
 
-  const ajouterTickets = async () => {
-    if (!ticketForm.user_id || !ticketForm.nb_tickets) return showMsg('error', 'Sélectionne un membre et un nombre de tickets')
-    setLA('tickets')
+  const supprimer = async (id) => {
+    if (!confirm('Supprimer ce produit ?')) return
+    setLA(`del_${id}`)
     try {
-      await api.post(`/loterie/${data.loterie.id}/tickets`, ticketForm)
-      showMsg('success', `${ticketForm.nb_tickets} ticket(s) ajouté(s) !`)
-      setTF({ user_id: '', nb_tickets: '1' })
+      await api.delete(`/boutique/admin/produits/${id}`)
+      toast.success('Produit supprimé !')
       load()
-    } catch (e) {
-      showMsg('error', e.response?.data?.error || 'Erreur')
-    }
+    } catch { toast.error('Erreur') }
     setLA(null)
   }
 
-  const lancerTirage = async () => {
-    if (!confirm('Lancer le tirage au sort ? Cette action est irréversible !')) return
-    setLA('tirage')
+  const changerStatut = async (commandeId, statut) => {
+    setLA(`statut_${commandeId}`)
     try {
-      const r = await api.post(`/loterie/${data.loterie.id}/tirer`)
-      setTirage(r.data)
+      await api.put(`/boutique/admin/commandes/${commandeId}`, { statut })
+      toast.success('Statut mis à jour !')
       load()
-    } catch (e) {
-      showMsg('error', e.response?.data?.error || 'Erreur')
-    }
+    } catch (e) { toast.error(e.response?.data?.error || 'Erreur') }
     setLA(null)
   }
+
+  const sauvegarderInstructions = async (commandeId) => {
+    setLA(`instr_${commandeId}`)
+    try {
+      const { instructions, code } = cmdForms[commandeId] || {}
+      await api.put(`/boutique/admin/commandes/${commandeId}`, { instructions, code })
+      toast.success('Instructions sauvegardées ! Membre notifié.')
+      load()
+    } catch (e) { toast.error(e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
+  const ouvrirEdit = (p) => {
+    setEdit(p)
+    setForm({
+      nom: p.nom, description: p.description || '',
+      prix: String(p.prix), stock: String(p.stock),
+      image_url: p.image_url || '', actif: !!p.actif
+    })
+    setShowForm(true)
+  }
+
+  const statutBadge = s => ({
+    en_attente: <span className="badge-yellow">⏳ En attente</span>,
+    confirmee:  <span className="badge-blue">✅ Confirmée</span>,
+    livree:     <span className="badge-green">📦 Livrée</span>,
+    annulee:    <span className="badge-red">❌ Annulée</span>,
+  }[s] || <span className="badge-gray">{s}</span>)
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <Loader2 size={28} className="animate-spin text-sky-500" />
+    </div>
+  )
 
   return (
-    <div className="p-4 space-y-4">
-      <h2 className="page-title">Gestion Loterie</h2>
-
-      {msg && (
-        <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-          {msg.text}
-        </div>
-      )}
-
-      {/* Résultat tirage */}
-      {tirage && (
-        <div className="bg-yellow-50 border-2 border-yellow-400 rounded-2xl p-5 text-center space-y-2">
-          <p className="text-4xl">🎉</p>
-          <p className="font-extrabold text-xl text-yellow-700">Tirage effectué !</p>
-          <p className="text-gray-700">Gagnant : <strong>{tirage.gagnant_email}</strong></p>
-          <p className="text-2xl font-bold text-green-600">{parseFloat(tirage.montant || 0).toFixed(2)}€ crédités !</p>
-        </div>
-      )}
-
-      {!data?.loterie ? (
-        <div className="card space-y-3">
-          <h3 className="font-bold">Créer une loterie</h3>
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">Titre</label>
-            <input className="input" placeholder="Ex: Loterie de juillet"
-              value={form.titre} onChange={e => setForm(p => ({ ...p, titre: e.target.value }))} />
-          </div>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <label className="text-xs text-gray-500 mb-1 block">Montant à gagner (€)</label>
-              <input className="input" type="number" placeholder="100"
-                value={form.montant_gain} onChange={e => setForm(p => ({ ...p, montant_gain: e.target.value }))} />
-            </div>
-            <div className="flex-1">
-              <label className="text-xs text-gray-500 mb-1 block">Prix ticket (€)</label>
-              <input className="input" type="number" placeholder="1"
-                value={form.prix_ticket} onChange={e => setForm(p => ({ ...p, prix_ticket: e.target.value }))} />
-            </div>
-          </div>
-          <button onClick={creerLoterie} disabled={loadingAction === 'creer'}
-            className="btn-primary flex items-center justify-center gap-2 disabled:opacity-70">
-            {loadingAction === 'creer' ? <><Spinner /> Création...</> : '🎰 Lancer la loterie'}
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <h1 className="page-title">Boutique</h1>
+        {tab === 'produits' && (
+          <button onClick={() => { resetForm(); setShowForm(!showForm) }} className="btn-primary">
+            <Plus size={16} /> Ajouter
           </button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl p-5 text-white">
-            <p className="font-bold text-lg">{data.loterie.titre}</p>
-            <p className="text-3xl font-extrabold mt-1">{data.loterie.montant_gain}€</p>
-            <p className="text-sm opacity-90 mt-1">
-              {data.totalTickets} tickets vendus · {data.loterie.prix_ticket}€/ticket
-            </p>
-          </div>
+        )}
+      </div>
 
-          <div className="card space-y-3">
-            <h3 className="font-bold">Ajouter des tickets à un membre</h3>
-            <select className="input" value={ticketForm.user_id}
-              onChange={e => setTF(p => ({ ...p, user_id: e.target.value }))}>
-              <option value="">Sélectionner un membre</option>
-              {users.filter(u => u.role === 'membre').map(u => (
-                <option key={u.id} value={u.id}>{u.email}</option>
-              ))}
-            </select>
-            <div className="flex gap-2">
-              <input className="input" type="number" min="1" placeholder="Nombre de tickets"
-                value={ticketForm.nb_tickets}
-                onChange={e => setTF(p => ({ ...p, nb_tickets: e.target.value }))} />
-              <button onClick={ajouterTickets} disabled={loadingAction === 'tickets'}
-                className="bg-sky-500 hover:bg-sky-600 text-white px-5 rounded-full font-medium text-sm flex items-center gap-2 active:scale-95 transition-all disabled:opacity-70 whitespace-nowrap">
-                {loadingAction === 'tickets' ? <Spinner /> : 'Ajouter'}
-              </button>
+      {/* Tabs — segmented control pilule */}
+      <div className="inline-flex bg-slate-100 dark:bg-slate-800 rounded-full p-1 gap-1">
+        <button onClick={() => setTab('produits')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${tab === 'produits' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+          Produits ({produits.length})
+        </button>
+        <button onClick={() => setTab('commandes')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${tab === 'commandes' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+          Commandes ({commandes.length})
+        </button>
+      </div>
+
+      {/* Formulaire ajout/edit */}
+      {tab === 'produits' && showForm && (
+        <div className="card p-5 space-y-4">
+          <h2 className="section-title">{editProduit ? 'Modifier le produit' : 'Nouveau produit'}</h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nom *</label>
+              <input className="input" placeholder="Ex: Carte cadeau Amazon"
+                value={form.nom} onChange={e => setForm(p => ({ ...p, nom: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Prix (€) *</label>
+              <input className="input" type="number" step="0.01" min="0" placeholder="9.99"
+                value={form.prix} onChange={e => setForm(p => ({ ...p, prix: e.target.value }))} />
             </div>
           </div>
 
-          {participants.length > 0 && (
-            <div className="card space-y-2">
-              <h3 className="font-bold">👥 Participants ({participants.length})</h3>
-              <div className="space-y-2">
-                {participants.map(p => (
-                  <div key={p.id} className="flex items-center justify-between">
-                    <p className="text-sm text-gray-700 truncate">{p.email}</p>
-                    <span className="badge-blue">{p.nb_tickets} 🎟️</span>
-                  </div>
-                ))}
-              </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
+            <textarea className="input min-h-[80px] resize-none" placeholder="Description du produit..."
+              value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Stock (-1 = illimité)</label>
+              <input className="input" type="number" min="-1" placeholder="-1"
+                value={form.stock} onChange={e => setForm(p => ({ ...p, stock: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">URL Image</label>
+              <input className="input" placeholder="https://..."
+                value={form.image_url} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} />
+            </div>
+          </div>
+
+          {form.image_url && (
+            <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+              <img src={form.image_url} alt="Preview" className="w-full h-40 object-cover"
+                onError={e => { e.target.style.display = 'none' }} />
             </div>
           )}
 
-          <button onClick={lancerTirage} disabled={loadingAction === 'tirage'}
-            className="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white font-semibold rounded-full text-lg flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
-            {loadingAction === 'tirage' ? <><Spinner /> Tirage en cours...</> : 'Lancer le tirage au sort'}
-          </button>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={form.actif}
+              onChange={e => setForm(p => ({ ...p, actif: e.target.checked }))}
+              className="w-4 h-4 accent-sky-500" />
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Produit actif (visible)</span>
+          </label>
+
+          <div className="flex gap-3">
+            <button onClick={sauvegarder} disabled={loadingAction === 'save'} className="btn-primary flex-1">
+              {loadingAction === 'save' ? <><Spinner /> Sauvegarde...</> : 'Sauvegarder'}
+            </button>
+            <button onClick={resetForm} className="btn-secondary flex-1">Annuler</button>
+          </div>
+        </div>
+      )}
+
+      {/* Liste produits */}
+      {tab === 'produits' && (
+        <div className="space-y-3">
+          {produits.length === 0 ? (
+            <div className="card p-10 text-center">
+              <Package size={32} className="text-slate-300 mx-auto mb-3" />
+              <p className="font-medium text-slate-500">Aucun produit — clique sur Ajouter !</p>
+            </div>
+          ) : produits.map(p => (
+            <div key={p.id} className={`card p-4 flex items-center gap-4 ${!p.actif ? 'opacity-50' : ''}`}>
+              {p.image_url ? (
+                <img src={p.image_url} alt={p.nom}
+                  className="w-16 h-16 object-cover rounded-xl shrink-0"
+                  onError={e => { e.target.style.display = 'none' }} />
+              ) : (
+                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center shrink-0">
+                  <Package size={24} className="text-slate-400" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-slate-900 dark:text-white truncate">{p.nom}</p>
+                  {!p.actif && <span className="badge-gray text-xs">Masqué</span>}
+                </div>
+                {p.description && <p className="text-xs text-slate-400 truncate">{p.description}</p>}
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-sky-600 dark:text-sky-400 font-bold">{parseFloat(p.prix).toFixed(2)}€</span>
+                  <span className="text-xs text-slate-400">
+                    Stock : {p.stock === -1 ? '∞ illimité' : p.stock === 0 ? '❌ épuisé' : `${p.stock} restant(s)`}
+                  </span>
+                </div>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={() => ouvrirEdit(p)}
+                  className="p-2.5 bg-slate-100 dark:bg-slate-700 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 transition-all">
+                  <Edit3 size={16} className="text-slate-600 dark:text-slate-300" />
+                </button>
+                <button onClick={() => supprimer(p.id)} disabled={loadingAction === `del_${p.id}`}
+                  className="p-2.5 bg-red-50 dark:bg-red-900/20 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 active:scale-95 transition-all">
+                  {loadingAction === `del_${p.id}` ? <Spinner /> : <Trash2 size={16} className="text-red-500" />}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Commandes */}
+      {tab === 'commandes' && (
+        <div className="space-y-3">
+          {commandes.length === 0 ? (
+            <div className="card p-10 text-center">
+              <ShoppingBag size={32} className="text-slate-300 mx-auto mb-3" />
+              <p className="font-medium text-slate-500">Aucune commande pour le moment</p>
+            </div>
+          ) : commandes.map(c => (
+            <div key={c.id} className="card p-0 overflow-hidden">
+              {/* Header commande */}
+              <button
+                onClick={() => setExpandedCmd(expandedCmd === c.id ? null : c.id)}
+                className="w-full p-4 flex items-start justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+              >
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-slate-900 dark:text-white">{c.produit_nom}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {c.email} · x{c.quantite} · {parseFloat(c.montant).toFixed(2)}€
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {new Date(c.created_at).toLocaleString('fr-FR')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {statutBadge(c.statut)}
+                  {expandedCmd === c.id
+                    ? <ChevronUp size={16} className="text-slate-400" />
+                    : <ChevronDown size={16} className="text-slate-400" />
+                  }
+                </div>
+              </button>
+
+              {/* Détails expandés */}
+              {expandedCmd === c.id && (
+                <div className="border-t border-slate-100 dark:border-slate-700 p-4 space-y-4">
+
+                  {/* Instructions et code */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      Instructions pour l'acheteur
+                    </h4>
+                    <div>
+                      <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
+                        Instructions / consignes de livraison
+                      </label>
+                      <textarea
+                        className="input min-h-[100px] resize-none text-sm"
+                        placeholder="Ex: Va sur amazon.fr, connecte-toi avec le code ci-dessous, puis..."
+                        value={cmdForms[c.id]?.instructions || ''}
+                        onChange={e => setCmdForms(f => ({ ...f, [c.id]: { ...f[c.id], instructions: e.target.value } }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
+                        Code / identifiants
+                      </label>
+                      <input
+                        className="input font-mono text-sm"
+                        placeholder="Ex: ABCD-1234-EFGH-5678"
+                        value={cmdForms[c.id]?.code || ''}
+                        onChange={e => setCmdForms(f => ({ ...f, [c.id]: { ...f[c.id], code: e.target.value } }))}
+                      />
+                    </div>
+                    <button
+                      onClick={() => sauvegarderInstructions(c.id)}
+                      disabled={loadingAction === `instr_${c.id}`}
+                      className="btn-primary w-full"
+                    >
+                      {loadingAction === `instr_${c.id}` ? <><Spinner /> Sauvegarde...</> : 'Sauvegarder les instructions'}
+                    </button>
+                  </div>
+
+                  {/* Changer statut */}
+                  {c.statut !== 'livree' && c.statut !== 'annulee' && (
+                    <div className="space-y-2 border-t border-slate-100 dark:border-slate-700 pt-4">
+                      <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">Changer le statut</h4>
+                      <div className="flex gap-2 flex-wrap">
+                        {STATUTS.filter(s => s !== c.statut).map(s => (
+                          <button key={s} onClick={() => changerStatut(c.id, s)}
+                            disabled={loadingAction === `statut_${c.id}`}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 disabled:opacity-50 ${
+                              s === 'annulee' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                              s === 'livree'  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                              'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                            }`}>
+                            {loadingAction === `statut_${c.id}` ? '...' : {
+                              en_attente: 'En attente',
+                              confirmee:  'Confirmer',
+                              livree:     'Marquer livrée',
+                              annulee:    'Annuler',
+                            }[s]}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
