@@ -68,8 +68,8 @@ function AvisEditor({ avis, onSave }) {
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono text-slate-400">#{avis.id}</span>
           {isDone
-            ? <span className="badge-green text-xs">✅ Rempli</span>
-            : <span className="badge-amber text-xs">⚠️ À remplir</span>
+            ? <span className="badge-green text-xs">Rempli</span>
+            : <span className="badge-amber text-xs">À remplir</span>
           }
         </div>
 
@@ -94,7 +94,7 @@ function AvisEditor({ avis, onSave }) {
         <button
           onClick={handleGenerate}
           disabled={generating}
-          className="flex-1 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 disabled:opacity-50"
+          className="flex-1 py-2 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 rounded-full text-xs font-medium flex items-center justify-center gap-1 active:scale-95 transition-all disabled:opacity-50"
         >
           {generating ? <Loader2 size={12} className="animate-spin" /> : '✨'}
           {generating ? 'Génération...' : 'Générer IA'}
@@ -102,7 +102,7 @@ function AvisEditor({ avis, onSave }) {
         <button
           onClick={handleSave}
           disabled={saving || !texte.trim()}
-          className="flex-1 py-2 bg-sky-500 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1 disabled:opacity-50"
+          className="flex-1 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-full text-xs font-medium flex items-center justify-center gap-1 active:scale-95 transition-all disabled:opacity-50"
         >
           {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
           {saving ? 'Sauvegarde...' : 'Sauvegarder'}
@@ -153,7 +153,7 @@ function CommandeCard({ commande }) {
               {commande.nb_avis} avis — {parseFloat(commande.montant).toFixed(2)}€
             </p>
             {isComplete
-              ? <span className="badge-green text-xs">✅ Complet</span>
+              ? <span className="badge-green text-xs">Complet</span>
               : <span className="badge-amber text-xs">{nbRemplis}/{nbTotal} remplis</span>
             }
           </div>
