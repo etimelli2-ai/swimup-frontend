@@ -78,11 +78,11 @@ export default function ClientPaiement() {
       </div>
 
       {isAdmin && (
-        <div className="card p-4 border-2 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
-          <p className="text-sm font-semibold text-green-700 dark:text-green-400">
+        <div className="card p-4 bg-emerald-50 dark:bg-emerald-900/20">
+          <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
             🛡️ Mode admin — paiement Stripe bypassé
           </p>
-          <p className="text-xs text-green-600 dark:text-green-500 mt-1">
+          <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-1">
             Les avis seront créés directement sans facturation.
           </p>
         </div>
@@ -196,9 +196,9 @@ export default function ClientPaiement() {
         <button
           onClick={handlePayer}
           disabled={loading || !form.nom_etablissement || !form.lien_maps}
-          className={`w-full text-base py-3 font-semibold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 transition-all ${
+          className={`w-full text-base py-3.5 font-medium rounded-full flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all ${
             isAdmin
-              ? 'bg-green-500 hover:bg-green-600 text-white'
+              ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
               : 'btn-primary'
           }`}
         >
