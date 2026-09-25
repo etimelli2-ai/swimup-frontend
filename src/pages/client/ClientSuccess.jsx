@@ -12,24 +12,24 @@ export default function ClientSuccess() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-8 max-w-md w-full text-center space-y-6"
+        className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 max-w-md w-full text-center space-y-6"
       >
         <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto">
           <CheckCircle2 size={40} className="text-emerald-500" />
         </div>
 
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Paiement réussi !</h1>
+          <h1 className="text-[24px] font-semibold text-slate-900 dark:text-white tracking-tight">Paiement réussi !</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2">
             Ton paiement a été confirmé. Tes avis ont été créés et sont prêts à être remplis.
           </p>
         </div>
 
-        <div className="bg-sky-50 dark:bg-sky-900/20 rounded-xl p-4 text-sm text-sky-700 dark:text-sky-400 text-left space-y-2">
+        <div className="bg-sky-50 dark:bg-sky-900/20 rounded-2xl p-4 text-sm text-sky-700 dark:text-sky-400 text-left space-y-2">
           <p className="font-semibold">Prochaines étapes :</p>
-          <p>1️⃣ Va dans "Mes commandes" pour voir tes avis</p>
-          <p>2️⃣ Remplis les textes de chaque avis</p>
-          <p>3️⃣ Les membres vont rédiger et publier tes avis</p>
+          <p>1. Va dans "Mes commandes" pour voir tes avis</p>
+          <p>2. Remplis les textes de chaque avis</p>
+          <p>3. Les membres vont rédiger et publier tes avis</p>
         </div>
 
         <div className="flex flex-col gap-3">
