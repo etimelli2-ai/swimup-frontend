@@ -9,37 +9,37 @@ const API = import.meta.env.VITE_API_URL || 'https://swimup-backend-production.u
 const STATUTS = {
   en_attente: {
     label: 'En attente de paiement',
-    color: 'bg-gray-100 text-gray-600 border-gray-300',
+    color: 'bg-slate-100 text-slate-600',
     icon: Clock,
     desc: 'La commande est en attente de confirmation du paiement.',
   },
   paye: {
     label: 'Payé — en attente de rédaction',
-    color: 'bg-blue-50 text-blue-700 border-blue-300',
+    color: 'bg-sky-50 text-sky-700',
     icon: Package,
     desc: 'Paiement confirmé ! Un membre va bientôt rédiger ton avis.',
   },
   reserve: {
     label: 'En cours de rédaction',
-    color: 'bg-amber-50 text-amber-700 border-amber-300',
+    color: 'bg-amber-50 text-amber-700',
     icon: Clock,
     desc: 'Un membre est en train de rédiger et publier ton avis. Sous peu !',
   },
   soumis: {
     label: 'Avis publié — vérification',
-    color: 'bg-purple-50 text-purple-700 border-purple-300',
+    color: 'bg-violet-50 text-violet-700',
     icon: CheckCircle2,
     desc: 'L\'avis a été publié sur Google Maps. On vérifie qu\'il est bien en ligne.',
   },
   livre: {
-    label: '✅ Livré !',
-    color: 'bg-emerald-50 text-emerald-700 border-emerald-300',
+    label: 'Livré !',
+    color: 'bg-emerald-50 text-emerald-700',
     icon: CheckCircle2,
     desc: 'Ton avis est en ligne et vérifié. Mission accomplie !',
   },
   annule: {
     label: 'Annulé',
-    color: 'bg-red-50 text-red-700 border-red-300',
+    color: 'bg-red-50 text-red-700',
     icon: AlertCircle,
     desc: 'Commande annulée.',
   },
@@ -83,19 +83,20 @@ export default function PublicSuivi() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-[#F7F5F0] flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-[#1A1A1A] border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
   if (error) return (
-    <div className="min-h-screen bg-[#F7F5F0] flex items-center justify-center p-4">
-      <div className="max-w-md w-full border-2 border-[#1A1A1A] bg-white p-8 text-center space-y-4">
-        <AlertCircle size={32} className="text-[#C73E1D] mx-auto" />
-        <h1 className="font-black text-xl">Commande introuvable</h1>
-        <p className="text-sm text-[#1A1A1A]/60">{error}</p>
-        <Link to="/commander"
-          className="inline-block bg-[#C73E1D] text-white px-6 py-3 font-bold text-sm border-2 border-[#C73E1D] hover:bg-[#A8331A] transition-colors">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="max-w-sm w-full text-center space-y-4">
+        <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto">
+          <AlertCircle size={26} className="text-red-500" />
+        </div>
+        <h1 className="font-semibold text-[22px] tracking-tight text-slate-900">Commande introuvable</h1>
+        <p className="text-[15px] text-slate-500">{error}</p>
+        <Link to="/commander" className="btn-primary inline-flex px-6 py-3">
           Passer une commande
         </Link>
       </div>
@@ -108,37 +109,34 @@ export default function PublicSuivi() {
   const avisPublic = avis?.[0]
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0] text-[#1A1A1A]">
+    <div className="min-h-screen bg-white text-slate-900">
 
-      {/* Header */}
-      <header className="border-b-2 border-[#1A1A1A] bg-[#F7F5F0]">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/commander" className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 bg-[#C73E1D] flex items-center justify-center"
-              style={{ transform: 'rotate(3deg)' }}
-            >
-              <span className="text-white font-black text-sm">S</span>
+      {/* Nav */}
+      <header className="sticky top-0 z-20 bg-[#1d1d1f]/95 backdrop-blur-md">
+        <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
+          <Link to="/commander" className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-sky-500 flex items-center justify-center">
+              <Star size={12} className="text-white fill-white" />
             </div>
-            <span className="font-black text-lg tracking-tight">SwimUp</span>
+            <span className="text-white text-[15px] font-semibold tracking-tight">SwimUp</span>
           </Link>
-          <span className="text-xs text-[#1A1A1A]/50 font-mono">#{order.id}</span>
+          <span className="text-[12px] text-slate-400 font-mono">#{order.id}</span>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-10 space-y-6">
+      <main className="max-w-2xl mx-auto px-4 py-12 space-y-10">
 
         {/* Message succès paiement */}
         {success && order.statut !== 'en_attente' && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="border-2 border-emerald-500 bg-emerald-50 p-4 flex items-start gap-3"
+            className="rounded-2xl bg-emerald-50 p-4 flex items-start gap-3"
           >
             <CheckCircle2 size={18} className="text-emerald-600 shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-emerald-700 text-sm">Paiement confirmé !</p>
-              <p className="text-xs text-emerald-600 mt-0.5">
+              <p className="font-semibold text-emerald-700 text-[14px]">Paiement confirmé !</p>
+              <p className="text-[13px] text-emerald-600 mt-0.5">
                 Garde ce lien pour suivre ta commande. Un membre va bientôt s'en occuper.
               </p>
             </div>
@@ -149,43 +147,38 @@ export default function PublicSuivi() {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="border-2 border-[#1A1A1A] bg-white p-6 space-y-4"
+          className="text-center space-y-5"
         >
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#1A1A1A]/50">Statut</p>
-              <div className={`inline-flex items-center gap-2 border-2 px-3 py-1.5 text-sm font-bold ${statut.color}`}>
-                <StatusIcon size={14} />
-                {statut.label}
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#1A1A1A]/50">Total payé</p>
-              <p className="text-2xl font-black">{parseFloat(order.montant).toFixed(2)}€</p>
-            </div>
+          <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-semibold ${statut.color}`}>
+            <StatusIcon size={15} />
+            {statut.label}
           </div>
-          <p className="text-sm text-[#1A1A1A]/60 border-t-2 border-[#1A1A1A]/10 pt-4">
+          <p className="text-[16px] text-slate-500 leading-relaxed max-w-md mx-auto font-light">
             {statut.desc}
           </p>
+          <p className="text-[40px] font-semibold tracking-tight text-slate-900">
+            {parseFloat(order.montant).toFixed(2)}€
+          </p>
+          <p className="text-[13px] text-slate-400 -mt-4">Total payé</p>
         </motion.div>
 
         {/* Progression */}
-        <div className="border-2 border-[#1A1A1A] bg-white p-5">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#1A1A1A]/50 mb-4">Progression</p>
-          <div className="space-y-3">
+        <div className="rounded-2xl border border-slate-200 p-6">
+          <p className="text-[13px] font-semibold text-slate-500 mb-5">Progression</p>
+          <div className="space-y-4">
             {[
-              { key: ['paye', 'reserve', 'soumis', 'livre'], label: '💳 Paiement reçu' },
-              { key: ['reserve', 'soumis', 'livre'], label: '✍️ Rédaction en cours' },
-              { key: ['soumis', 'livre'], label: '📤 Avis publié' },
-              { key: ['livre'], label: '✅ Livré et vérifié' },
+              { key: ['paye', 'reserve', 'soumis', 'livre'], label: 'Paiement reçu' },
+              { key: ['reserve', 'soumis', 'livre'], label: 'Rédaction en cours' },
+              { key: ['soumis', 'livre'], label: 'Avis publié' },
+              { key: ['livre'], label: 'Livré et vérifié' },
             ].map((step, i) => {
               const done = step.key.includes(order.statut)
               return (
                 <div key={i} className="flex items-center gap-3">
-                  <div className={`w-6 h-6 border-2 border-[#1A1A1A] flex items-center justify-center text-xs font-bold shrink-0 ${done ? 'bg-[#1A1A1A] text-white' : 'bg-white text-[#1A1A1A]/30'}`}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-semibold shrink-0 ${done ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
                     {done ? '✓' : i + 1}
                   </div>
-                  <p className={`text-sm font-medium ${done ? 'text-[#1A1A1A]' : 'text-[#1A1A1A]/40'}`}>
+                  <p className={`text-[15px] font-medium ${done ? 'text-slate-900' : 'text-slate-400'}`}>
                     {step.label}
                   </p>
                 </div>
@@ -195,100 +188,103 @@ export default function PublicSuivi() {
         </div>
 
         {/* Détails commande */}
-        <div className="border-2 border-[#1A1A1A] bg-white p-5 space-y-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#1A1A1A]/50">Détails</p>
+        <div className="rounded-2xl border border-slate-200 p-6 space-y-5">
+          <p className="text-[13px] font-semibold text-slate-500">Détails</p>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <Mail size={15} className="text-[#1A1A1A]/40 mt-0.5 shrink-0" />
+              <Mail size={16} className="text-slate-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs text-[#1A1A1A]/50 uppercase tracking-wide font-bold">Email</p>
-                <p className="text-sm font-medium">{order.email}</p>
+                <p className="text-[12px] text-slate-400 font-medium">Email</p>
+                <p className="text-[15px] font-medium text-slate-900">{order.email}</p>
               </div>
             </div>
 
             {order.nom_etablissement && (
               <div className="flex items-start gap-3">
-                <MapPin size={15} className="text-[#1A1A1A]/40 mt-0.5 shrink-0" />
+                <MapPin size={16} className="text-slate-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs text-[#1A1A1A]/50 uppercase tracking-wide font-bold">Établissement</p>
-                  <p className="text-sm font-medium">{order.nom_etablissement}</p>
+                  <p className="text-[12px] text-slate-400 font-medium">Établissement</p>
+                  <p className="text-[15px] font-medium text-slate-900">{order.nom_etablissement}</p>
                   {order.type_etablissement && (
-                    <p className="text-xs text-[#1A1A1A]/50">{order.type_etablissement}</p>
+                    <p className="text-[13px] text-slate-400">{order.type_etablissement}</p>
                   )}
                 </div>
               </div>
             )}
 
             <div className="flex items-start gap-3">
-              <Star size={15} className="text-[#1A1A1A]/40 mt-0.5 shrink-0" />
+              <Star size={16} className="text-slate-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs text-[#1A1A1A]/50 uppercase tracking-wide font-bold">Note demandée</p>
-                <p className="text-sm font-medium">
+                <p className="text-[12px] text-slate-400 font-medium">Note demandée</p>
+                <p className="text-[15px] font-medium text-slate-900">
                   {'★'.repeat(order.nb_etoiles)}{'☆'.repeat(5 - order.nb_etoiles)} ({order.nb_etoiles}/5)
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <span className="text-[#1A1A1A]/40 mt-0.5 shrink-0 text-sm">💬</span>
+              <span className="text-slate-400 mt-0.5 shrink-0 text-[15px]">💬</span>
               <div>
-                <p className="text-xs text-[#1A1A1A]/50 uppercase tracking-wide font-bold">Ton</p>
-                <p className="text-sm font-medium">{TONS_LABELS[order.ton] || order.ton}</p>
+                <p className="text-[12px] text-slate-400 font-medium">Ton</p>
+                <p className="text-[15px] font-medium text-slate-900">{TONS_LABELS[order.ton] || order.ton}</p>
               </div>
             </div>
 
             {order.texte_avis && (
-              <div className="border-t-2 border-[#1A1A1A]/10 pt-3">
-                <p className="text-xs text-[#1A1A1A]/50 uppercase tracking-wide font-bold mb-1">Texte personnalisé</p>
-                <p className="text-sm text-[#1A1A1A]/70 italic">"{order.texte_avis}"</p>
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-[12px] text-slate-400 font-medium mb-1">Texte personnalisé</p>
+                <p className="text-[14px] text-slate-500 italic">"{order.texte_avis}"</p>
               </div>
             )}
           </div>
         </div>
 
         {avisPublic?.lien_avis_poste && (
-  <div className="border-2 border-emerald-500 bg-emerald-50 p-5 space-y-2">
-    <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Avis publié</p>
-    <p className="text-sm text-emerald-700 underline break-all font-medium">
-      <a href={avisPublic.lien_avis_poste} target="_blank" rel="noreferrer">
-        {avisPublic.lien_avis_poste}
-      </a>
-    </p>
-  </div>
-)}
+          <div className="rounded-2xl bg-emerald-50 p-5 space-y-2">
+            <p className="text-[13px] font-semibold text-emerald-700">Avis publié</p>
+            <a
+              href={avisPublic.lien_avis_poste}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[14px] text-emerald-700 underline break-all font-medium"
+            >
+              {avisPublic.lien_avis_poste}
+            </a>
+          </div>
+        )}
 
         {/* Copier le lien de suivi */}
-        <div className="border-2 border-[#1A1A1A] bg-white p-4 space-y-3">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#1A1A1A]/50">
+        <div className="rounded-2xl border border-slate-200 p-5 space-y-3">
+          <p className="text-[13px] font-semibold text-slate-500">
             Lien de suivi — garde-le précieusement
           </p>
           <div className="flex gap-2">
-            <div className="flex-1 border-2 border-[#1A1A1A]/20 bg-[#F7F5F0] px-3 py-2 text-xs font-mono text-[#1A1A1A]/60 truncate">
+            <div className="flex-1 rounded-full bg-slate-50 px-4 py-2.5 text-[12px] font-mono text-slate-500 truncate">
               {window.location.href}
             </div>
             <button
               onClick={copyLink}
-              className="border-2 border-[#1A1A1A] bg-white px-3 py-2 text-sm hover:bg-[#F0EDE8] transition-colors"
+              className="w-10 h-10 rounded-full border border-slate-200 bg-white flex items-center justify-center hover:bg-slate-50 active:scale-95 transition-all shrink-0"
             >
-              {copied ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} />}
+              {copied ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} className="text-slate-500" />}
             </button>
           </div>
-          <p className="text-xs text-[#1A1A1A]/50">
+          <p className="text-[13px] text-slate-400">
             Pas d'email de suivi automatique. Ce lien est ta seule façon de suivre ta commande.
           </p>
         </div>
 
         {/* CTA compte */}
-        <div className="border-2 border-[#1A1A1A] bg-[#1A1A1A] text-white p-5 space-y-3">
-          <p className="font-black">Tu commandes souvent ?</p>
-          <p className="text-sm text-white/70">
+        <div className="rounded-2xl bg-[#1d1d1f] text-white p-6 space-y-3 text-center">
+          <p className="font-semibold text-[18px] tracking-tight">Tu commandes souvent ?</p>
+          <p className="text-[14px] text-slate-300 max-w-sm mx-auto">
             Crée un compte gratuit et paie 3€/avis au lieu de 4€.
             Suivi intégré, notifications, historique.
           </p>
           <Link
             to="/register"
-            className="inline-block bg-[#C73E1D] text-white px-5 py-2.5 font-bold text-sm border-2 border-[#C73E1D] hover:bg-[#A8331A] transition-colors"
+            className="inline-flex mt-1 rounded-full bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 font-medium text-[14px] active:scale-95 transition-all"
           >
             Créer un compte gratuit →
           </Link>
@@ -296,10 +292,10 @@ export default function PublicSuivi() {
 
       </main>
 
-      <footer className="border-t-2 border-[#1A1A1A] mt-16 py-6">
-        <div className="max-w-2xl mx-auto px-4 flex items-center justify-between text-xs text-[#1A1A1A]/50">
+      <footer className="bg-slate-50 border-t border-slate-200 mt-4 py-8">
+        <div className="max-w-2xl mx-auto px-4 flex items-center justify-between text-[12px] text-slate-400">
           <span>© 2025 SwimUp</span>
-          <Link to="/commander" className="underline hover:text-[#1A1A1A]">Nouvelle commande</Link>
+          <Link to="/commander" className="text-sky-500 hover:underline">Nouvelle commande</Link>
         </div>
       </footer>
     </div>
