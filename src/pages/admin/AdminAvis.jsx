@@ -192,15 +192,35 @@ export default function AdminAvis() {
     setLA(null)
   }
 
-  const statutBadge = s => ({
-    disponible:      <span className="badge-blue">Dispo</span>,
-    reserve:         <span className="badge-yellow">Réservé</span>,
-    en_verification: <span className="badge-yellow">Vérif.</span>,
-    valide:          <span className="badge-green">Validé</span>,
-    refuse:          <span className="badge-red">Refusé</span>,
-    paye:            <span className="badge-green">Payé</span>,
-    lien_incorrect:  <span className="badge-red">🔗 Lien ❌</span>,
-  }[s])
+  // Un avis "disponible" dont la date de visibilité programmée n'est pas
+  // encore atteinte n'est pas réellement dispo pour les membres — on
+  // l'affiche distinctement avec la date/heure prévue plutôt que "Dispo".
+  const estProgramme = (a) => {
+    if (a?.statut !== 'disponible' || !a.visible_a_partir_de) return false
+    const d = new Date(a.visible_a_partir_de.replace(' ', 'T') + 'Z')
+    return !isNaN(d.getTime()) && d.getTime() > Date.now()
+  }
+
+  const statutBadge = a => {
+    const s = typeof a === 'string' ? a : a?.statut
+    if (typeof a === 'object' && a && estProgramme(a)) {
+      const d = new Date(a.visible_a_partir_de.replace(' ', 'T') + 'Z')
+      return (
+        <span className="badge-blue" title="Programmé — pas encore visible des membres">
+          📅 Programmé · {d.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
+        </span>
+      )
+    }
+    return ({
+      disponible:      <span className="badge-blue">Dispo</span>,
+      reserve:         <span className="badge-yellow">Réservé</span>,
+      en_verification: <span className="badge-yellow">Vérif.</span>,
+      valide:          <span className="badge-green">Validé</span>,
+      refuse:          <span className="badge-red">Refusé</span>,
+      paye:            <span className="badge-green">Payé</span>,
+      lien_incorrect:  <span className="badge-red">🔗 Lien ❌</span>,
+    }[s])
+  }
 
   const verifBadge = (a) => {
     if (!a.last_check) return <span className="text-xs text-gray-400">Jamais vérifié</span>
@@ -301,7 +321,7 @@ export default function AdminAvis() {
 
               <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-3">
                 <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Statut</p>
-                {statutBadge(detail.statut)}
+                {statutBadge(detail)}
               </div>
 
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 space-y-2">
@@ -521,7 +541,7 @@ export default function AdminAvis() {
                 <div className="mt-1">{verifBadge(a)}</div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                {statutBadge(a.statut)}
+                {statutBadge(a)}
                 {a.statut === 'disponible' && (
                   <button onClick={e => { e.stopPropagation(); supprimer(a.id) }}
                     disabled={loadingAction === `sup_${a.id}`}
