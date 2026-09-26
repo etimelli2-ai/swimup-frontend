@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
-import { Star, ChevronDown, ChevronUp, Save, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { Star, ChevronDown, ChevronUp, Save, Loader2, CheckCircle2, AlertTriangle, Trash2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 
@@ -34,11 +34,12 @@ async function genererIA(nom, type, etoiles) {
   } catch { return '' }
 }
 
-function AvisEditor({ avis, onSave }) {
+function AvisEditor({ avis, onSave, onDelete }) {
   const [texte, setTexte] = useState(avis.texte || '')
   const [etoiles, setEtoiles] = useState(avis.nb_etoiles || 5)
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const isDone = avis.texte && avis.texte.trim().length > 0
 
   const handleSave = async () => {
@@ -62,6 +63,13 @@ function AvisEditor({ avis, onSave }) {
     setGenerating(false)
   }
 
+  const handleDelete = async () => {
+    if (!confirm('Supprimer cet avis ? Cette action est irréversible.')) return
+    setDeleting(true)
+    await onDelete()
+    setDeleting(false)
+  }
+
   return (
     <div className={`border rounded-xl p-4 space-y-3 ${isDone ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-900/10' : 'border-slate-200 dark:border-slate-700'}`}>
       <div className="flex items-center justify-between">
@@ -73,13 +81,25 @@ function AvisEditor({ avis, onSave }) {
           }
         </div>
 
-        {/* Étoiles */}
-        <div className="flex gap-1">
-          {[1,2,3,4,5].map(n => (
-            <button key={n} onClick={() => setEtoiles(n)}>
-              <Star size={16} className={n <= etoiles ? 'text-amber-400 fill-amber-400' : 'text-slate-300'} />
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          {/* Étoiles */}
+          <div className="flex gap-1">
+            {[1,2,3,4,5].map(n => (
+              <button key={n} onClick={() => setEtoiles(n)}>
+                <Star size={16} className={n <= etoiles ? 'text-amber-400 fill-amber-400' : 'text-slate-300'} />
+              </button>
+            ))}
+          </div>
+
+          {/* Suppression — le rédacteur a arrêté de travailler sur cet avis */}
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            title="Supprimer cet avis"
+            className="text-slate-300 hover:text-red-500 active:scale-95 transition-all disabled:opacity-50 dark:text-slate-500 dark:hover:text-red-400"
+          >
+            {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+          </button>
         </div>
       </div>
 
@@ -112,7 +132,7 @@ function AvisEditor({ avis, onSave }) {
   )
 }
 
-function CommandeCard({ commande }) {
+function CommandeCard({ commande, onAvisDeleted }) {
   const [open, setOpen] = useState(false)
   const [avis, setAvis] = useState([])
   const [loadingAvis, setLoadingAvis] = useState(false)
@@ -139,6 +159,18 @@ function CommandeCard({ commande }) {
 
   const handleSave = (id, texte, etoiles) => {
     setAvis(prev => prev.map(a => a.id === id ? { ...a, texte, nb_etoiles: etoiles } : a))
+  }
+
+  const handleDeleteAvis = async (avisToDelete) => {
+    try {
+      const r = await api.delete(`/stripe/avis/${avisToDelete.id}`)
+      setAvis(prev => prev.filter(a => a.id !== avisToDelete.id))
+      toast.success('Avis supprimé')
+      const wasRempli = avisToDelete.texte && avisToDelete.texte.trim().length > 0
+      onAvisDeleted(commande.id, r.data?.commande_supprimee, wasRempli)
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Erreur suppression')
+    }
   }
 
   return (
@@ -187,7 +219,7 @@ function CommandeCard({ commande }) {
                 <p className="text-sm text-slate-400 text-center py-4">Aucun avis trouvé</p>
               ) : (
                 avis.map(a => (
-                  <AvisEditor key={a.id} avis={a} onSave={handleSave} />
+                  <AvisEditor key={a.id} avis={a} onSave={handleSave} onDelete={() => handleDeleteAvis(a)} />
                 ))
               )}
             </div>
@@ -208,6 +240,24 @@ export default function ClientCommandes() {
       .catch(() => toast.error('Erreur chargement'))
       .finally(() => setLoading(false))
   }, [])
+
+  // Un avis vient d'être supprimé dans une commande. Si le backend indique
+  // que la commande ne contient plus rien, elle disparaît de la liste tout
+  // de suite (sans attendre un rechargement) ; sinon on recale juste ses
+  // compteurs pour garder la barre de progression exacte.
+  const handleAvisDeleted = (commandeId, commandeSupprimee, wasRempli) => {
+    setCommandes(prev => {
+      if (commandeSupprimee) return prev.filter(c => c.id !== commandeId)
+      return prev.map(c => c.id === commandeId
+        ? {
+            ...c,
+            nb_avis: Math.max((c.nb_avis || 0) - 1, 0),
+            nb_avis_remplis: Math.max((c.nb_avis_remplis || 0) - (wasRempli ? 1 : 0), 0),
+          }
+        : c
+      )
+    })
+  }
 
   if (loading) return (
     <div className="flex justify-center py-20">
@@ -230,7 +280,7 @@ export default function ClientCommandes() {
         </div>
       ) : (
         <div className="space-y-3">
-          {commandes.map(c => <CommandeCard key={c.id} commande={c} />)}
+          {commandes.map(c => <CommandeCard key={c.id} commande={c} onAvisDeleted={handleAvisDeleted} />)}
         </div>
       )}
     </div>
