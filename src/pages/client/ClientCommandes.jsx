@@ -1,66 +1,43 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
-import { Star, ChevronDown, ChevronUp, Save, Loader2, CheckCircle2, AlertTriangle, Trash2 } from 'lucide-react'
+import { Star, ChevronDown, ChevronUp, Save, Loader2, AlertTriangle, Trash2, CalendarClock, Clock3 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 
 const PRIX_AVIS = 3
 
-const getPrompts = (nom, type, etoiles) => {
-  const nb = parseInt(etoiles) || 5
-  if (nb <= 2) return [`Écris un avis négatif authentique en français pour "${nom}" (${type || 'établissement'}). 2-3 phrases. Sans guillemets. Réponds UNIQUEMENT avec le texte.`]
-  if (nb === 3) return [`Écris un avis mitigé en français pour "${nom}" (${type || 'établissement'}). 2-3 phrases équilibrées. Sans guillemets. Réponds UNIQUEMENT avec le texte.`]
-  return [`Écris un avis positif et authentique en français pour "${nom}" (${type || 'établissement'}). 2-3 phrases naturelles. Sans guillemets. Réponds UNIQUEMENT avec le texte.`]
-}
-
-async function genererIA(nom, type, etoiles) {
-  try {
-    const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY
-    const prompt = getPrompts(nom, type, etoiles)[0]
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: [
-          { role: 'system', content: 'Tu génères des avis Google authentiques. UNIQUEMENT le texte, sans guillemets, sans entités HTML.' },
-          { role: 'user', content: prompt }
-        ],
-        max_tokens: 200, temperature: 1.1,
-      }),
-    })
-    const data = await res.json()
-    return data.choices?.[0]?.message?.content?.trim().replace(/^["'«»]|["'«»]$/g, '') || ''
-  } catch { return '' }
+// Convertit une date UTC "YYYY-MM-DD HH:MM:SS" (format renvoyé par le
+// backend) en valeur locale pour un <input type="datetime-local">.
+function toDatetimeLocalValue(utcString) {
+  if (!utcString) return ''
+  const d = new Date(utcString.replace(' ', 'T') + 'Z')
+  if (isNaN(d.getTime())) return ''
+  const pad = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 function AvisEditor({ avis, onSave, onDelete }) {
   const [texte, setTexte] = useState(avis.texte || '')
   const [etoiles, setEtoiles] = useState(avis.nb_etoiles || 5)
+  const [programmer, setProgrammer] = useState(!!avis.visible_a_partir_de)
+  const [visibleAt, setVisibleAt] = useState(toDatetimeLocalValue(avis.visible_a_partir_de))
   const [saving, setSaving] = useState(false)
-  const [generating, setGenerating] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const isDone = avis.texte && avis.texte.trim().length > 0
 
   const handleSave = async () => {
     if (!texte.trim()) return toast.error('Le texte ne peut pas être vide')
+    if (programmer && !visibleAt) return toast.error('Choisis une date de publication')
     setSaving(true)
     try {
-      await api.put(`/stripe/avis/${avis.id}`, { texte, nb_etoiles: etoiles })
+      const visible_a_partir_de = programmer && visibleAt ? new Date(visibleAt).toISOString() : null
+      await api.put(`/stripe/avis/${avis.id}`, { texte, nb_etoiles: etoiles, visible_a_partir_de })
       toast.success('Avis sauvegardé !')
-      onSave(avis.id, texte, etoiles)
+      onSave(avis.id, texte, etoiles, visible_a_partir_de)
     } catch (e) {
       toast.error(e.response?.data?.error || 'Erreur')
     }
     setSaving(false)
-  }
-
-  const handleGenerate = async () => {
-    setGenerating(true)
-    const t = await genererIA(avis.nom_etablissement, '', etoiles)
-    if (t) setTexte(t)
-    else toast.error('Erreur génération IA')
-    setGenerating(false)
   }
 
   const handleDelete = async () => {
@@ -110,24 +87,52 @@ function AvisEditor({ avis, onSave, onDelete }) {
         onChange={e => setTexte(e.target.value)}
       />
 
-      <div className="flex gap-2">
-        <button
-          onClick={handleGenerate}
-          disabled={generating}
-          className="flex-1 py-2 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 rounded-full text-xs font-medium flex items-center justify-center gap-1 active:scale-95 transition-all disabled:opacity-50"
-        >
-          {generating ? <Loader2 size={12} className="animate-spin" /> : '✨'}
-          {generating ? 'Génération...' : 'Générer IA'}
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={saving || !texte.trim()}
-          className="flex-1 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-full text-xs font-medium flex items-center justify-center gap-1 active:scale-95 transition-all disabled:opacity-50"
-        >
-          {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
-          {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-        </button>
+      {/* Planification — visibilité aux membres */}
+      <div className="border-t border-slate-100 dark:border-slate-700 pt-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <CalendarClock size={13} />
+            Visible par les membres
+          </span>
+          <div className="flex bg-slate-100 dark:bg-slate-700 rounded-full p-0.5 text-xs">
+            <button
+              onClick={() => setProgrammer(false)}
+              className={`px-2.5 py-1 rounded-full font-medium transition-all ${!programmer ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}
+            >
+              Immédiat
+            </button>
+            <button
+              onClick={() => setProgrammer(true)}
+              className={`px-2.5 py-1 rounded-full font-medium transition-all ${programmer ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}
+            >
+              Programmer
+            </button>
+          </div>
+        </div>
+        {programmer && (
+          <input
+            type="datetime-local"
+            className="input text-sm"
+            value={visibleAt}
+            onChange={e => setVisibleAt(e.target.value)}
+          />
+        )}
+        {avis.visible_a_partir_de && (
+          <p className="text-xs text-slate-400 flex items-center gap-1">
+            <Clock3 size={11} />
+            Programmé pour le {new Date(avis.visible_a_partir_de.replace(' ', 'T') + 'Z').toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}
+          </p>
+        )}
       </div>
+
+      <button
+        onClick={handleSave}
+        disabled={saving || !texte.trim()}
+        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-full text-xs font-medium flex items-center justify-center gap-1 active:scale-95 transition-all disabled:opacity-50"
+      >
+        {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+        {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+      </button>
     </div>
   )
 }
@@ -157,8 +162,8 @@ function CommandeCard({ commande, onAvisDeleted }) {
     if (!open) loadAvis()
   }
 
-  const handleSave = (id, texte, etoiles) => {
-    setAvis(prev => prev.map(a => a.id === id ? { ...a, texte, nb_etoiles: etoiles } : a))
+  const handleSave = (id, texte, etoiles, visible_a_partir_de) => {
+    setAvis(prev => prev.map(a => a.id === id ? { ...a, texte, nb_etoiles: etoiles, visible_a_partir_de } : a))
   }
 
   const handleDeleteAvis = async (avisToDelete) => {
@@ -171,6 +176,25 @@ function CommandeCard({ commande, onAvisDeleted }) {
     } catch (e) {
       toast.error(e.response?.data?.error || 'Erreur suppression')
     }
+  }
+
+  if (commande.statut === 'en_attente') {
+    return (
+      <div className="card p-4 opacity-80">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="font-semibold text-slate-900 dark:text-white text-sm">
+            {commande.nb_avis} avis — {parseFloat(commande.montant).toFixed(2)}€
+          </p>
+          <span className="badge-gray text-xs">En attente de validation</span>
+        </div>
+        <p className="text-xs text-slate-400 mt-2">
+          Réglée par PayPal, cette commande sera activée dès que l'admin aura confirmé la réception du paiement.
+        </p>
+        <p className="text-xs text-slate-400 mt-1">
+          {new Date(commande.created_at).toLocaleDateString('fr-FR')}
+        </p>
+      </div>
+    )
   }
 
   return (

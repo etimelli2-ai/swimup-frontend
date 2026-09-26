@@ -14,6 +14,7 @@ import {
   ChevronRight,
   CreditCard,
   ShoppingBag,
+  ClipboardCheck,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import React from 'react'
@@ -54,6 +55,7 @@ export default function Layout() {
     { path: '/admin/retraits', label: 'Retraits',     icon: Wallet },
     { path: '/admin/loterie',  label: 'Loterie',      icon: Ticket },
     { path: '/admin/commande', label: 'Commande',     icon: FileText },
+    { path: '/admin/commandes-clients', label: 'Commandes clients', icon: ClipboardCheck },
     { path: '/admin/boutique', label: 'Boutique',     icon: ShoppingBag },
   ] : isClient ? [
     { path: '/client',           label: 'Dashboard',    icon: LayoutDashboard },

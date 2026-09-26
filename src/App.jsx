@@ -15,6 +15,7 @@ import AdminUsers from './pages/admin/AdminUsers'
 import AdminRetraits from './pages/admin/AdminRetraits'
 import AdminLoterie from './pages/admin/AdminLoterie'
 import AdminBoutique from './pages/admin/AdminBoutique'
+import AdminCommandes from './pages/admin/AdminCommandes'
 import ClientDashboard from './pages/client/ClientDashboard'
 import ClientPaiement from './pages/client/ClientPaiement'
 import ClientCommandes from './pages/client/ClientCommandes'
@@ -65,6 +66,7 @@ export default function App() {
         <Route path="retraits" element={<AdminRetraits />} />
         <Route path="loterie"  element={<AdminLoterie />} />
         <Route path="commande" element={<ClientDashboard />} />
+        <Route path="commandes-clients" element={<AdminCommandes />} />
         <Route path="boutique" element={<AdminBoutique />} />
       </Route>
 

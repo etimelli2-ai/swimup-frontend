@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import api from '../../lib/api'
-import { CreditCard, Star, Building, Link, Clock, Loader2 } from 'lucide-react'
+import { CreditCard, Star, Building, Link, Clock, Loader2, CheckCircle2, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
@@ -12,12 +12,18 @@ function Spinner() {
 
 const PRIX_AVIS = 3
 
+// Ton lien PayPal.me (ou bouton PayPal hébergé) — configure VITE_PAYPAL_ME
+// dans les variables d'environnement du frontend (Vercel/Railway) avec ton
+// vrai identifiant, ex: https://paypal.me/tonpseudo
+const PAYPAL_ME = import.meta.env.VITE_PAYPAL_ME || 'https://paypal.me/tonpseudo'
+
 export default function ClientPaiement() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
 
   const [loading, setLoading] = useState(false)
+  const [commandeEnvoyee, setCommandeEnvoyee] = useState(null) // { montant }
   const [form, setForm] = useState({
     nom_etablissement:  '',
     type_etablissement: '',
@@ -30,7 +36,7 @@ export default function ClientPaiement() {
   const nb = parseInt(form.nb_avis) || 1
   const total = nb * PRIX_AVIS
 
-  const handlePayer = async () => {
+  const handleCommander = async () => {
     if (!form.nom_etablissement) return toast.error('Entre le nom de l\'établissement')
     if (!form.lien_maps) return toast.error('Entre le lien Google Maps')
     if (nb < 1) return toast.error('Minimum 1 avis')
@@ -47,15 +53,59 @@ export default function ClientPaiement() {
       })
 
       if (isAdmin) {
-        // Admin — redirection directe sans Stripe
+        // Admin — avis créés directement, pas de validation ni de paiement
         navigate('/client/success?session_id=' + r.data.session_id)
       } else {
-        window.location.href = r.data.url
+        // Client — commande envoyée à l'admin pour validation, paiement PayPal en direct
+        setCommandeEnvoyee({ montant: r.data.montant })
+        toast.success('Commande envoyée !')
       }
     } catch (e) {
       toast.error(e.response?.data?.error || 'Erreur lors de la création')
-      setLoading(false)
     }
+    setLoading(false)
+  }
+
+  if (commandeEnvoyee) {
+    const lienPaypal = `${PAYPAL_ME}/${commandeEnvoyee.montant.toFixed(2)}EUR`
+    return (
+      <div className="max-w-lg mx-auto space-y-6 animate-fade-in">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="card p-8 text-center space-y-5"
+        >
+          <div className="w-16 h-16 bg-sky-50 dark:bg-sky-900/30 rounded-full flex items-center justify-center mx-auto">
+            <CheckCircle2 size={30} className="text-sky-500" />
+          </div>
+          <div>
+            <h1 className="text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight">Commande envoyée</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
+              Règle {commandeEnvoyee.montant.toFixed(2)}€ via PayPal, ta commande sera validée dès réception du paiement.
+            </p>
+          </div>
+
+          <a
+            href={lienPaypal}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-primary w-full text-base py-3.5"
+          >
+            Payer {commandeEnvoyee.montant.toFixed(2)}€ avec PayPal
+          </a>
+
+          <div className="flex flex-col gap-3 pt-2">
+            <button onClick={() => navigate('/client/commandes')} className="btn-secondary w-full">
+              <ArrowRight size={16} />
+              Voir mes commandes
+            </button>
+            <button onClick={() => navigate('/client')} className="btn-ghost w-full">
+              Retour au dashboard
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    )
   }
 
   const etoilesLabel = n => ({
@@ -72,7 +122,7 @@ export default function ClientPaiement() {
         <p className="text-muted mt-1">
           {isAdmin
             ? 'En tant qu\'admin, les avis sont créés gratuitement et immédiatement.'
-            : 'Remplis les informations et paie pour débloquer tes avis'
+            : 'Remplis les informations, commande, puis règle par PayPal'
           }
         </p>
       </div>
@@ -80,7 +130,7 @@ export default function ClientPaiement() {
       {isAdmin && (
         <div className="card p-4 bg-emerald-50 dark:bg-emerald-900/20">
           <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-            🛡️ Mode admin — paiement Stripe bypassé
+            🛡️ Mode admin — paiement bypassé
           </p>
           <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-1">
             Les avis seront créés directement sans facturation.
@@ -187,14 +237,14 @@ export default function ClientPaiement() {
 
         {!isAdmin && (
           <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
-            <p>✅ Paiement sécurisé par Stripe</p>
-            <p>✅ Après paiement, tu pourras remplir les textes de tes avis</p>
-            <p>✅ Les avis seront visibles par les membres une fois les textes validés</p>
+            <p>✅ Paiement par PayPal, en direct</p>
+            <p>✅ L'admin valide ta commande dès réception du paiement</p>
+            <p>✅ Une fois validée, tu pourras remplir les textes de tes avis</p>
           </div>
         )}
 
         <button
-          onClick={handlePayer}
+          onClick={handleCommander}
           disabled={loading || !form.nom_etablissement || !form.lien_maps}
           className={`w-full text-base py-3.5 font-medium rounded-full flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all ${
             isAdmin
@@ -203,11 +253,11 @@ export default function ClientPaiement() {
           }`}
         >
           {loading ? (
-            <><Spinner /> {isAdmin ? 'Création...' : 'Redirection vers Stripe...'}</>
+            <><Spinner /> Envoi...</>
           ) : isAdmin ? (
             <><span>✅</span> Créer {nb} avis gratuitement</>
           ) : (
-            <><CreditCard size={18} /> Payer {total.toFixed(2)}€ avec Stripe</>
+            <><CreditCard size={18} /> Commander {total.toFixed(2)}€</>
           )}
         </button>
       </div>
