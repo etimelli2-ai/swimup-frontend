@@ -226,6 +226,11 @@ export default function AdminAvis() {
     setLA(null)
   }
 
+  // Un avis "disponible" dont le texte n'a pas encore été renseigné n'est
+  // jamais montré aux membres (le backend le filtre côté /api/avis) — on
+  // l'affiche distinctement pour que ce soit clair côté admin.
+  const manqueTexte = (a) => !cleanText(a?.texte)?.trim()
+
   // Un avis "disponible" dont la date de visibilité programmée n'est pas
   // encore atteinte n'est pas réellement dispo pour les membres — on
   // l'affiche distinctement avec la date/heure prévue plutôt que "Dispo".
@@ -237,6 +242,13 @@ export default function AdminAvis() {
 
   const statutBadge = a => {
     const s = typeof a === 'string' ? a : a?.statut
+    if (typeof a === 'object' && a && s === 'disponible' && manqueTexte(a)) {
+      return (
+        <span className="badge-yellow" title="Texte en attente — visible uniquement par l'admin, pas encore proposé aux membres">
+          📝 Texte en attente
+        </span>
+      )
+    }
     if (typeof a === 'object' && a && estProgramme(a)) {
       const d = new Date(a.visible_a_partir_de.replace(' ', 'T') + 'Z')
       return (
@@ -378,6 +390,11 @@ export default function AdminAvis() {
               <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-3">
                 <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Statut</p>
                 {statutBadge(detail)}
+                {detail.statut === 'disponible' && manqueTexte(detail) && (
+                  <p className="text-xs text-amber-600 mt-1.5">
+                    Ajoute le texte de l'avis pour qu'il devienne visible et réservable par les membres.
+                  </p>
+                )}
               </div>
 
               {/* Suivi de paiement — cœur du nouveau système de vérification manuelle */}
