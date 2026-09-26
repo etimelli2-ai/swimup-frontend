@@ -2,19 +2,17 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://swimup-backend-production.up.railway.app/api',
-})
-
-api.interceptors.request.use(cfg => {
-  const token = localStorage.getItem('token')
-  if (token) cfg.headers.Authorization = `Bearer ${token}`
-  return cfg
+  // La session vit dans un cookie httpOnly (jamais lisible en JS, donc
+  // protégé contre le vol de token via une faille XSS) : on demande à
+  // axios de toujours l'envoyer/le recevoir, y compris en cross-site
+  // (swimup.net -> railway.app).
+  withCredentials: true,
 })
 
 api.interceptors.response.use(
   r => r,
   err => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('token')
       // Fix — dispatch event au lieu de reload brutal
       window.dispatchEvent(new Event('swimup:logout'))
     }

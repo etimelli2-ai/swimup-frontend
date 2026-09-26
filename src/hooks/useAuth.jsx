@@ -8,14 +8,12 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) { setLoading(false); return }
+    // La session vit dans un cookie httpOnly envoyé automatiquement par le
+    // navigateur — on ne peut plus savoir à l'avance si l'utilisateur est
+    // connecté sans interroger le backend.
     api.get('/auth/me')
       .then(r => setUser(r.data))
-      .catch(() => {
-        localStorage.removeItem('token')
-        setUser(null)
-      })
+      .catch(() => setUser(null))
       .finally(() => setLoading(false))
   }, [])
 
@@ -31,20 +29,20 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const r = await api.post('/auth/login', { email, password })
-    localStorage.setItem('token', r.data.token)
     setUser(r.data.user)
     return r.data.user
   }, [])
 
   const register = useCallback(async (email, password, discord_id, invitation_code) => {
     const r = await api.post('/auth/register', { email, password, discord_id, invitation_code })
-    localStorage.setItem('token', r.data.token)
     setUser(r.data.user)
     return r.data.user
   }, [])
 
   const logout = useCallback(() => {
-    localStorage.removeItem('token')
+    // Le cookie httpOnly ne peut pas être supprimé en JS : il faut demander
+    // au backend de le faire via un Set-Cookie expiré.
+    api.post('/auth/logout').catch(() => {})
     setUser(null)
   }, [])
 
