@@ -29,6 +29,16 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const r = await api.post('/auth/login', { email, password })
+    // Compte protégé par la 2FA : pas encore de session, il faut d'abord
+    // valider le code (voir loginAvec2fa). On renvoie tel quel pour que
+    // l'écran de login sache afficher l'étape suivante.
+    if (r.data?.requires2fa) return r.data
+    setUser(r.data.user)
+    return r.data
+  }, [])
+
+  const loginAvec2fa = useCallback(async (tempToken, code) => {
+    const r = await api.post('/auth/2fa/verify-login', { tempToken, code })
     setUser(r.data.user)
     return r.data.user
   }, [])
@@ -52,7 +62,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthCtx.Provider value={{ user, updateUser, login, register, logout, loading }}>
+    <AuthCtx.Provider value={{ user, updateUser, login, loginAvec2fa, register, logout, loading }}>
       {children}
     </AuthCtx.Provider>
   )

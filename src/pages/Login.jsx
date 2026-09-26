@@ -5,27 +5,49 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { Star, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react'
+import { Star, Eye, EyeOff, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function Login() {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, loginAvec2fa } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Étape 2 : demandée uniquement si le compte a la 2FA activée.
+  const [tempToken, setTempToken] = useState(null)
+  const [code, setCode] = useState('')
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      await login(email, password)
-      navigate('/dashboard')
+      const r = await login(email, password)
+      if (r?.requires2fa) {
+        setTempToken(r.tempToken)
+      } else {
+        navigate('/dashboard')
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Erreur de connexion')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSubmit2fa = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    try {
+      await loginAvec2fa(tempToken, code)
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.response?.data?.error || 'Code invalide')
     } finally {
       setLoading(false)
     }
@@ -61,55 +83,92 @@ export default function Login() {
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                className="input"
-                placeholder="ton@email.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Mot de passe</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  className="input pr-10"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+          {tempToken ? (
+            <form onSubmit={handleSubmit2fa} className="space-y-4">
+              <div className="flex items-center gap-2 text-slate-700">
+                <ShieldCheck size={18} className="text-sky-500 shrink-0" />
+                <p className="text-sm">Entre le code à 6 chiffres de ton appli d'authentification (ou un code de secours).</p>
               </div>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Code de vérification</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoFocus
+                  value={code}
+                  onChange={e => setCode(e.target.value)}
+                  required
+                  className="input tracking-widest text-center text-lg"
+                  placeholder="000000"
+                  maxLength={10}
+                />
+              </div>
+              <button type="submit" disabled={loading} className="btn-primary w-full">
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>Valider<ArrowRight size={16} /></>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTempToken(null); setCode(''); setError('') }}
+                className="w-full text-center text-sm text-slate-400 hover:text-slate-600"
+              >
+                Retour
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  className="input"
+                  placeholder="ton@email.com"
+                />
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-            >
-              {loading ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  Se connecter
-                  <ArrowRight size={16} />
-                </>
-              )}
-            </button>
-          </form>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Mot de passe</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    className="input pr-10"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full"
+              >
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    Se connecter
+                    <ArrowRight size={16} />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-6">
