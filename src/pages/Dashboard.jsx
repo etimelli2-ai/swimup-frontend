@@ -26,10 +26,12 @@ const statutConfig = {
 }
 
 function getDelaiRestant(avis) {
-  if (!avis.valide_at || avis.statut !== 'valide') return null
-  const valideAt = new Date(avis.valide_at)
+  // Le délai de paiement est compté depuis la soumission (heure de l'avis
+  // posté), pas depuis le premier checkpoint validé par l'admin.
+  if (!avis.soumis_at || avis.statut !== 'valide') return null
+  const soumisAt = new Date(String(avis.soumis_at).replace(' ', 'T') + 'Z')
   const delaiJours = parseInt(avis.delai_paiement) || 30
-  const payeAt = new Date(valideAt.getTime() + delaiJours * 24 * 60 * 60 * 1000)
+  const payeAt = new Date(soumisAt.getTime() + delaiJours * 24 * 60 * 60 * 1000)
   const diff = payeAt - Date.now()
   if (diff <= 0) return 'Paiement imminent'
   const jours = Math.ceil(diff / (24 * 60 * 60 * 1000))

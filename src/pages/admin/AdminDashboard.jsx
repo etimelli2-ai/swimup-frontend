@@ -89,17 +89,6 @@ export default function AdminDashboard() {
     setLA(null)
   }
 
-  const lancerVerifTous = async () => {
-    setLA('verif_all')
-    try {
-      await api.post('/admin/run-verif')
-      showMsg('success', '🔍 Vérification lancée ! Résultats dans 5-10 minutes.')
-    } catch {
-      showMsg('error', 'Erreur lors du lancement')
-    }
-    setLA(null)
-  }
-
   if (!stats) return (
     <div className="flex items-center justify-center h-64">
       <div className="w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"/>
@@ -240,23 +229,9 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Vérification Outscraper */}
-      <div className="card space-y-3">
-        <div>
-          <h3 className="font-bold text-gray-900">🔍 Vérification Outscraper</h3>
-          <p className="text-xs text-gray-500 mt-1">Lance la vérification de tous les avis validés — automatique chaque jour à 8h</p>
-        </div>
-        <button
-          onClick={lancerVerifTous}
-          disabled={loadingAction === 'verif_all'}
-          className="w-full bg-sky-500 hover:bg-sky-600 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
-        >
-          {loadingAction === 'verif_all'
-            ? <><Spinner /> Lancé en arrière-plan...</>
-            : 'Vérifier tous les avis maintenant'
-          }
-        </button>
-      </div>
+      {/* La vérification se fait maintenant à la main, avis par avis, depuis
+          la page Avis (checkpoints tous les 4 jours jusqu'au délai de
+          paiement choisi par l'acheteur). */}
 
       {/* Invitation */}
       <div className="card space-y-3">

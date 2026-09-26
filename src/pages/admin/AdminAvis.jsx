@@ -5,7 +5,41 @@ function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
 }
 
-const STATUT_FILTRES = ['tous', 'disponible', 'reserve', 'en_verification', 'valide', 'refuse', 'paye']
+const STATUT_FILTRES = ['tous', 'a_verifier', 'disponible', 'reserve', 'en_verification', 'valide', 'refuse', 'paye']
+
+const CHECKPOINT_JOURS = 4
+
+// Convertit une date SQLite ("YYYY-MM-DD HH:MM:SS") en Date UTC fiable.
+function parseSqlDate(d) {
+  if (!d) return null
+  const s = String(d)
+  const iso = s.includes('T') ? s : s.replace(' ', 'T') + (s.endsWith('Z') ? '' : 'Z')
+  const date = new Date(iso)
+  return isNaN(date.getTime()) ? null : date
+}
+
+// Calcule où en est un avis dans le cycle de vérification manuelle :
+// soumission -> checkpoints tous les 4 jours -> checkpoint final au délai
+// choisi par l'acheteur, qui déclenche (ou non) le crédit du solde.
+function checkpointInfo(a) {
+  const soumisAt = parseSqlDate(a.soumis_at)
+  if (!soumisAt || !['en_verification', 'valide'].includes(a.statut)) return null
+
+  const delai = parseInt(a.delai_paiement) || 30
+  const joursEcoules = Math.floor((Date.now() - soumisAt.getTime()) / 86400000)
+  const joursRestants = Math.max(0, delai - joursEcoules)
+  const estFinal = joursEcoules >= delai
+  const nbChecks = a.nb_checks || 0
+
+  const lastCheck = parseSqlDate(a.last_check)
+  const joursDepuisDernierCheck = lastCheck
+    ? Math.floor((Date.now() - lastCheck.getTime()) / 86400000)
+    : joursEcoules
+
+  const aVerifierMaintenant = estFinal || !lastCheck || joursDepuisDernierCheck >= CHECKPOINT_JOURS
+
+  return { joursEcoules, joursRestants, estFinal, nbChecks, aVerifierMaintenant, delai }
+}
 
 function cleanText(text) {
   if (!text) return ''
@@ -76,11 +110,11 @@ export default function AdminAvis() {
   }
 
   const valider = async (avisId) => {
-    if (!confirm('Valider manuellement ?')) return
+    if (!confirm('Confirmer ce checkpoint de vérification ?')) return
     setLA('valider')
     try {
-      await api.put(`/admin/avis/${avisId}/valider`)
-      showMsg('success', '✅ Avis validé !')
+      const r = await api.put(`/admin/avis/${avisId}/valider`)
+      showMsg('success', r.data?.paye ? '💰 Avis validé et solde crédité !' : '✅ Checkpoint validé !')
       setDetail(null)
       load()
     } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
@@ -223,11 +257,23 @@ export default function AdminAvis() {
   }
 
   const verifBadge = (a) => {
-    if (!a.last_check) return <span className="text-xs text-gray-400">Jamais vérifié</span>
-    const date = new Date(a.last_check).toLocaleDateString('fr-FR')
+    const info = checkpointInfo(a)
     if (a.verif_statut === 'paye') return <span className="text-xs text-green-600">✅ Payé</span>
-    if (a.verif_statut === 'inactif') return <span className="text-xs text-red-500">❌ Inactif</span>
-    return <span className="text-xs text-blue-600">🔍 Vérifié {date} ({a.nb_checks}x)</span>
+    if (!info) {
+      if (!a.last_check) return <span className="text-xs text-gray-400">Jamais vérifié</span>
+      return <span className="text-xs text-gray-400">—</span>
+    }
+    if (info.estFinal) {
+      return <span className="text-xs font-medium text-emerald-600">💰 Délai atteint · à créditer</span>
+    }
+    if (info.aVerifierMaintenant) {
+      return <span className="text-xs font-medium text-amber-600">⏰ À vérifier · {info.joursRestants}j avant paiement</span>
+    }
+    return (
+      <span className="text-xs text-blue-600">
+        🔍 Vérifié {info.nbChecks}x · {info.joursRestants}j avant paiement
+      </span>
+    )
   }
 
   const getNomEtablissement = (a) => {
@@ -241,8 +287,11 @@ export default function AdminAvis() {
 
   const nbMenuage = avis.filter(a => a.statut === 'refuse' || a.statut === 'paye').length
 
+  const nbAVerifier = avis.filter(a => checkpointInfo(a)?.aVerifierMaintenant).length
+
   let avisFiltres = [...avis]
-  if (filtre !== 'tous') avisFiltres = avisFiltres.filter(a => a.statut === filtre)
+  if (filtre === 'a_verifier') avisFiltres = avisFiltres.filter(a => checkpointInfo(a)?.aVerifierMaintenant)
+  else if (filtre !== 'tous') avisFiltres = avisFiltres.filter(a => a.statut === filtre)
   if (search) avisFiltres = avisFiltres.filter(a =>
     getNomEtablissement(a).toLowerCase().includes(search.toLowerCase()) ||
     a.membre_email?.toLowerCase().includes(search.toLowerCase()) ||
@@ -252,8 +301,10 @@ export default function AdminAvis() {
   if (tri === 'ancien') avisFiltres.sort((a, b) => new Date(a.soumis_at || a.created_at) - new Date(b.soumis_at || b.created_at))
   if (tri === 'valide') avisFiltres.sort((a, b) => new Date(b.valide_at || 0) - new Date(a.valide_at || 0))
   if (tri === 'verif')  avisFiltres.sort((a, b) => new Date(b.last_check || 0) - new Date(a.last_check || 0))
+  if (tri === 'urgence') avisFiltres.sort((a, b) => (checkpointInfo(a)?.joursRestants ?? 999) - (checkpointInfo(b)?.joursRestants ?? 999))
   if (tri === 'id')     avisFiltres.sort((a, b) => b.id - a.id)
-  // Prioritaires toujours en premier
+  // Les avis à vérifier maintenant remontent toujours en premier, puis les prioritaires
+  avisFiltres.sort((a, b) => (checkpointInfo(b)?.aVerifierMaintenant ? 1 : 0) - (checkpointInfo(a)?.aVerifierMaintenant ? 1 : 0))
   avisFiltres.sort((a, b) => (b.prioritaire || 0) - (a.prioritaire || 0))
 
   return (
@@ -285,6 +336,7 @@ export default function AdminAvis() {
       <select className="input text-sm" value={tri} onChange={e => setTri(e.target.value)}>
         <option value="recent">📅 Plus récent</option>
         <option value="ancien">📅 Plus ancien</option>
+        <option value="urgence">⏰ Paiement le plus proche</option>
         <option value="id">🔢 Par numéro</option>
         <option value="valide">✅ Date validation</option>
         <option value="verif">🔍 Dernière vérification</option>
@@ -294,9 +346,13 @@ export default function AdminAvis() {
         {STATUT_FILTRES.map(f => (
           <button key={f} onClick={() => setFiltre(f)}
             className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-              filtre === f ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
+              filtre === f
+                ? 'bg-sky-500 text-white'
+                : f === 'a_verifier' && nbAVerifier > 0
+                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                  : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
             }`}>
-            {f === 'tous' ? `Tous (${avis.length})` : f}
+            {f === 'tous' ? `Tous (${avis.length})` : f === 'a_verifier' ? `⏰ À vérifier (${nbAVerifier})` : f}
           </button>
         ))}
       </div>
@@ -324,17 +380,62 @@ export default function AdminAvis() {
                 {statutBadge(detail)}
               </div>
 
+              {/* Suivi de paiement — cœur du nouveau système de vérification manuelle */}
+              {(() => {
+                const info = checkpointInfo(detail)
+                if (!info) return null
+                return (
+                  <div className={`rounded-xl p-3 space-y-2 border ${
+                    info.estFinal
+                      ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800'
+                      : info.aVerifierMaintenant
+                        ? 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
+                        : 'bg-gray-50 border-gray-200 dark:bg-slate-700 dark:border-slate-600'
+                  }`}>
+                    <p className="text-xs font-semibold text-gray-600 dark:text-slate-300">📋 Suivi de paiement</p>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <p className="text-lg font-bold dark:text-white">{info.joursEcoules}j</p>
+                        <p className="text-[10px] text-gray-400">écoulés</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold dark:text-white">{info.joursRestants}j</p>
+                        <p className="text-[10px] text-gray-400">restants</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold dark:text-white">{info.nbChecks}</p>
+                        <p className="text-[10px] text-gray-400">vérif. faites</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-center font-medium">
+                      {info.estFinal
+                        ? '💰 Délai atteint — valider créditera le solde du membre'
+                        : info.aVerifierMaintenant
+                          ? `⏰ Checkpoint dû (tous les ${CHECKPOINT_JOURS} jours) — vérifie que l'avis est toujours en ligne`
+                          : `Prochaine vérification due dans ${Math.max(0, CHECKPOINT_JOURS - (info.joursEcoules % CHECKPOINT_JOURS || CHECKPOINT_JOURS))}j environ`}
+                    </p>
+                  </div>
+                )
+              })()}
+
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 space-y-2">
-                <p className="text-xs text-blue-600 font-medium">🔍 Vérification Outscraper</p>
-                <div>{verifBadge(detail)}</div>
+                <p className="text-xs text-blue-600 font-medium">💡 Indice Outscraper (optionnel)</p>
+                <p className="text-[11px] text-blue-500/80 dark:text-blue-400/70">
+                  Ne décide jamais tout seul — sert juste d'aide avant de Valider/Refuser à la main.
+                </p>
+                {detail.hint_checked_at && (
+                  <div className={`rounded-lg p-2 text-xs font-medium ${detail.hint_trouve ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {detail.hint_trouve ? '✅ Trouvé sur Google Maps' : '❌ Non trouvé sur Google Maps'} · {new Date(detail.hint_checked_at).toLocaleString('fr-FR')}
+                  </div>
+                )}
                 {verifResult && (
-                  <div className={`rounded-lg p-2 text-xs font-medium ${verifResult.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  <div className="rounded-lg p-2 text-xs font-medium bg-blue-100 text-blue-700">
                     {verifResult.message}
                   </div>
                 )}
                 <button onClick={() => verifierMaintenant(detail.id)} disabled={loadingAction === 'verifier'}
                   className="w-full bg-blue-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
-                  {loadingAction === 'verifier' ? <><Spinner /> Lancé...</> : '🔍 Vérifier maintenant via Outscraper'}
+                  {loadingAction === 'verifier' ? <><Spinner /> Lancé...</> : '🔍 Lancer un indice Outscraper'}
                 </button>
               </div>
 
@@ -431,12 +532,20 @@ export default function AdminAvis() {
                 )}
               </div>
 
-              {detail.statut !== 'valide' && detail.statut !== 'paye' && (
-                <button onClick={() => valider(detail.id)} disabled={loadingAction === 'valider'}
-                  className="w-full bg-green-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
-                  {loadingAction === 'valider' ? <><Spinner /> Validation...</> : 'Valider manuellement'}
-                </button>
-              )}
+              {['en_verification', 'valide'].includes(detail.statut) && (() => {
+                const info = checkpointInfo(detail)
+                const label = info?.estFinal
+                  ? '💰 Valider et créditer le solde'
+                  : info?.nbChecks
+                    ? 'Confirmer — toujours en ligne'
+                    : 'Valider ce checkpoint'
+                return (
+                  <button onClick={() => valider(detail.id)} disabled={loadingAction === 'valider'}
+                    className="w-full bg-green-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
+                    {loadingAction === 'valider' ? <><Spinner /> Validation...</> : label}
+                  </button>
+                )
+              })()}
 
               {['refuse', 'valide', 'reserve', 'en_verification'].includes(detail.statut) && (
                 <button onClick={() => remettreEnDispo(detail.id)} disabled={loadingAction === 'dispo'}
