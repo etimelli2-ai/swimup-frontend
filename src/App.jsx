@@ -22,6 +22,7 @@ import ClientSuccess from './pages/client/ClientSuccess'
 import PublicCommander from './pages/PublicCommander'
 import PublicSuivi from './pages/PublicSuivi'
 import VerifierEmail from './pages/VerifierEmail'
+import VerificationRequise from './pages/VerificationRequise'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children, roles }) {
@@ -32,7 +33,25 @@ function PrivateRoute({ children, roles }) {
     </div>
   )
   if (!user) return <Navigate to="/login" replace />
+  // Email non vérifié — bloque tout l'accès au site (sauf pour les admins)
+  // jusqu'à confirmation du lien reçu par email.
+  if (user.role !== 'admin' && user.email_verifie === false) {
+    return <Navigate to="/verification-requise" replace />
+  }
   if (roles && !roles.includes(user.role)) return <Navigate to="/" replace />
+  return children
+}
+
+// Le compte doit être connecté pour voir cette page, mais elle ne doit PAS
+// elle-même être bloquée par la vérification email (sinon boucle infinie).
+function RouteConnecteSeulement({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return (
+    <div className="flex items-center justify-center h-screen">
+      <div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/>
+    </div>
+  )
+  if (!user) return <Navigate to="/login" replace />
   return children
 }
 
@@ -43,6 +62,9 @@ export default function App() {
       <Route path="/commander" element={<PublicCommander />} />
       <Route path="/suivi"     element={<PublicSuivi />} />
       <Route path="/verifier-email" element={<VerifierEmail />} />
+      <Route path="/verification-requise" element={
+        <RouteConnecteSeulement><VerificationRequise /></RouteConnecteSeulement>
+      } />
 
       <Route path="/login"    element={<Login />} />
       <Route path="/register" element={<Register />} />
