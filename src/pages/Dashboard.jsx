@@ -144,7 +144,7 @@ export default function Dashboard() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide">Mes derniers avis</h2>
-            <Link to="/mon-avis" className="text-[13px] font-medium text-sky-500 hover:underline flex items-center gap-1">
+            <Link to="/avis" className="text-[13px] font-medium text-sky-500 hover:underline flex items-center gap-1">
               Voir tout <ArrowRight size={13} />
             </Link>
           </div>

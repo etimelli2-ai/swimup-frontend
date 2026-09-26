@@ -4,7 +4,6 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Avis from './pages/Avis'
-import MonAvis from './pages/MonAvis'
 import Profil from './pages/Profil'
 import Portefeuille from './pages/Portefeuille'
 import Loterie from './pages/Loterie'
@@ -51,7 +50,8 @@ export default function App() {
         <Route index               element={<Dashboard />} />
         <Route path="dashboard"    element={<Dashboard />} />
         <Route path="avis"         element={<Avis />} />
-        <Route path="mon-avis"     element={<MonAvis />} />
+        {/* "Mon avis" a fusionné dans /avis (même page : réserver, remplir, suivre) */}
+        <Route path="mon-avis"     element={<Navigate to="/avis" replace />} />
         <Route path="portefeuille" element={<Portefeuille />} />
         <Route path="profil"       element={<Profil />} />
         <Route path="loterie"      element={<Loterie />} />

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import api from '../../lib/api'
-import { CreditCard, Star, Building, Link, Clock, Loader2, CheckCircle2, ArrowRight } from 'lucide-react'
+import { CreditCard, Star, Building, Link, Clock, Loader2, CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
@@ -109,15 +109,15 @@ export default function ClientPaiement() {
   }
 
   const etoilesLabel = n => ({
-    1: '😡 Très mauvais', 2: '😞 Mauvais', 3: '😐 Moyen',
-    4: '😊 Bien', 5: '🤩 Excellent'
+    1: 'Très mauvais', 2: 'Mauvais', 3: 'Moyen',
+    4: 'Bien', 5: 'Excellent'
   }[parseInt(n)] || 'Excellent')
 
   return (
     <div className="space-y-6 animate-fade-in max-w-lg mx-auto">
       <div>
         <h1 className="page-title">
-          {isAdmin ? '✅ Commander des avis (Admin)' : 'Commander des avis'}
+          {isAdmin ? 'Commander des avis (Admin)' : 'Commander des avis'}
         </h1>
         <p className="text-muted mt-1">
           {isAdmin
@@ -128,13 +128,16 @@ export default function ClientPaiement() {
       </div>
 
       {isAdmin && (
-        <div className="card p-4 bg-emerald-50 dark:bg-emerald-900/20">
-          <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-            🛡️ Mode admin — paiement bypassé
-          </p>
-          <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-1">
-            Les avis seront créés directement sans facturation.
-          </p>
+        <div className="card p-4 bg-emerald-50 dark:bg-emerald-900/20 flex items-start gap-2.5">
+          <ShieldCheck size={16} className="text-emerald-500 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+              Mode admin — paiement bypassé
+            </p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-0.5">
+              Les avis seront créés directement sans facturation.
+            </p>
+          </div>
         </div>
       )}
 
@@ -180,11 +183,11 @@ export default function ClientPaiement() {
             </label>
             <select className="input" value={form.nb_etoiles}
               onChange={e => setForm(p => ({ ...p, nb_etoiles: e.target.value }))}>
-              <option value="1">⭐ 1</option>
-              <option value="2">⭐⭐ 2</option>
-              <option value="3">⭐⭐⭐ 3</option>
-              <option value="4">⭐⭐⭐⭐ 4</option>
-              <option value="5">⭐⭐⭐⭐⭐ 5</option>
+              <option value="1">1 étoile</option>
+              <option value="2">2 étoiles</option>
+              <option value="3">3 étoiles</option>
+              <option value="4">4 étoiles</option>
+              <option value="5">5 étoiles</option>
             </select>
             <p className="text-xs text-slate-400 mt-1">{etoilesLabel(form.nb_etoiles)}</p>
           </div>
@@ -223,23 +226,23 @@ export default function ClientPaiement() {
             <span className="text-slate-600 dark:text-slate-400">
               {nb} avis × {isAdmin ? '0€ (admin)' : `${PRIX_AVIS}€`}
             </span>
-            <span className="font-bold text-slate-900 dark:text-white">
+            <span className="font-semibold text-slate-900 dark:text-white">
               {isAdmin ? '0.00€' : `${total.toFixed(2)}€`}
             </span>
           </div>
           <div className={`flex justify-between text-sm border-t pt-2 ${isAdmin ? 'border-green-100 dark:border-green-800' : 'border-sky-100 dark:border-sky-800'}`}>
             <span className="font-semibold text-slate-700 dark:text-slate-300">Total</span>
-            <span className={`font-extrabold text-lg ${isAdmin ? 'text-green-600 dark:text-green-400' : 'text-sky-600 dark:text-sky-400'}`}>
-              {isAdmin ? '✅ Gratuit' : `${total.toFixed(2)}€`}
+            <span className={`font-semibold text-lg ${isAdmin ? 'text-green-600 dark:text-green-400' : 'text-sky-600 dark:text-sky-400'}`}>
+              {isAdmin ? 'Gratuit' : `${total.toFixed(2)}€`}
             </span>
           </div>
         </div>
 
         {!isAdmin && (
           <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
-            <p>✅ Paiement par PayPal, en direct</p>
-            <p>✅ L'admin valide ta commande dès réception du paiement</p>
-            <p>✅ Une fois validée, tu pourras remplir les textes de tes avis</p>
+            <p>Paiement par PayPal, en direct</p>
+            <p>L'admin valide ta commande dès réception du paiement</p>
+            <p>Une fois validée, tu pourras remplir les textes de tes avis</p>
           </div>
         )}
 
@@ -255,7 +258,7 @@ export default function ClientPaiement() {
           {loading ? (
             <><Spinner /> Envoi...</>
           ) : isAdmin ? (
-            <><span>✅</span> Créer {nb} avis gratuitement</>
+            <><CheckCircle2 size={18} /> Créer {nb} avis gratuitement</>
           ) : (
             <><CreditCard size={18} /> Commander {total.toFixed(2)}€</>
           )}

@@ -64,8 +64,7 @@ export default function Layout() {
     { path: '/profil',           label: 'Profil',       icon: User },
   ] : [
     { path: '/dashboard',    label: 'Tableau de bord',  icon: LayoutDashboard },
-    { path: '/avis',         label: 'Avis disponibles', icon: Star },
-    { path: '/mon-avis',     label: 'Mon avis',         icon: FileText },
+    { path: '/avis',         label: 'Avis',             icon: Star },
     { path: '/portefeuille', label: 'Portefeuille',     icon: Wallet },
     { path: '/loterie',      label: 'Loterie',          icon: Ticket },
     { path: '/boutique',     label: 'Boutique',         icon: ShoppingBag },

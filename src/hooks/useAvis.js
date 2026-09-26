@@ -90,7 +90,22 @@ export function useAnnulerAvis() {
     mutationFn: (id) => api.post(`/avis/${id}/annuler`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avis'] });
-      toast.success('Reservation annulee', { icon: '↩️' });
+      toast.success('Reservation annulee');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Erreur');
+    }
+  });
+}
+
+export function useContesterAvis() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, message }) => api.post(`/avis/${id}/contester`, { message }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['avis'] });
+      toast.success("Contestation envoyee a l'admin");
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Erreur');
