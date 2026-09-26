@@ -62,7 +62,7 @@ export default function Portefeuille() {
         <div className="text-4xl font-extrabold tracking-tight">
           {solde.toFixed(2)} <span className="text-xl font-semibold">EUR</span>
         </div>
-        <p className="text-sky-100 text-sm mt-2">Retrait minimum : 5 EUR</p>
+        <p className="text-sky-100 text-sm mt-2">Retrait minimum : 1 EUR</p>
       </motion.div>
 
       {/* Retrait form */}
@@ -99,7 +99,7 @@ export default function Portefeuille() {
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">EUR</span>
               <input
                 type="number"
-                min="5"
+                min="1"
                 step="0.01"
                 max={solde}
                 value={montant}
@@ -111,7 +111,7 @@ export default function Portefeuille() {
             </div>
             <button
               type="submit"
-              disabled={retrait.isPending || parseFloat(montant) > solde || parseFloat(montant) < 5}
+              disabled={retrait.isPending || parseFloat(montant) > solde || parseFloat(montant) < 1}
               className="btn-primary px-6"
             >
               {retrait.isPending ? 'Envoi...' : 'Retirer'}
