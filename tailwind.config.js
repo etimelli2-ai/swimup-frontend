@@ -45,10 +45,18 @@ export default {
         // Stack système : -apple-system résout vers San Francisco sur macOS/iOS
         sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"SF Pro Display"', '"Helvetica Neue"', 'Arial', 'sans-serif'],
       },
+      fontWeight: {
+        // Échelle Apple stricte : 300 / 400 / 600 / 700 — le weight 500 n'existe pas
+        // dans le système. On neutralise `font-medium` (utilisé 165x dans l'app)
+        // en le faisant retomber sur 400 plutôt que de réécrire chaque fichier.
+        medium: '400',
+      },
       borderRadius: {
-        lg: '0.625rem',  // 10px — boutons compacts, inputs
-        xl: '1.125rem',  // 18px — cards (grammaire Apple pour les conteneurs)
-        '2xl': '1.375rem', // 22px
+        // Échelle exacte du skill Apple : sm=8px (déjà le défaut Tailwind, utilité
+        // compacte), md=11px (Pearl Button, rare), lg=18px (cards / utility-card),
+        // pill/full=9999px (déjà géré par rounded-full nativement).
+        md: '0.6875rem',  // 11px
+        xl: '1.125rem',   // 18px — cards (product-tile / store-utility-card)
       },
       boxShadow: {
         // Apple ne pose jamais d'ombre sur les cards/boutons/texte —
