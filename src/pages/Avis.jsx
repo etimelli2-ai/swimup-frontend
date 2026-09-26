@@ -1,16 +1,83 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../lib/api'
+import toast from 'react-hot-toast'
+import { Star, Flame, Copy, Check, AlertTriangle, Loader2 } from 'lucide-react'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+}
+
+function Etoiles({ n }) {
+  const nb = parseInt(n) || 5
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map(i => (
+        <Star key={i} size={14} className={i <= nb ? 'text-amber-400 fill-amber-400' : 'text-slate-200 dark:text-slate-600'} />
+      ))}
+    </div>
+  )
+}
+
+function CarteAvis({ a, onReserver, reserving }) {
+  const [copied, setCopied] = useState(false)
+  const gain = parseFloat(a.prix_membre || a.prix || 1)
+  const isPrioritaire = !!a.prioritaire
+
+  const copierTexte = () => {
+    navigator.clipboard.writeText(a.texte)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  return (
+    <div className={`card space-y-3 ${isPrioritaire ? 'border-sky-200 dark:border-sky-800' : ''}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-semibold text-slate-900 dark:text-white truncate">{a.nom_societe}</p>
+            {isPrioritaire && (
+              <span className="badge-blue text-xs flex items-center gap-1">
+                <Flame size={11} /> Prioritaire
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 mt-1.5">
+            <Etoiles n={a.nb_etoiles} />
+            <span className="text-xs text-slate-400">{parseInt(a.nb_etoiles) || 5} étoiles à mettre</span>
+          </div>
+        </div>
+        <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
+          +{gain.toFixed(2)}€
+        </p>
+      </div>
+
+      <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 relative">
+        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pr-8 line-clamp-3">{a.texte}</p>
+        <button
+          onClick={copierTexte}
+          title="Copier le texte"
+          className="absolute top-2.5 right-2.5 p-1.5 text-slate-400 hover:text-sky-500 transition-colors"
+        >
+          {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+        </button>
+      </div>
+
+      <button
+        className="btn-primary w-full"
+        onClick={() => onReserver(a.id)}
+        disabled={reserving !== null}
+      >
+        {reserving === a.id ? <><Spinner /> Réservation...</> : 'Réserver cet avis'}
+      </button>
+    </div>
+  )
 }
 
 export default function Avis() {
   const [avis, setAvis]           = useState([])
   const [loading, setLoading]     = useState(true)
   const [reserving, setReserving] = useState(null)
-  const [msg, setMsg]             = useState(null)
   const navigate                  = useNavigate()
 
   useEffect(() => {
@@ -27,96 +94,16 @@ export default function Avis() {
       .finally(() => setLoading(false))
   }, [])
 
-  const showMsg = (type, text) => {
-    setMsg({ type, text })
-    setTimeout(() => setMsg(null), 4000)
-  }
-
   const reserver = async (id) => {
     setReserving(id)
     try {
       await api.post(`/avis/${id}/reserver`)
-      showMsg('success', '✅ Avis réservé ! Tu as 1h pour le publier.')
+      toast.success('Avis réservé — tu as 1h pour le publier.')
       navigate('/mon-avis')
     } catch (e) {
-      showMsg('error', e.response?.data?.error || 'Erreur')
+      toast.error(e.response?.data?.error || 'Erreur')
+      setReserving(null)
     }
-    setReserving(null)
-  }
-
-  const etoilesDisplay = n => {
-    const nb = parseInt(n) || 5
-    return { stars: '⭐'.repeat(nb), label: `${nb} étoile${nb > 1 ? 's' : ''}` }
-  }
-
-  const etoilesColor = n => {
-    const nb = parseInt(n) || 5
-    if (nb <= 2) return 'bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800'
-    if (nb === 3) return 'bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-900/20 dark:border-yellow-800'
-    return 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800'
-  }
-
-  const renderAvis = (a) => {
-    const { stars, label } = etoilesDisplay(a.nb_etoiles)
-    const gain = parseFloat(a.prix_membre || a.prix || 1)
-    const isPrioritaire = !!a.prioritaire
-
-    return (
-      <div key={a.id} className={`card space-y-3 ${
-        isPrioritaire
-          ? 'border-2 border-orange-300 dark:border-orange-600 bg-orange-50/30 dark:bg-orange-900/10'
-          : ''
-      }`}>
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1">
-            <p className="font-bold text-gray-900 dark:text-white">{a.nom_societe}</p>
-          </div>
-          <div className={`shrink-0 rounded-xl px-3 py-2 text-center ${
-            isPrioritaire
-              ? 'bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-700'
-              : 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700'
-          }`}>
-            <p className={`font-bold text-lg ${isPrioritaire ? 'text-orange-600 dark:text-orange-400' : 'text-green-700 dark:text-green-400'}`}>
-              +{gain.toFixed(2)}€
-            </p>
-            <p className={`text-xs ${isPrioritaire ? 'text-orange-500' : 'text-green-600 dark:text-green-500'}`}>
-              à gagner
-            </p>
-          </div>
-        </div>
-
-        {/* Étoiles */}
-        <div className={`rounded-xl p-3 border ${etoilesColor(a.nb_etoiles)}`}>
-          <p className="text-xs font-medium mb-1">Note à mettre sur Google :</p>
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">{stars}</span>
-            <span className="font-bold text-sm">{label}</span>
-          </div>
-        </div>
-
-        <div className="bg-gray-50 dark:bg-slate-700 rounded-xl p-3">
-          <p className="text-xs text-gray-500 dark:text-slate-400 font-medium mb-1">Texte à copier :</p>
-          <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed line-clamp-3">{a.texte}</p>
-        </div>
-
-        <button
-          className={`w-full py-3 text-white text-sm font-medium rounded-full flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70 transition-all ${
-            isPrioritaire
-              ? 'bg-orange-500 hover:bg-orange-600'
-              : 'bg-sky-500 hover:bg-sky-600'
-          }`}
-          onClick={() => reserver(a.id)}
-          disabled={reserving !== null}
-        >
-          {reserving === a.id
-            ? <><Spinner /> Réservation...</>
-            : isPrioritaire
-              ? 'Réserver cet avis prioritaire'
-              : 'Réserver cet avis'
-          }
-        </button>
-      </div>
-    )
   }
 
   const avisPrioritaires = avis.filter(a => a.prioritaire)
@@ -124,63 +111,50 @@ export default function Avis() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
-      <div className="w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"/>
+      <Loader2 size={24} className="animate-spin text-sky-500" />
     </div>
   )
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="space-y-6 animate-fade-in">
       <div>
-        <h2 className="page-title dark:text-white">Avis disponibles</h2>
-        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{avis.length} avis en attente de rédaction</p>
+        <h1 className="page-title">Avis disponibles</h1>
+        <p className="text-muted mt-1">
+          {avis.length > 0 ? `${avis.length} avis en attente de rédaction` : 'Aucun avis pour le moment'}
+        </p>
       </div>
 
-      {msg && (
-        <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-          {msg.text}
-        </div>
-      )}
-
       {avis.length === 0 ? (
-        <div className="card text-center py-10">
-          <p className="text-4xl mb-3">🎯</p>
-          <p className="font-semibold text-gray-700 dark:text-slate-300">Aucun avis disponible</p>
-          <p className="text-sm text-gray-400 mt-1">Reviens plus tard !</p>
+        <div className="card p-10 text-center">
+          <AlertTriangle size={28} className="text-slate-300 mx-auto mb-3" />
+          <p className="font-medium text-slate-600 dark:text-slate-400">Aucun avis disponible</p>
+          <p className="text-sm text-slate-400 mt-1">Reviens un peu plus tard</p>
         </div>
       ) : (
-        <div className="space-y-4">
-
-          {/* Section prioritaires */}
+        <div className="space-y-6">
           {avisPrioritaires.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 px-1">
-                <span className="text-xl">🔥</span>
-                <h3 className="font-bold text-orange-600 dark:text-orange-400">Avis prioritaires</h3>
-                <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs px-2 py-0.5 rounded-full font-bold">
-                  {avisPrioritaires.length}
-                </span>
-                <span className="text-xs text-orange-500 dark:text-orange-400 ml-1">— Fais-les en premier !</span>
-              </div>
-              {avisPrioritaires.map(a => renderAvis(a))}
+              <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide">
+                Prioritaires — à faire en premier
+              </h2>
+              {avisPrioritaires.map(a => (
+                <CarteAvis key={a.id} a={a} onReserver={reserver} reserving={reserving} />
+              ))}
             </div>
           )}
 
-          {/* Séparateur */}
-          {avisPrioritaires.length > 0 && avisNormaux.length > 0 && (
-            <div className="flex items-center gap-3 py-1">
-              <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
-              <span className="text-xs text-gray-400 dark:text-slate-500 font-medium">Autres avis disponibles</span>
-              <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
-            </div>
-          )}
-
-          {/* Section normale */}
           {avisNormaux.length > 0 && (
             <div className="space-y-3">
-              {avisNormaux.map(a => renderAvis(a))}
+              {avisPrioritaires.length > 0 && (
+                <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide">
+                  Autres avis
+                </h2>
+              )}
+              {avisNormaux.map(a => (
+                <CarteAvis key={a.id} a={a} onReserver={reserver} reserving={reserving} />
+              ))}
             </div>
           )}
-
         </div>
       )}
     </div>

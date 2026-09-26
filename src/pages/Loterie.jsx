@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from '../hooks/useAuth'
-import { Wallet, CreditCard, X, Loader2 } from 'lucide-react'
+import { Wallet, CreditCard, X, Loader2, Trophy, AlertTriangle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 
@@ -32,7 +32,7 @@ function ModalPaiement({ loterie, nbTickets, onClose, onSolde, onStripe, loading
           <p className="font-semibold text-slate-900 dark:text-white">
             {nbTickets} ticket{nbTickets > 1 ? 's' : ''} — {loterie.titre}
           </p>
-          <p className="text-2xl font-black text-sky-600 dark:text-sky-400 mt-1">{total.toFixed(2)}€</p>
+          <p className="text-2xl font-semibold text-sky-600 dark:text-sky-400 mt-1">{total.toFixed(2)}€</p>
         </div>
 
         <div className="space-y-3">
@@ -105,7 +105,7 @@ export default function Loterie() {
   useEffect(() => {
     load()
     if (searchParams.get('success') === '1') {
-      toast.success('🎟️ Tickets achetés avec succès !')
+      toast.success('Tickets achetés avec succès !')
     }
     if (searchParams.get('cancel') === '1') {
       toast.error('Paiement annulé.')
@@ -124,7 +124,7 @@ export default function Loterie() {
         loterie_id: data.loterie.id,
         nb_tickets: nbTickets,
       })
-      toast.success(`🎟️ ${nbTickets} ticket${nbTickets > 1 ? 's' : ''} acheté${nbTickets > 1 ? 's' : ''} !`)
+      toast.success(`${nbTickets} ticket${nbTickets > 1 ? 's' : ''} acheté${nbTickets > 1 ? 's' : ''} !`)
       setShowModal(false)
       load()
     } catch (e) {
@@ -160,7 +160,7 @@ export default function Loterie() {
   )
 
   return (
-    <div className="p-4 space-y-4 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <AnimatePresence>
         {showModal && data?.loterie && (
           <ModalPaiement
@@ -174,15 +174,15 @@ export default function Loterie() {
         )}
       </AnimatePresence>
 
-      <h2 className="page-title dark:text-white">Loterie</h2>
+      <h2 className="page-title">Loterie</h2>
 
-      <div className="inline-flex bg-gray-100 dark:bg-slate-700 rounded-full p-1 gap-1">
+      <div className="inline-flex bg-slate-100 dark:bg-slate-700 rounded-full p-1 gap-1">
         <button onClick={() => setTab('loterie')}
-          className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${tab === 'loterie' ? 'bg-white dark:bg-slate-600 text-sky-700 dark:text-sky-400' : 'text-gray-500 dark:text-slate-400'}`}>
+          className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${tab === 'loterie' ? 'bg-white dark:bg-slate-600 text-sky-700 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'}`}>
           En cours
         </button>
         <button onClick={() => setTab('historique')}
-          className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${tab === 'historique' ? 'bg-white dark:bg-slate-600 text-sky-700 dark:text-sky-400' : 'text-gray-500 dark:text-slate-400'}`}>
+          className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${tab === 'historique' ? 'bg-white dark:bg-slate-600 text-sky-700 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'}`}>
           Historique
         </button>
       </div>
@@ -190,38 +190,39 @@ export default function Loterie() {
       {tab === 'loterie' && (
         <>
           {!data?.loterie ? (
-            <div className="card text-center py-12">
-              <p className="text-5xl mb-3">🎰</p>
-              <p className="font-bold text-gray-700 dark:text-slate-300 text-lg">Aucune loterie en cours</p>
-              <p className="text-sm text-gray-400 mt-2">Reviens plus tard !</p>
+            <div className="card p-10 text-center">
+              <AlertTriangle size={28} className="text-slate-300 mx-auto mb-3" />
+              <p className="font-medium text-slate-600 dark:text-slate-400">Aucune loterie en cours</p>
+              <p className="text-sm text-slate-400 mt-1">Reviens un peu plus tard</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Jackpot */}
-              <div className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl p-6 text-white text-center">
-                <p className="text-sm font-medium opacity-90">🎉 {data.loterie.titre}</p>
-                <p className="text-5xl font-extrabold mt-2">{data.loterie.montant_gain}€</p>
-                <p className="text-sm opacity-90 mt-1">à gagner</p>
-              </div>
-
-              {/* Tes tickets */}
-              <div className="card text-center">
-                <p className="text-gray-500 dark:text-slate-400 text-sm">Tes tickets</p>
-                <p className="text-5xl font-extrabold text-sky-600 dark:text-sky-400 mt-1">{data.tickets}</p>
-                {data.tickets > 0 && data.totalTickets > 0 && (
-                  <div className="mt-3 bg-sky-50 dark:bg-sky-900/20 rounded-xl p-3">
-                    <p className="text-sm text-sky-700 dark:text-sky-400 font-medium">
-                      🎯 Probabilité : <strong>
-                        {((data.tickets / data.totalTickets) * 100).toFixed(1)}%
-                      </strong>
-                    </p>
+              {/* Jackpot — même grammaire que le solde du dashboard : un seul aplat sky-500 */}
+              <div className="rounded-2xl bg-sky-500 text-white p-7">
+                <p className="text-sky-100 text-[13px] font-medium">{data.loterie.titre}</p>
+                <p className="text-[44px] font-semibold tracking-tight leading-none mt-2">
+                  {data.loterie.montant_gain}<span className="text-[20px] font-medium text-sky-100">€ à gagner</span>
+                </p>
+                <div className="flex items-center gap-6 mt-6 pt-5 border-t border-white/15 text-[14px]">
+                  <div>
+                    <p className="text-sky-100">Tes tickets</p>
+                    <p className="font-semibold mt-0.5">{data.tickets}</p>
                   </div>
-                )}
+                  {data.tickets > 0 && data.totalTickets > 0 && (
+                    <>
+                      <div className="w-px h-8 bg-white/15" />
+                      <div>
+                        <p className="text-sky-100">Tes chances</p>
+                        <p className="font-semibold mt-0.5">{((data.tickets / data.totalTickets) * 100).toFixed(1)}%</p>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* Acheter des tickets */}
               <div className="card space-y-4">
-                <h3 className="section-title dark:text-white">Acheter des tickets</h3>
+                <h3 className="section-title">Acheter des tickets</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
                   Prix : <strong className="text-sky-600">{data.loterie.prix_ticket}€</strong> / ticket
                 </p>
@@ -257,21 +258,22 @@ export default function Loterie() {
               </div>
 
               {/* Comment ça marche */}
-              <div className="card space-y-2">
-                <h3 className="section-title dark:text-white">Comment participer ?</h3>
-                <div className="space-y-2 text-sm text-gray-600 dark:text-slate-400">
-                  <div className="flex items-start gap-2">
-                    <span>1️⃣</span>
-                    <p>Achète des tickets à <strong>{data.loterie.prix_ticket}€</strong> pièce avec ton solde ou par carte</p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span>2️⃣</span>
-                    <p>Plus tu as de tickets, plus tu as de chances de gagner !</p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span>3️⃣</span>
-                    <p>Le gagnant est tiré au sort et reçoit <strong>{data.loterie.montant_gain}€</strong> sur son solde</p>
-                  </div>
+              <div>
+                <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide mb-5">Comment participer</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-5">
+                  {[
+                    { n: '1', t: 'Achète des tickets', d: `${data.loterie.prix_ticket}€ pièce, avec ton solde ou par carte` },
+                    { n: '2', t: 'Plus t\'en as, mieux c\'est', d: 'Chaque ticket ajoute une chance de gagner' },
+                    { n: '3', t: 'Tirage au sort', d: `Le gagnant reçoit ${data.loterie.montant_gain}€ sur son solde` },
+                  ].map(s => (
+                    <div key={s.n}>
+                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-[12px] font-semibold mb-2.5">
+                        {s.n}
+                      </span>
+                      <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">{s.t}</p>
+                      <p className="text-[13px] text-slate-400 mt-0.5 leading-relaxed">{s.d}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -282,18 +284,21 @@ export default function Loterie() {
       {tab === 'historique' && (
         <div className="space-y-3">
           {historique.length === 0 ? (
-            <div className="card text-center py-10 text-gray-400">Aucune loterie terminée</div>
+            <div className="card p-10 text-center">
+              <Trophy size={28} className="text-slate-300 mx-auto mb-3" />
+              <p className="font-medium text-slate-600 dark:text-slate-400">Aucune loterie terminée</p>
+            </div>
           ) : historique.map(l => (
-            <div key={l.id} className="card space-y-2">
+            <div key={l.id} className="card space-y-1">
               <div className="flex items-center justify-between">
-                <p className="font-bold text-gray-900 dark:text-white">{l.titre}</p>
+                <p className="font-semibold text-slate-900 dark:text-white">{l.titre}</p>
                 <span className="badge-green">Terminée</span>
               </div>
-              <p className="text-2xl font-extrabold text-yellow-500">{l.montant_gain}€</p>
-              <p className="text-sm text-gray-600 dark:text-slate-400">
-                🏆 Gagnant : <strong>{l.gagnant_email || '—'}</strong>
+              <p className="text-2xl font-semibold text-slate-900 dark:text-white">{l.montant_gain}€</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Gagnant : <span className="font-medium text-slate-700 dark:text-slate-300">{l.gagnant_email || '—'}</span>
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-slate-400">
                 {l.termine_at ? new Date(l.termine_at).toLocaleDateString('fr-FR') : '—'}
               </p>
             </div>
