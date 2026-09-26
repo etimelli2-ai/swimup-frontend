@@ -98,6 +98,27 @@ export default function AdminUsers() {
     setLoadingAction(null)
   }
 
+  const renvoyerVerification = async (id) => {
+    setLoadingAction('verif')
+    try {
+      const r = await api.put(`/admin/users/${id}/renvoyer-verification`)
+      showMsg('success', r.data?.deja_verifie ? 'Ce membre a déjà vérifié son email.' : 'Email de vérification renvoyé !')
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLoadingAction(null)
+  }
+
+  const renvoyerVerificationTous = async () => {
+    const nbNonVerifies = users.filter(u => !u.email_verifie && u.role !== 'admin').length
+    if (!nbNonVerifies) return showMsg('error', 'Tout le monde a déjà vérifié son email.')
+    if (!confirm(`Envoyer l'email de vérification à ${nbNonVerifies} membre(s) non vérifié(s) ?`)) return
+    setLoadingAction('verif_tous')
+    try {
+      const r = await api.post('/admin/users/renvoyer-verification-tous')
+      showMsg('success', `Envoyé à ${r.data.envoyes}/${r.data.total} membre(s)${r.data.echecs ? ` (${r.data.echecs} échec(s))` : ''}.`)
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLoadingAction(null)
+  }
+
   const roleBadge = r => ({
     admin:  <span className="badge-blue">Admin</span>,
     client: <span className="badge-green">Client</span>,
@@ -137,6 +158,13 @@ export default function AdminUsers() {
         ))}
       </div>
 
+      <button onClick={renvoyerVerificationTous}
+        disabled={loadingAction === 'verif_tous'}
+        className="w-full bg-amber-50 text-amber-700 border border-amber-200 py-2 rounded-full text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
+        {loadingAction === 'verif_tous' ? <><Spinner /> Envoi en cours...</> :
+          `📧 Renvoyer la vérification à tous les non-vérifiés (${users.filter(u => !u.email_verifie && u.role !== 'admin').length})`}
+      </button>
+
       {/* Modal détail */}
       {detail && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={() => setDetail(null)}>
@@ -167,6 +195,7 @@ export default function AdminUsers() {
                       { label: 'Email', value: detail.email },
                       { label: 'Rôle', value: detail.role },
                       { label: 'Solde', value: `${parseFloat(detail.solde||0).toFixed(2)}€` },
+                      { label: 'Email vérifié', value: detail.email_verifie ? '✅ Oui' : '❌ Non' },
                       { label: 'Discord', value: detail.discord_id || '❌ Manquant' },
                       { label: 'PayPal', value: detail.paypal_email || '—' },
                       { label: 'IP', value: detail.ip_address || '—' },
@@ -237,6 +266,17 @@ export default function AdminUsers() {
 
                 {tab === 'actions' && (
                   <div className="space-y-4">
+                    {!detail.email_verifie && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-bold text-gray-700">Email non vérifié</p>
+                        <button onClick={() => renvoyerVerification(detail.id)}
+                          disabled={loadingAction === 'verif'}
+                          className="w-full bg-amber-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
+                          {loadingAction === 'verif' ? <><Spinner /> Envoi...</> : "Renvoyer l'email de vérification"}
+                        </button>
+                      </div>
+                    )}
+
                     {!detail.discord_id && (
                       <div className="space-y-2">
                         <p className="text-sm font-bold text-gray-700">Discord manquant</p>
@@ -302,6 +342,9 @@ export default function AdminUsers() {
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-sm text-gray-900 truncate">{u.email}</p>
                   {u.banned && <span className="text-xs text-red-500 shrink-0">🚫</span>}
+                  {!u.email_verifie && u.role !== 'admin' && (
+                    <span className="text-xs text-amber-500 shrink-0" title="Email non vérifié">📧</span>
+                  )}
                 </div>
                 <p className="text-xs text-gray-400">
                   Discord: {u.discord_id || '❌'} · {parseFloat(u.solde||0).toFixed(2)}€
