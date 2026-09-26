@@ -57,6 +57,7 @@ export default function Layout() {
     { path: '/admin/commande', label: 'Commande',     icon: FileText },
     { path: '/admin/commandes-clients', label: 'Commandes clients', icon: ClipboardCheck },
     { path: '/admin/boutique', label: 'Boutique',     icon: ShoppingBag },
+    { path: '/profil',         label: 'Profil',       icon: User },
   ] : isClient ? [
     { path: '/client',           label: 'Dashboard',    icon: LayoutDashboard },
     { path: '/client/payer',     label: 'Commander',    icon: CreditCard },
