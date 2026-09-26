@@ -21,6 +21,7 @@ import ClientCommandes from './pages/client/ClientCommandes'
 import ClientSuccess from './pages/client/ClientSuccess'
 import PublicCommander from './pages/PublicCommander'
 import PublicSuivi from './pages/PublicSuivi'
+import VerifierEmail from './pages/VerifierEmail'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children, roles }) {
@@ -41,6 +42,7 @@ export default function App() {
       {/* Pages publiques — sans auth */}
       <Route path="/commander" element={<PublicCommander />} />
       <Route path="/suivi"     element={<PublicSuivi />} />
+      <Route path="/verifier-email" element={<VerifierEmail />} />
 
       <Route path="/login"    element={<Login />} />
       <Route path="/register" element={<Register />} />

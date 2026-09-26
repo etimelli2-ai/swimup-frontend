@@ -7,6 +7,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { Star, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -38,6 +39,7 @@ export default function Register() {
     setLoading(true)
     try {
       await register(email, password, discordId || null, invitationCode || null)
+      toast.success('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.', { duration: 6000 })
       navigate('/dashboard')
     } catch (err) {
       setError(err.response?.data?.error || "Erreur lors de l'inscription")

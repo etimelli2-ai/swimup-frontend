@@ -15,9 +15,43 @@ import {
   CreditCard,
   ShoppingBag,
   ClipboardCheck,
+  MailWarning,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import React from 'react'
+import toast from 'react-hot-toast'
+import api from '../lib/api'
+
+function EmailVerifBanner() {
+  const [envoi, setEnvoi] = useState(false)
+
+  const renvoyer = async () => {
+    setEnvoi(true)
+    try {
+      const r = await api.post('/auth/resend-verification')
+      toast.success(r.data?.message || 'Email envoyé, vérifie ta boîte de réception.')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur, réessaie plus tard.')
+    }
+    setEnvoi(false)
+  }
+
+  return (
+    <div className="flex items-center gap-3 px-4 py-2.5 bg-amber-50 border-b border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-900 dark:text-amber-400">
+      <MailWarning size={16} className="shrink-0" />
+      <p className="text-sm flex-1 min-w-0">
+        Vérifie ton adresse email pour pouvoir réserver des avis et retirer ton solde.
+      </p>
+      <button
+        onClick={renvoyer}
+        disabled={envoi}
+        className="text-sm font-medium underline shrink-0 disabled:opacity-60"
+      >
+        {envoi ? 'Envoi...' : "Renvoyer l'email"}
+      </button>
+    </div>
+  )
+}
 
 const DiscordIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -182,6 +216,7 @@ export default function Layout() {
 
       {/* Main Content */}
       <main className="flex-1 lg:ml-64 pt-14 lg:pt-0">
+        {user && !isAdmin && user.email_verifie === false && <EmailVerifBanner />}
         <div className="max-w-5xl mx-auto p-4 lg:p-8">
           <Outlet />
         </div>
