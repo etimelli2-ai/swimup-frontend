@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { MapPin, Mail, Star, ChevronRight, AlertCircle, Loader2, Sparkles, CheckCircle2, Users, Zap, Shield } from 'lucide-react'
+import { MapPin, Mail, Star, ChevronRight, AlertCircle, Loader2, Sparkles, CheckCircle2, Users, Zap, Shield, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
 import axios from 'axios'
 
@@ -485,8 +485,12 @@ export default function PublicCommander() {
               )}
             </button>
 
+            <div className="flex items-center justify-center gap-2 rounded-full bg-slate-50 border border-slate-200 px-4 py-2.5 w-fit mx-auto">
+              <Lock size={14} className="text-slate-500" />
+              <span className="text-[13px] font-medium text-slate-600">Paiement 100% sécurisé par Stripe</span>
+            </div>
             <p className="text-center text-[13px] text-slate-400">
-              Paiement 100% sécurisé par Stripe · Sans abonnement · Garantie 30 jours · Avis authentiques
+              Sans abonnement · Garantie 30 jours · Avis authentiques
             </p>
           </form>
         </div>

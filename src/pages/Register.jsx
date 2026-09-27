@@ -2,10 +2,11 @@
 // frontend/src/pages/Register.jsx -- NOUVEAU (redesign)
 // ============================================================
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { Star, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react'
+import api from '../lib/api'
+import { Star, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, Loader2, Tag } from 'lucide-react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
@@ -13,6 +14,8 @@ export default function Register() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { register } = useAuth()
+
+  const commandeToken = searchParams.get('commande') || null
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,6 +25,30 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Compte client via une commande publique déjà payée — on récupère la
+  // commande pour verrouiller l'email dessus et vérifier qu'elle est payée.
+  const [commande, setCommande] = useState(null)
+  const [commandeLoading, setCommandeLoading] = useState(!!commandeToken)
+  const [commandeError, setCommandeError] = useState('')
+
+  useEffect(() => {
+    if (!commandeToken) return
+    api.get(`/public/suivi/${commandeToken}`)
+      .then(r => {
+        const order = r.data.order
+        if (order.statut === 'en_attente' || order.statut === 'annule') {
+          setCommandeError("Cette commande n'est pas encore payée.")
+        } else if (order.compte_cree) {
+          setCommandeError('Un compte a déjà été créé pour cette commande.')
+        } else {
+          setCommande(order)
+          setEmail(order.email)
+        }
+      })
+      .catch(() => setCommandeError('Commande introuvable — vérifie ton lien.'))
+      .finally(() => setCommandeLoading(false))
+  }, [commandeToken])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -38,7 +65,7 @@ export default function Register() {
 
     setLoading(true)
     try {
-      await register(email, password, discordId || null, invitationCode || null)
+      await register(email, password, discordId || null, invitationCode || null, commandeToken && commande ? commandeToken : null)
       toast.success('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.', { duration: 6000 })
       navigate('/dashboard')
     } catch (err) {
@@ -62,8 +89,34 @@ export default function Register() {
             <Star size={26} className="text-white fill-white" />
           </div>
           <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">SwimUp</h1>
-          <p className="text-[15px] text-slate-500 mt-1">Crée ton compte</p>
+          <p className="text-[15px] text-slate-500 mt-1">
+            {commandeToken ? 'Crée ton compte client' : 'Crée ton compte'}
+          </p>
         </div>
+
+        {/* Bannière commande publique liée */}
+        {commandeToken && commandeLoading && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 flex items-center gap-2 text-sm text-slate-500">
+            <Loader2 size={16} className="animate-spin" /> Vérification de ta commande...
+          </div>
+        )}
+        {commandeToken && !commandeLoading && commandeError && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4 flex items-start gap-2">
+            <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-red-700">{commandeError}</p>
+          </div>
+        )}
+        {commande && (
+          <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4 mb-4 flex items-start gap-2">
+            <Tag size={16} className="text-sky-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-sky-900">Compte lié à ta commande #{commande.id}</p>
+              <p className="text-xs text-sky-700 mt-0.5">
+                Email verrouillé sur {commande.email} — tes prochaines commandes passent à 3€/avis au lieu de 4€.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Card */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
@@ -86,7 +139,8 @@ export default function Register() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="input"
+                readOnly={!!commande}
+                className={`input ${commande ? 'bg-slate-50 text-slate-500' : ''}`}
                 placeholder="ton@email.com"
               />
             </div>
@@ -138,22 +192,24 @@ export default function Register() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Code d'invitation <span className="text-slate-400 font-normal">(optionnel)</span>
-              </label>
-              <input
-                type="text"
-                value={invitationCode}
-                onChange={e => setInvitationCode(e.target.value)}
-                className="input"
-                placeholder="Code client"
-              />
-            </div>
+            {!commandeToken && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Code d'invitation <span className="text-slate-400 font-normal">(optionnel)</span>
+                </label>
+                <input
+                  type="text"
+                  value={invitationCode}
+                  onChange={e => setInvitationCode(e.target.value)}
+                  className="input"
+                  placeholder="Code client"
+                />
+              </div>
+            )}
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || commandeLoading || (commandeToken && (!!commandeError || !commande))}
               className="btn-primary w-full"
             >
               {loading ? (

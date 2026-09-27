@@ -275,20 +275,39 @@ export default function PublicSuivi() {
           </p>
         </div>
 
-        {/* CTA compte */}
-        <div className="rounded-2xl bg-[#1d1d1f] text-white p-6 space-y-3 text-center">
-          <p className="font-semibold text-[18px] tracking-tight">Tu commandes souvent ?</p>
-          <p className="text-[14px] text-slate-300 max-w-sm mx-auto">
-            Crée un compte gratuit et paie 3€/avis au lieu de 4€.
-            Suivi intégré, notifications, historique.
-          </p>
-          <Link
-            to="/register"
-            className="inline-flex mt-1 rounded-full bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 font-medium text-[14px] active:scale-95 transition-all"
-          >
-            Créer un compte gratuit →
-          </Link>
-        </div>
+        {/* CTA compte — uniquement proposé une fois la commande payée */}
+        {order.statut !== 'en_attente' && order.statut !== 'annule' && (
+          <div className="rounded-2xl bg-[#1d1d1f] text-white p-6 space-y-3 text-center">
+            {order.compte_cree ? (
+              <>
+                <p className="font-semibold text-[18px] tracking-tight">Tu as déjà un compte</p>
+                <p className="text-[14px] text-slate-300 max-w-sm mx-auto">
+                  Un compte client a déjà été créé pour cette commande.
+                </p>
+                <Link
+                  to="/login"
+                  className="inline-flex mt-1 rounded-full bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 font-medium text-[14px] active:scale-95 transition-all"
+                >
+                  Se connecter →
+                </Link>
+              </>
+            ) : (
+              <>
+                <p className="font-semibold text-[18px] tracking-tight">Tu commandes souvent ?</p>
+                <p className="text-[14px] text-slate-300 max-w-sm mx-auto">
+                  Crée un compte gratuit lié à cette commande et paie 3€/avis au lieu de 4€.
+                  Suivi intégré, notifications, historique.
+                </p>
+                <Link
+                  to={`/register?commande=${token}`}
+                  className="inline-flex mt-1 rounded-full bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 font-medium text-[14px] active:scale-95 transition-all"
+                >
+                  Créer un compte gratuit →
+                </Link>
+              </>
+            )}
+          </div>
+        )}
 
       </main>
 
