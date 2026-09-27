@@ -10,6 +10,7 @@ import Loterie from './pages/Loterie'
 import Boutique from './pages/Boutique'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminAvis from './pages/admin/AdminAvis'
+import AdminAvisPublics from './pages/admin/AdminAvisPublics'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminRetraits from './pages/admin/AdminRetraits'
 import AdminLoterie from './pages/admin/AdminLoterie'
@@ -86,6 +87,7 @@ export default function App() {
       <Route path="/admin" element={<PrivateRoute roles={['admin']}><Layout /></PrivateRoute>}>
         <Route index           element={<AdminDashboard />} />
         <Route path="avis"     element={<AdminAvis />} />
+        <Route path="avis-publics" element={<AdminAvisPublics />} />
         <Route path="users"    element={<AdminUsers />} />
         <Route path="retraits" element={<AdminRetraits />} />
         <Route path="loterie"  element={<AdminLoterie />} />

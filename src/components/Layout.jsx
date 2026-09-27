@@ -15,6 +15,7 @@ import {
   CreditCard,
   ShoppingBag,
   ClipboardCheck,
+  Globe,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import React from 'react'
@@ -51,6 +52,7 @@ export default function Layout() {
   const navItems = isAdmin ? [
     { path: '/admin',          label: 'Dashboard',   icon: LayoutDashboard },
     { path: '/admin/avis',     label: 'Avis',         icon: Star },
+    { path: '/admin/avis-publics', label: 'Avis publics', icon: Globe },
     { path: '/admin/users',    label: 'Membres',      icon: User },
     { path: '/admin/retraits', label: 'Retraits',     icon: Wallet },
     { path: '/admin/loterie',  label: 'Loterie',      icon: Ticket },
