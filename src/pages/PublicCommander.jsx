@@ -1,11 +1,75 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ChevronRight, AlertCircle, Loader2, CheckCircle2, Users, Star, Zap, Shield, Lock } from 'lucide-react'
-import { motion } from 'framer-motion'
+import {
+  ChevronRight, ChevronDown, AlertCircle, Loader2, CheckCircle2, Users, Star, Zap, Shield, Lock,
+  Sparkles, MapPin, ThumbsUp, UtensilsCrossed, Hotel, Wrench, Scissors, Stethoscope, ShoppingBag,
+} from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 
 const API = import.meta.env.VITE_API_URL || 'https://swimup-backend-production.up.railway.app/api'
 const PRIX_UNITAIRE = 4
+
+const POURQUOI = [
+  { icon: Users,      color: 'bg-sky-500',     t: 'Vrais profils Google', d: 'Chaque avis est publié par un vrai membre de notre réseau avec un compte Google actif. Aucun bot, aucun faux compte.' },
+  { icon: Sparkles,   color: 'bg-violet-500',  t: 'Texte personnalisé', d: "Une fois payé, vous choisissez le contenu de l'avis, la note et le ton. Notre IA peut aussi générer un texte naturel pour vous." },
+  { icon: Zap,        color: 'bg-amber-500',   t: 'Résultats rapides', d: "La plupart des avis sont publiés en moins de 24h après réception de vos informations. Votre réputation s'améliore immédiatement." },
+  { icon: Lock,       color: 'bg-emerald-500', t: 'Discret et sécurisé', d: 'Paiement 100% sécurisé via Stripe. Aucune donnée sensible stockée. Lien de suivi privé.' },
+]
+
+const ETAPES = [
+  { t: "Choisissez le nombre d'avis et payez", d: "Un seul champ avant paiement : combien d'avis vous voulez. Paiement sécurisé par Stripe, 4€ par avis, sans abonnement." },
+  { t: 'Complétez les infos juste après', d: "Une fois payé, indiquez le lien Google Maps de votre établissement, la note et le ton souhaités. Notre IA peut générer le texte à votre place." },
+  { t: 'Un membre publie votre avis', d: 'Un vrai membre de notre réseau se charge de publier votre avis Google depuis son compte personnel. Livraison en 24-48h.' },
+  { t: 'Vérification et garantie', d: "Nous vérifions que l'avis est bien publié et reste en ligne. Si Google le supprime dans les 30 jours, nous le republions gratuitement." },
+]
+
+const SECTEURS = [
+  { icon: UtensilsCrossed, label: 'Restaurants & Cafés' },
+  { icon: Hotel,           label: 'Hôtels & Gîtes' },
+  { icon: Wrench,          label: 'Artisans & Travaux' },
+  { icon: Scissors,        label: 'Beauté & Bien-être' },
+  { icon: Stethoscope,     label: 'Médecins & Santé' },
+  { icon: ShoppingBag,     label: 'Commerces locaux' },
+]
+
+const FAQ = [
+  { q: 'Est-ce que les avis Google achetés sont authentiques ?', r: "Oui. Chaque avis est publié par un vrai membre de notre réseau depuis son compte Google personnel. Nous n'utilisons jamais de bots ou de faux comptes." },
+  { q: 'Combien coûte un avis Google Maps ?', r: 'Un avis Google Maps coûte 4€ sans compte. Si vous créez un compte SwimUp, le tarif est réduit à 3€ par avis avec des fonctionnalités supplémentaires.' },
+  { q: 'Pourquoi le formulaire ne demande que la quantité ?', r: "On ne veut pas vous faire remplir des détails avant même de savoir si vous voulez commander. Vous payez d'abord, puis vous complétez les infos de votre établissement (lien Maps, note, ton, texte) directement depuis votre page de suivi." },
+  { q: 'En combien de temps mon avis sera publié ?', r: "La plupart des avis sont publiés en 24 à 48h après que vous ayez complété les infos, selon la disponibilité des membres de notre réseau." },
+  { q: "Que se passe-t-il si l'avis est supprimé par Google ?", r: 'SwimUp offre une garantie de 30 jours. Si Google supprime l\'avis dans ce délai, nous le republions gratuitement. Sans remboursement, mais avec un nouvel avis.' },
+  { q: "Puis-je choisir le texte de l'avis ?", r: 'Oui, une fois payé vous pouvez rédiger votre propre texte ou utiliser notre générateur IA qui créera un avis naturel et authentique adapté à votre établissement.' },
+  { q: 'Comment suivre ma commande ?', r: 'Après le paiement, vous recevez un lien de suivi unique. Ce lien vous permet de compléter les infos de votre établissement et de voir en temps réel l\'avancement de votre commande.' },
+]
+
+function FaqItem({ item, open, onClick }) {
+  return (
+    <div className="py-1">
+      <button
+        type="button"
+        onClick={onClick}
+        className="w-full flex items-center justify-between gap-4 py-4 text-left"
+      >
+        <span className="font-semibold text-[15px] text-slate-900">{item.q}</span>
+        <ChevronDown size={18} className={`text-slate-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <p className="text-[14px] text-slate-500 leading-relaxed pb-4 pr-8">{item.r}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 export default function PublicCommander() {
   const [searchParams] = useSearchParams()
@@ -34,6 +98,7 @@ export default function PublicCommander() {
   const [quantite, setQuantite] = useState(1)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState(null)
+  const [faqOpen, setFaqOpen]   = useState(0)
 
   const total = quantite * PRIX_UNITAIRE
 
@@ -54,7 +119,7 @@ export default function PublicCommander() {
     <div className="min-h-screen bg-white text-slate-900">
 
       {/* Nav — sticky, noir translucide, grammaire Apple */}
-      <header className="sticky top-0 z-20 bg-[#1d1d1f]/95 backdrop-blur-md">
+      <header className="sticky top-0 z-30 bg-[#1d1d1f]/95 backdrop-blur-md">
         <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-sky-500 flex items-center justify-center">
@@ -68,19 +133,29 @@ export default function PublicCommander() {
         </div>
       </header>
 
-      {/* Hero — tuile claire full-bleed */}
-      <section className="w-full bg-white">
+      {/* Hero — fond dégradé + carte "exemple d'avis" flottante */}
+      <section className="relative w-full bg-white overflow-hidden">
+        <div
+          className="absolute inset-x-0 top-0 h-[560px] -z-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(60% 50% at 50% 0%, rgba(14,165,233,0.14) 0%, rgba(14,165,233,0) 70%)',
+          }}
+        />
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="max-w-2xl mx-auto px-4 pt-16 pb-14 text-center"
+          className="relative max-w-2xl mx-auto px-4 pt-16 pb-8 text-center"
         >
-          <p className="text-sky-500 text-[13px] font-semibold tracking-wide uppercase mb-4">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 text-sky-600 border border-sky-100 px-3.5 py-1.5 text-[12px] font-semibold tracking-wide uppercase mb-5">
+            <Star size={12} className="fill-sky-500 text-sky-500" />
             Sans compte · Sans abonnement · Livraison 24h
-          </p>
-          <h1 className="text-[40px] sm:text-[48px] leading-[1.05] font-semibold tracking-tight text-slate-900">
-            Des avis Google Maps<br />authentiques, dès {PRIX_UNITAIRE}€
+          </span>
+          <h1 className="text-[40px] sm:text-[52px] leading-[1.05] font-semibold tracking-tight text-slate-900">
+            Des avis Google Maps<br />
+            <span className="bg-gradient-to-r from-sky-500 to-violet-500 bg-clip-text text-transparent">
+              authentiques, dès {PRIX_UNITAIRE}€
+            </span>
           </h1>
           <p className="mt-5 text-[19px] leading-relaxed text-slate-500 max-w-xl mx-auto font-light">
             Boostez la réputation de votre établissement avec de vrais avis publiés par des personnes réelles.
@@ -88,35 +163,66 @@ export default function PublicCommander() {
           </p>
 
           <div className="mt-8 flex items-center justify-center gap-6 flex-wrap">
-            <a href="#commander" className="btn-primary px-7 py-3.5 text-[15px]">
+            <a href="#commander" className="btn-primary px-7 py-3.5 text-[15px] shadow-lg shadow-sky-500/20">
               Commander maintenant
             </a>
             <a href="#comment-ca-marche" className="text-sky-500 text-[15px] font-medium hover:underline underline-offset-4">
               Comment ça marche ›
             </a>
           </div>
+        </motion.div>
 
-          {/* Stats — sans encadré, juste de la typographie */}
-          <div className="mt-16 grid grid-cols-3 gap-6 max-w-md mx-auto">
+        {/* Carte "exemple d'avis" — illustration, pas un vrai témoignage */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="relative max-w-md mx-auto px-4 pb-4"
+        >
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 p-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-violet-500 flex items-center justify-center text-white font-semibold text-[15px] shrink-0">
+                M
+              </div>
+              <div className="text-left">
+                <p className="text-[14px] font-semibold text-slate-900">Marine D.</p>
+                <div className="flex items-center gap-0.5 mt-0.5">
+                  {[1, 2, 3, 4, 5].map(n => <Star key={n} size={12} className="text-amber-400 fill-amber-400" />)}
+                </div>
+              </div>
+              <span className="ml-auto text-[11px] text-slate-400 font-medium">Exemple</span>
+            </div>
+            <p className="text-[14px] text-slate-600 leading-relaxed mt-3 text-left">
+              "Super accueil et service impeccable, je recommande vivement cet établissement à tous ceux qui cherchent la qualité !"
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Stats — cartes avec icônes */}
+        <div className="relative max-w-2xl mx-auto px-4 pb-16 pt-8">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
             {[
               { icon: Users, label: 'Membres actifs', value: '500+' },
               { icon: Star,  label: 'Avis publiés',   value: '2 000+' },
               { icon: Zap,   label: 'Livraison',      value: '24-48h' },
             ].map((s, i) => (
-              <div key={i}>
-                <p className="text-[26px] font-semibold tracking-tight text-slate-900">{s.value}</p>
-                <p className="text-[13px] text-slate-500 mt-0.5">{s.label}</p>
+              <div key={i} className="rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 text-center">
+                <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center mx-auto mb-2">
+                  <s.icon size={15} className="text-sky-500" />
+                </div>
+                <p className="text-[20px] sm:text-[24px] font-semibold tracking-tight text-slate-900">{s.value}</p>
+                <p className="text-[12px] text-slate-500 mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </section>
 
-      {/* Garantie — bande parchemin */}
-      <section className="w-full bg-slate-50">
+      {/* Garantie — bande accent */}
+      <section className="w-full bg-slate-50 border-y border-slate-100">
         <div className="max-w-2xl mx-auto px-4 py-10 flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center shrink-0">
-            <Shield size={18} className="text-white" />
+          <div className="w-11 h-11 rounded-2xl bg-sky-500 flex items-center justify-center shrink-0 shadow-lg shadow-sky-500/25">
+            <Shield size={20} className="text-white" />
           </div>
           <div>
             <p className="font-semibold text-[17px] text-slate-900">Garantie 30 jours</p>
@@ -128,7 +234,7 @@ export default function PublicCommander() {
         </div>
       </section>
 
-      {/* Pourquoi SwimUp — tuile sombre full-bleed */}
+      {/* Pourquoi SwimUp — tuile sombre, cartes avec icônes colorées */}
       <section className="w-full bg-[#1d1d1f] text-white">
         <div className="max-w-2xl mx-auto px-4 py-16">
           <h2 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-center">
@@ -138,18 +244,15 @@ export default function PublicCommander() {
             Les avis Google sont aujourd'hui le premier critère de choix des consommateurs.
             Un établissement avec plus d'avis positifs apparaît plus haut dans les résultats Google Maps.
           </p>
-          <div className="mt-10 grid sm:grid-cols-2 gap-x-8 gap-y-6">
-            {[
-              { t: 'Vrais profils Google', d: 'Chaque avis est publié par un vrai membre de notre réseau avec un compte Google actif. Aucun bot, aucun faux compte.' },
-              { t: 'Texte personnalisé', d: 'Une fois payé, vous choisissez le contenu de l\'avis, la note et le ton. Notre IA peut aussi générer un texte naturel pour vous.' },
-              { t: 'Résultats rapides', d: 'La plupart des avis sont publiés en moins de 24h après réception de vos informations. Votre réputation s\'améliore immédiatement.' },
-              { t: 'Discret et sécurisé', d: 'Paiement 100% sécurisé via Stripe. Aucune donnée sensible stockée. Lien de suivi par email.' },
-            ].map((item, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <CheckCircle2 size={18} className="text-sky-400 shrink-0 mt-0.5" />
+          <div className="mt-10 grid sm:grid-cols-2 gap-4">
+            {POURQUOI.map((item, i) => (
+              <div key={i} className="rounded-2xl bg-white/5 border border-white/10 p-5 flex items-start gap-3.5">
+                <div className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center shrink-0`}>
+                  <item.icon size={17} className="text-white" />
+                </div>
                 <div>
                   <p className="font-semibold text-[15px] text-white">{item.t}</p>
-                  <p className="text-[14px] text-slate-400 mt-0.5 leading-relaxed">{item.d}</p>
+                  <p className="text-[13.5px] text-slate-400 mt-1 leading-relaxed">{item.d}</p>
                 </div>
               </div>
             ))}
@@ -163,7 +266,7 @@ export default function PublicCommander() {
           <h2 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-center mb-3">
             Commander des avis Google Maps
           </h2>
-          <p className="text-[15px] text-slate-500 text-center mb-10">
+          <p className="text-[15px] text-slate-500 text-center mb-10 max-w-md mx-auto">
             Choisissez juste le nombre d'avis — vous détaillerez votre établissement juste après le paiement.
           </p>
 
@@ -176,47 +279,61 @@ export default function PublicCommander() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-7">
+          <form onSubmit={handleSubmit} className="space-y-6 max-w-md mx-auto">
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 space-y-6">
-              <div className="space-y-2 text-center">
-                <label className="block text-[13px] font-semibold text-slate-700">
-                  Nombre d'avis à commander
-                </label>
-                <div className="flex items-center justify-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setQuantite(Math.max(1, quantite - 1))}
-                    className="w-11 h-11 rounded-full border border-slate-200 bg-white text-lg font-medium hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center"
-                  >−</button>
-                  <input
-                    type="number"
-                    min="1"
-                    value={quantite}
-                    onChange={e => setQuantite(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-20 rounded-lg border border-slate-200 bg-white px-2 py-2.5 text-center text-[20px] font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setQuantite(quantite + 1)}
-                    className="w-11 h-11 rounded-full border border-slate-200 bg-white text-lg font-medium hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center"
-                  >+</button>
-                </div>
-                <p className="text-[13px] text-slate-400">
-                  Chaque avis est publié par un membre différent avec un profil Google distinct.
-                </p>
-              </div>
-
-              <div className="rounded-xl bg-white border border-slate-200 p-5 flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-[16px] text-slate-900">
-                    {quantite} avis Google Maps
-                  </p>
-                  <p className="text-[13px] text-slate-500 mt-0.5">
-                    {quantite} × {PRIX_UNITAIRE}€ · Livraison 24-48h · Garantie 30 jours
+            <div className="relative rounded-[28px] p-[1.5px] bg-gradient-to-br from-sky-400 via-sky-200 to-violet-300">
+              <div className="rounded-[26px] bg-white p-8 space-y-6">
+                <div className="space-y-3 text-center">
+                  <label className="block text-[13px] font-semibold text-slate-700">
+                    Nombre d'avis à commander
+                  </label>
+                  <div className="flex items-center justify-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setQuantite(Math.max(1, quantite - 1))}
+                      className="w-11 h-11 rounded-full border border-slate-200 bg-white text-lg font-medium hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center"
+                    >−</button>
+                    <input
+                      type="number"
+                      min="1"
+                      value={quantite}
+                      onChange={e => setQuantite(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-20 rounded-lg border border-slate-200 bg-white px-2 py-2.5 text-center text-[20px] font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setQuantite(quantite + 1)}
+                      className="w-11 h-11 rounded-full border border-slate-200 bg-white text-lg font-medium hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center"
+                    >+</button>
+                  </div>
+                  <p className="text-[13px] text-slate-400">
+                    Chaque avis est publié par un membre différent avec un profil Google distinct.
                   </p>
                 </div>
-                <p className="text-[28px] font-semibold tracking-tight text-slate-900">{total}€</p>
+
+                <div className="rounded-2xl bg-slate-50 border border-slate-100 p-5 flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-[16px] text-slate-900">
+                      {quantite} avis Google Maps
+                    </p>
+                    <p className="text-[13px] text-slate-500 mt-0.5">
+                      {quantite} × {PRIX_UNITAIRE}€ · Livraison 24-48h
+                    </p>
+                  </div>
+                  <p className="text-[30px] font-semibold tracking-tight text-slate-900">{total}€</p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-full bg-sky-500 hover:bg-sky-600 text-white py-4 font-medium text-[16px] flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-sky-500/25"
+                >
+                  {loading ? (
+                    <><Loader2 size={18} className="animate-spin" /> Redirection vers le paiement...</>
+                  ) : (
+                    <>Payer {total}€ et commander {quantite > 1 ? `${quantite} avis` : '1 avis'} <ChevronRight size={18} /></>
+                  )}
+                </button>
               </div>
             </div>
 
@@ -226,18 +343,6 @@ export default function PublicCommander() {
                 <p className="text-sm text-red-600 font-medium">{error}</p>
               </div>
             )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-full bg-sky-500 hover:bg-sky-600 text-white py-4 font-medium text-[16px] flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50"
-            >
-              {loading ? (
-                <><Loader2 size={18} className="animate-spin" /> Redirection vers le paiement...</>
-              ) : (
-                <>Payer {total}€ et commander {quantite > 1 ? `${quantite} avis` : '1 avis'} <ChevronRight size={18} /></>
-              )}
-            </button>
 
             <div className="flex items-center justify-center gap-2 rounded-full bg-slate-50 border border-slate-200 px-4 py-2.5 w-fit mx-auto">
               <Lock size={14} className="text-slate-500" />
@@ -250,24 +355,20 @@ export default function PublicCommander() {
         </div>
       </section>
 
-      {/* Comment ça marche — tuile parchemin */}
+      {/* Comment ça marche — timeline avec ligne de connexion */}
       <section id="comment-ca-marche" className="w-full bg-slate-50">
         <div className="max-w-2xl mx-auto px-4 py-16">
-          <h2 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-center mb-10">
+          <h2 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-center mb-12">
             Comment acheter des avis Google Maps ?
           </h2>
-          <div className="space-y-7">
-            {[
-              { n: '1', t: 'Choisissez le nombre d\'avis et payez', d: 'Un seul champ avant paiement : combien d\'avis vous voulez. Paiement sécurisé par Stripe, 4€ par avis, sans abonnement.' },
-              { n: '2', t: 'Complétez les infos juste après', d: 'Une fois payé, indiquez le lien Google Maps de votre établissement, la note et le ton souhaités. Notre IA peut générer le texte à votre place.' },
-              { n: '3', t: 'Un membre publie votre avis', d: 'Un vrai membre de notre réseau se charge de publier votre avis Google depuis son compte personnel. Livraison en 24-48h.' },
-              { n: '4', t: 'Vérification et garantie', d: 'Nous vérifions que l\'avis est bien publié et reste en ligne. Si Google le supprime dans les 30 jours, nous le republions gratuitement.' },
-            ].map((s, i) => (
-              <div key={i} className="flex items-start gap-4">
-                <span className="w-9 h-9 rounded-full bg-sky-500 text-white font-semibold text-[14px] flex items-center justify-center shrink-0">
-                  {s.n}
+          <div className="relative space-y-8">
+            <div className="absolute left-[17px] top-3 bottom-3 w-px bg-slate-200" />
+            {ETAPES.map((s, i) => (
+              <div key={i} className="relative flex items-start gap-4">
+                <span className="relative z-10 w-9 h-9 rounded-full bg-sky-500 text-white font-semibold text-[14px] flex items-center justify-center shrink-0 ring-4 ring-slate-50">
+                  {i + 1}
                 </span>
-                <div>
+                <div className="pt-1">
                   <p className="font-semibold text-[16px] text-slate-900">{s.t}</p>
                   <p className="text-[14px] text-slate-500 mt-0.5 leading-relaxed">{s.d}</p>
                 </div>
@@ -277,7 +378,7 @@ export default function PublicCommander() {
         </div>
       </section>
 
-      {/* Qui utilise SwimUp */}
+      {/* Qui utilise SwimUp — cartes avec icônes */}
       <section className="w-full bg-white">
         <div className="max-w-2xl mx-auto px-4 py-16">
           <h2 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-center mb-5">
@@ -288,44 +389,45 @@ export default function PublicCommander() {
             professionnels de santé et bien d'autres établissements qui souhaitent améliorer leur réputation
             sur Google Maps.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-2.5">
-            {[
-              '🍕 Restaurants & Cafés',
-              '🏨 Hôtels & Gîtes',
-              '🔧 Artisans & Travaux',
-              '💇 Beauté & Bien-être',
-              '🏥 Médecins & Santé',
-              '🛒 Commerces locaux',
-            ].map((t, i) => (
-              <span key={i} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-[14px] font-medium text-slate-700">
-                {t}
-              </span>
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {SECTEURS.map((s, i) => (
+              <div key={i} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-5 flex flex-col items-center gap-2 text-center">
+                <div className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center">
+                  <s.icon size={16} className="text-sky-500" />
+                </div>
+                <span className="text-[13px] font-medium text-slate-700 leading-tight">{s.label}</span>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ — tuile parchemin, sans encadrés, juste des séparateurs fins */}
+      {/* FAQ — accordéon */}
       <section className="w-full bg-slate-50">
         <div className="max-w-2xl mx-auto px-4 py-16">
           <h2 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-center mb-10">
             Questions fréquentes
           </h2>
-          <div className="divide-y divide-slate-200">
-            {[
-              { q: 'Est-ce que les avis Google achetés sont authentiques ?', r: 'Oui. Chaque avis est publié par un vrai membre de notre réseau depuis son compte Google personnel. Nous n\'utilisons jamais de bots ou de faux comptes.' },
-              { q: 'Combien coûte un avis Google Maps ?', r: 'Un avis Google Maps coûte 4€ sans compte. Si vous créez un compte SwimUp, le tarif est réduit à 3€ par avis avec des fonctionnalités supplémentaires.' },
-              { q: 'Pourquoi le formulaire ne demande que la quantité ?', r: 'On ne veut pas vous faire remplir des détails avant même de savoir si vous voulez commander. Vous payez d\'abord, puis vous complétez les infos de votre établissement (lien Maps, note, ton, texte) directement depuis votre page de suivi.' },
-              { q: 'En combien de temps mon avis sera publié ?', r: 'La plupart des avis sont publiés en 24 à 48h après que vous ayez complété les infos, selon la disponibilité des membres de notre réseau.' },
-              { q: 'Que se passe-t-il si l\'avis est supprimé par Google ?', r: 'SwimUp offre une garantie de 30 jours. Si Google supprime l\'avis dans ce délai, nous le republions gratuitement. Sans remboursement, mais avec un nouvel avis.' },
-              { q: 'Puis-je choisir le texte de l\'avis ?', r: 'Oui, une fois payé vous pouvez rédiger votre propre texte ou utiliser notre générateur IA qui créera un avis naturel et authentique adapté à votre établissement.' },
-              { q: 'Comment suivre ma commande ?', r: 'Après le paiement, vous recevez un lien de suivi unique. Ce lien vous permet de compléter les infos de votre établissement et de voir en temps réel l\'avancement de votre commande.' },
-            ].map((f, i) => (
-              <div key={i} className="py-5">
-                <p className="font-semibold text-[15px] text-slate-900">{f.q}</p>
-                <p className="text-[14px] text-slate-500 mt-1.5 leading-relaxed">{f.r}</p>
-              </div>
+          <div className="rounded-2xl bg-white border border-slate-200 px-6 divide-y divide-slate-100">
+            {FAQ.map((f, i) => (
+              <FaqItem key={i} item={f} open={faqOpen === i} onClick={() => setFaqOpen(faqOpen === i ? -1 : i)} />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA final */}
+      <section className="w-full bg-white">
+        <div className="max-w-2xl mx-auto px-4 pb-16">
+          <div className="rounded-[28px] bg-gradient-to-br from-sky-500 to-violet-500 p-10 text-center text-white">
+            <ThumbsUp size={28} className="mx-auto mb-4 text-white/90" />
+            <h3 className="text-[24px] sm:text-[28px] font-semibold tracking-tight">Prêt à booster votre réputation ?</h3>
+            <p className="text-[15px] text-white/85 mt-2 max-w-sm mx-auto">
+              Premier avis livré en 24-48h, sans compte à créer.
+            </p>
+            <a href="#commander" className="inline-flex mt-6 rounded-full bg-white text-slate-900 px-7 py-3.5 font-medium text-[15px] active:scale-95 transition-all">
+              Commander maintenant
+            </a>
           </div>
         </div>
       </section>
