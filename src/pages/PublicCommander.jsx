@@ -128,7 +128,7 @@ export default function PublicCommander() {
             <span className="text-slate-900 text-[15px] font-semibold tracking-tight">SwimUp</span>
           </div>
           <a href="/login" className="text-[13px] text-sky-600 hover:text-sky-700 font-medium transition-colors">
-            J'ai un compte
+            Se connecter
           </a>
         </div>
       </header>
