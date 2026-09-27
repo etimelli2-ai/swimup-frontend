@@ -318,13 +318,13 @@ export default function PublicSuivi() {
     <div className="min-h-screen bg-white text-slate-900">
 
       {/* Nav */}
-      <header className="sticky top-0 z-20 bg-[#1d1d1f]/95 backdrop-blur-md">
+      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
           <Link to="/commander" className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-sky-500 flex items-center justify-center">
               <Star size={12} className="text-white fill-white" />
             </div>
-            <span className="text-white text-[15px] font-semibold tracking-tight">SwimUp</span>
+            <span className="text-slate-900 text-[15px] font-semibold tracking-tight">SwimUp</span>
           </Link>
           <span className="text-[12px] text-slate-400 font-mono">#{order.id}</span>
         </div>

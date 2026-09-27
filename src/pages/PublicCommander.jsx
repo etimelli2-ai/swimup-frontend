@@ -118,16 +118,16 @@ export default function PublicCommander() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
 
-      {/* Nav — sticky, noir translucide, grammaire Apple */}
-      <header className="sticky top-0 z-30 bg-[#1d1d1f]/95 backdrop-blur-md">
+      {/* Nav — sticky, claire avec liseré, cohérente avec le reste de la page */}
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-sky-500 flex items-center justify-center">
               <Star size={12} className="text-white fill-white" />
             </div>
-            <span className="text-white text-[15px] font-semibold tracking-tight">SwimUp</span>
+            <span className="text-slate-900 text-[15px] font-semibold tracking-tight">SwimUp</span>
           </div>
-          <a href="/login" className="text-[13px] text-sky-400 hover:text-sky-300 transition-colors">
+          <a href="/login" className="text-[13px] text-sky-600 hover:text-sky-700 font-medium transition-colors">
             J'ai un compte
           </a>
         </div>
