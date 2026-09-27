@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
-import { CheckCircle2, Clock, AlertCircle, Package, Star, MapPin, Mail, Copy, Check } from 'lucide-react'
+import { CheckCircle2, Clock, AlertCircle, Package, Star, MapPin, Mail, Copy, Check, Sparkles, Loader2, Building2, Link as LinkIcon } from 'lucide-react'
 import { motion } from 'framer-motion'
 import axios from 'axios'
+import { TONS, TYPES, EtoilesPicker, genererTexteIA } from '../lib/avisPublicShared'
 
 const API = import.meta.env.VITE_API_URL || 'https://swimup-backend-production.up.railway.app/api'
 
@@ -54,6 +55,206 @@ const TONS_LABELS = {
   severe:       '😤 Sévère',
 }
 
+// Formulaire affiché sur la page de suivi une fois la commande payée — le
+// client y complète les infos de son établissement (avant paiement, sur
+// /commander, on ne lui a demandé que le nombre d'avis).
+function CompleterInfosForm({ token, onSaved }) {
+  const [form, setForm] = useState({
+    nom_etablissement:  '',
+    type_etablissement: '',
+    type_autre:         '',
+    lien_maps:          '',
+    nb_etoiles:         5,
+    ton:                'naturel',
+    texte_avis:         '',
+  })
+  const [generating, setGenerating] = useState(false)
+  const [saving, setSaving]         = useState(false)
+  const [error, setError]           = useState(null)
+
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
+  const typeEffectif = form.type_etablissement === 'Autre' ? form.type_autre : form.type_etablissement
+
+  const handleGenerer = async () => {
+    const nom = form.nom_etablissement || 'cet établissement'
+    setGenerating(true)
+    const texte = await genererTexteIA(nom, typeEffectif, form.nb_etoiles, form.ton)
+    if (texte) set('texte_avis', texte)
+    else setError('Impossible de générer le texte — réessaie ou écris-le toi-même')
+    setGenerating(false)
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError(null)
+
+    if (!form.nom_etablissement) return setError("Entre le nom de l'établissement")
+    if (!form.lien_maps) return setError('Entre le lien Google Maps')
+    if (form.type_etablissement === 'Autre' && !form.type_autre.trim()) {
+      return setError("Précise le type d'établissement")
+    }
+
+    setSaving(true)
+    try {
+      await axios.put(`${API}/public/commande/${token}/infos`, {
+        nom_etablissement:  form.nom_etablissement,
+        type_etablissement: typeEffectif,
+        lien_maps:          form.lien_maps,
+        nb_etoiles:         form.nb_etoiles,
+        ton:                form.ton,
+        texte_avis:         form.texte_avis,
+      })
+      await onSaved()
+    } catch (e) {
+      setError(e.response?.data?.error || 'Erreur — réessaie dans quelques secondes')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <motion.form
+      onSubmit={handleSubmit}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-2xl border border-sky-200 bg-sky-50/40 p-6 space-y-6"
+    >
+      <div>
+        <p className="font-semibold text-[17px] text-slate-900">Complète les infos de ton établissement</p>
+        <p className="text-[13px] text-slate-500 mt-1">Un membre pourra rédiger ton avis dès que c'est rempli.</p>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-[13px] font-semibold text-slate-700">
+          Nom de l'établissement *
+        </label>
+        <div className="relative">
+          <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Ex: Restaurant Le Petit Bistro"
+            value={form.nom_etablissement}
+            onChange={e => set('nom_etablissement', e.target.value)}
+            className="w-full rounded-full border border-slate-200 bg-white pl-11 pr-5 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-[13px] font-semibold text-slate-700">
+          Lien Google Maps de votre établissement *
+        </label>
+        <div className="relative">
+          <LinkIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="url"
+            placeholder="https://maps.google.com/..."
+            value={form.lien_maps}
+            onChange={e => set('lien_maps', e.target.value)}
+            className="w-full rounded-full border border-slate-200 bg-white pl-11 pr-5 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-[13px] font-semibold text-slate-700">
+          Type d'établissement
+        </label>
+        <select
+          value={form.type_etablissement}
+          onChange={e => set('type_etablissement', e.target.value)}
+          className="w-full rounded-full border border-slate-200 bg-white px-5 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent appearance-none transition-all"
+        >
+          <option value="">Sélectionner...</option>
+          {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+        {form.type_etablissement === 'Autre' && (
+          <input
+            type="text"
+            placeholder="Précisez le type d'établissement..."
+            value={form.type_autre}
+            onChange={e => set('type_autre', e.target.value)}
+            className="w-full rounded-full border border-sky-400 bg-white px-5 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all mt-2"
+          />
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-[13px] font-semibold text-slate-700">
+          Note à attribuer ({form.nb_etoiles} étoile{form.nb_etoiles > 1 ? 's' : ''})
+        </label>
+        <EtoilesPicker value={form.nb_etoiles} onChange={v => set('nb_etoiles', v)} />
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-[13px] font-semibold text-slate-700">
+          Ton de l'avis
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {TONS.map(t => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => set('ton', t.id)}
+              className={`rounded-full border px-4 py-2 text-[14px] font-medium transition-all active:scale-95 ${
+                form.ton === t.id
+                  ? 'border-sky-500 bg-sky-50 text-sky-700'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              {t.emoji} {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <label className="block text-[13px] font-semibold text-slate-700">
+            Texte de l'avis <span className="font-normal text-slate-400">(optionnel)</span>
+          </label>
+          <button
+            type="button"
+            onClick={handleGenerer}
+            disabled={generating}
+            className="flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3.5 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-100 active:scale-95 transition-all disabled:opacity-50"
+          >
+            {generating
+              ? <><Loader2 size={12} className="animate-spin" /> Génération...</>
+              : <><Sparkles size={12} className="text-sky-500" /> Générer avec l'IA</>
+            }
+          </button>
+        </div>
+        <textarea
+          placeholder="Rédigez votre avis ou cliquez sur Générer avec l'IA pour un texte naturel et authentique."
+          value={form.texte_avis}
+          onChange={e => set('texte_avis', e.target.value)}
+          rows={4}
+          className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[15px] focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none transition-all"
+        />
+      </div>
+
+      {error && (
+        <div className="rounded-xl bg-red-50 p-4 flex items-start gap-3">
+          <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
+          <p className="text-sm text-red-600 font-medium">{error}</p>
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={saving}
+        className="w-full rounded-full bg-sky-500 hover:bg-sky-600 text-white py-3.5 font-medium text-[15px] flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50"
+      >
+        {saving ? (
+          <><Loader2 size={18} className="animate-spin" /> Enregistrement...</>
+        ) : (
+          'Valider les infos'
+        )}
+      </button>
+    </motion.form>
+  )
+}
+
 export default function PublicSuivi() {
   const [searchParams] = useSearchParams()
   const token   = searchParams.get('token')
@@ -64,17 +265,19 @@ export default function PublicSuivi() {
   const [error, setError]     = useState(null)
   const [copied, setCopied]   = useState(false)
 
-  useEffect(() => {
+  const charger = () => {
     if (!token) {
       setError('Token de suivi manquant')
       setLoading(false)
       return
     }
-    axios.get(`${API}/public/suivi/${token}`)
-      .then(r => setData(r.data))
+    return axios.get(`${API}/public/suivi/${token}`)
+      .then(r => { setData(r.data); setError(null) })
       .catch(() => setError('Commande introuvable — vérifie ton lien de suivi'))
       .finally(() => setLoading(false))
-  }, [token])
+  }
+
+  useEffect(() => { charger() }, [token])
 
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href)
@@ -104,7 +307,10 @@ export default function PublicSuivi() {
   )
 
   const { order, avis } = data
-  const statut = STATUTS[order.statut] || STATUTS.en_attente
+  const infosManquantes = order.statut !== 'en_attente' && order.statut !== 'annule' && !order.lien_maps
+  const statut = infosManquantes
+    ? { label: 'Payé — infos à compléter', color: 'bg-amber-50 text-amber-700', icon: Package, desc: "Paiement confirmé ! Complète les infos de ton établissement ci-dessous pour qu'un membre puisse rédiger ton avis." }
+    : (STATUTS[order.statut] || STATUTS.en_attente)
   const StatusIcon = statut.icon
   const avisPublic = avis?.[0]
 
@@ -137,7 +343,7 @@ export default function PublicSuivi() {
             <div>
               <p className="font-semibold text-emerald-700 text-[14px]">Paiement confirmé !</p>
               <p className="text-[13px] text-emerald-600 mt-0.5">
-                Garde ce lien pour suivre ta commande. Un membre va bientôt s'en occuper.
+                Garde ce lien pour suivre ta commande{infosManquantes ? ' et compléter les infos ci-dessous' : ". Un membre va bientôt s'en occuper"}.
               </p>
             </div>
           </motion.div>
@@ -162,7 +368,13 @@ export default function PublicSuivi() {
           <p className="text-[13px] text-slate-400 -mt-4">Total payé</p>
         </motion.div>
 
+        {/* Complète les infos de l'établissement — uniquement tant que ce n'est pas fait */}
+        {infosManquantes && (
+          <CompleterInfosForm token={token} onSaved={charger} />
+        )}
+
         {/* Progression */}
+        {!infosManquantes && (
         <div className="rounded-2xl border border-slate-200 p-6">
           <p className="text-[13px] font-semibold text-slate-500 mb-5">Progression</p>
           <div className="space-y-4">
@@ -186,6 +398,7 @@ export default function PublicSuivi() {
             })}
           </div>
         </div>
+        )}
 
         {/* Détails commande */}
         <div className="rounded-2xl border border-slate-200 p-6 space-y-5">
