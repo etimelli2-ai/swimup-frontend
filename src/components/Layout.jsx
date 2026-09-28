@@ -21,6 +21,18 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import React from 'react'
 
+// Palette fixe des couleurs de thème premium (doit rester alignée avec
+// COULEURS_THEME côté backend, routes/client.js) — chaque couleur de base a
+// sa teinte "hover" associée pour .btn-primary.
+const ACCENT_HOVER = {
+  '#0ea5e9': '#0284c7', // sky (défaut)
+  '#10b981': '#059669', // emerald
+  '#8b5cf6': '#7c3aed', // violet
+  '#f59e0b': '#d97706', // amber
+  '#f43f5e': '#e11d48', // rose
+  '#6366f1': '#4f46e5', // indigo
+}
+
 const DiscordIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
     <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.031.055a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
@@ -49,6 +61,10 @@ export default function Layout() {
 
   const isAdmin  = user?.role === 'admin'
   const isClient = user?.role === 'client'
+
+  // Thème premium — couleur d'accent choisie par le client (sinon défaut).
+  const accent = (isClient && user?.theme_color) || '#0ea5e9'
+  const accentHover = ACCENT_HOVER[accent] || '#0284c7'
 
   const navItems = isAdmin ? [
     { path: '/admin',          label: 'Dashboard',   icon: LayoutDashboard },
@@ -99,24 +115,25 @@ export default function Layout() {
         onClick={onClick}
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
           active
-            ? 'bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
+            ? ''
             : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-slate-200'
         }`}
+        style={active ? { backgroundColor: `${accent}1a`, color: accent } : undefined}
       >
-        <Icon size={18} className={active ? 'text-sky-500' : 'text-slate-400 dark:text-slate-500'} />
+        <Icon size={18} className={active ? '' : 'text-slate-400 dark:text-slate-500'} style={active ? { color: accent } : undefined} />
         {item.label}
       </Link>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex" style={{ '--accent': accent, '--accent-hover': accentHover }}>
 
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 fixed h-full z-20">
         <div className="p-5 border-b border-slate-100 dark:border-slate-700">
           <Link to={isAdmin ? '/admin' : isClient ? '/client' : '/dashboard'} className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-sky-500 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent }}>
               <Star size={18} className="text-white fill-white" />
             </div>
             <span className="text-lg font-semibold text-slate-900 dark:text-slate-100 tracking-tight">SwimUp</span>
@@ -146,7 +163,7 @@ export default function Layout() {
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 z-30 flex items-center justify-between px-4">
         <Link to={isAdmin ? '/admin' : isClient ? '/client' : '/dashboard'} className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-sky-500 rounded-xl flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent }}>
             <Star size={15} className="text-white fill-white" />
           </div>
           <span className="font-semibold text-slate-900 dark:text-slate-100 tracking-tight">SwimUp</span>

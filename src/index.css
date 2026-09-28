@@ -7,11 +7,23 @@
   body { @apply bg-slate-50 text-slate-900 font-sans dark:bg-slate-900 dark:text-slate-100 antialiased; }
 }
 
+:root {
+  /* Couleur d'accent par défaut (Action Blue) — surchargée en inline style
+     sur le wrapper de Layout.jsx pour un client premium ayant choisi une
+     autre couleur (voir ClientPremium.jsx). */
+  --accent: #0ea5e9;
+  --accent-hover: #0284c7;
+}
+
 @layer components {
-  /* Buttons — pilules, un seul accent (Action Blue), micro-interaction scale(0.95) */
+  /* Buttons — pilules, un seul accent (Action Blue par défaut), micro-interaction scale(0.95) */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 py-2.5 px-5 bg-sky-500 text-white font-medium rounded-full
-           hover:bg-sky-600 active:scale-95 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 py-2.5 px-5 text-white font-medium rounded-full
+           active:scale-95 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: var(--accent);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--accent-hover);
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 py-2.5 px-5 bg-slate-50 text-slate-700 font-medium rounded-full
@@ -31,9 +43,12 @@
   /* Inputs */
   .input {
     @apply w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm
-           focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent
+           focus:outline-none focus:ring-2 focus:border-transparent
            bg-white placeholder-slate-400 transition-all
            dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500;
+  }
+  .input:focus {
+    --tw-ring-color: var(--accent);
   }
 
   /* Cards — pas d'ombre, juste un hairline (grammaire Apple) */

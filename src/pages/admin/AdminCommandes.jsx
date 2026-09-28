@@ -136,8 +136,13 @@ export default function AdminCommandes() {
               <div key={c.id} className="card space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-white text-sm">
+                    <p className="font-semibold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
                       {c.nb_avis} avis{c.nb_avis_bonus > 0 && ` (+${c.nb_avis_bonus} offert${c.nb_avis_bonus > 1 ? 's' : ''})`} — {parseFloat(c.montant).toFixed(2)}€
+                      {c.client_premium && (
+                        <span className="inline-flex items-center gap-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-medium px-2 py-0.5 rounded-full">
+                          <Crown size={11} /> Premium
+                        </span>
+                      )}
                     </p>
                     <p className="text-sm text-slate-500 dark:text-slate-400">{c.nom_societe || c.client_email}</p>
                     <p className="text-xs text-slate-400">{c.client_email}</p>

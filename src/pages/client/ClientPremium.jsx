@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import api from '../../lib/api'
-import { Crown, CheckCircle2, ArrowRight, Percent, Sparkles } from 'lucide-react'
+import { useAuth } from '../../hooks/useAuth'
+import { Crown, CheckCircle2, ArrowRight, Percent, Sparkles, Zap, Check, MessageCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
@@ -12,14 +13,54 @@ function Spinner() {
 // Ton lien PayPal.me (identique à ClientPaiement.jsx)
 const PAYPAL_ME = import.meta.env.VITE_PAYPAL_ME || 'https://paypal.me/tonpseudo'
 
+// Palette de couleurs de thème — doit rester alignée avec COULEURS_THEME
+// côté backend (routes/client.js).
+const PALETTE = [
+  { key: 'sky',     hex: '#0ea5e9', label: 'Bleu' },
+  { key: 'emerald', hex: '#10b981', label: 'Émeraude' },
+  { key: 'violet',  hex: '#8b5cf6', label: 'Violet' },
+  { key: 'amber',   hex: '#f59e0b', label: 'Ambre' },
+  { key: 'rose',    hex: '#f43f5e', label: 'Rose' },
+  { key: 'indigo',  hex: '#6366f1', label: 'Indigo' },
+]
+
 export default function ClientPremium() {
   const navigate = useNavigate()
+  const { user, updateUser } = useAuth()
   const [loading, setLoading] = useState(true)
   const [envoi, setEnvoi] = useState(false)
   const [statut, setStatut] = useState(null) // { premium, premium_expire_at, demande_en_attente, montant }
+  const [couleurEnvoi, setCouleurEnvoi] = useState(null)
+  const [ticketEnvoi, setTicketEnvoi] = useState(false)
+  const [ticket, setTicket] = useState({ sujet: '', message: '' })
 
   const load = () => api.get('/client/abonnement').then(r => setStatut(r.data)).finally(() => setLoading(false))
   useEffect(() => { load() }, [])
+
+  const choisirCouleur = async (key) => {
+    setCouleurEnvoi(key)
+    try {
+      const r = await api.put('/client/theme', { couleur: key })
+      updateUser({ theme_color: r.data.theme_color })
+      toast.success('Thème mis à jour !')
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Erreur')
+    }
+    setCouleurEnvoi(null)
+  }
+
+  const envoyerTicket = async () => {
+    if (!ticket.sujet || !ticket.message) return toast.error('Sujet et message requis')
+    setTicketEnvoi(true)
+    try {
+      await api.post('/client/ticket', ticket)
+      toast.success('Ticket ouvert sur Discord !')
+      setTicket({ sujet: '', message: '' })
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Erreur lors de l\'ouverture du ticket')
+    }
+    setTicketEnvoi(false)
+  }
 
   const demander = async () => {
     setEnvoi(true)
@@ -72,6 +113,66 @@ export default function ClientPremium() {
         </motion.div>
       )}
 
+      {statut?.premium && (
+        <div className="card p-5 space-y-4">
+          <h2 className="section-title flex items-center gap-2">
+            <Sparkles size={17} className="text-amber-500" />
+            Couleur de ton espace
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            {PALETTE.map(c => (
+              <button
+                key={c.key}
+                onClick={() => choisirCouleur(c.key)}
+                disabled={couleurEnvoi !== null}
+                title={c.label}
+                className="w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-90 disabled:opacity-50 ring-2 ring-offset-2 dark:ring-offset-slate-800"
+                style={{
+                  backgroundColor: c.hex,
+                  '--tw-ring-color': user?.theme_color === c.hex || (!user?.theme_color && c.key === 'sky') ? c.hex : 'transparent',
+                }}
+              >
+                {(user?.theme_color === c.hex || (!user?.theme_color && c.key === 'sky')) && (
+                  <Check size={16} className="text-white" />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {statut?.premium && (
+        <div className="card p-5 space-y-4">
+          <h2 className="section-title flex items-center gap-2">
+            <MessageCircle size={17} className="text-indigo-500" />
+            Support prioritaire
+          </h2>
+          {!user?.discord_id ? (
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Renseigne ton ID Discord dans ton <RouterLink to="/profil" className="text-sky-500 hover:underline">profil</RouterLink> pour pouvoir ouvrir un ticket.
+            </p>
+          ) : (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Sujet</label>
+                <input className="input" placeholder="Ex: Question sur ma commande"
+                  value={ticket.sujet}
+                  onChange={e => setTicket(p => ({ ...p, sujet: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Message</label>
+                <textarea className="input" rows={3} placeholder="Explique ta demande..."
+                  value={ticket.message}
+                  onChange={e => setTicket(p => ({ ...p, message: e.target.value }))} />
+              </div>
+              <button onClick={envoyerTicket} disabled={ticketEnvoi} className="btn-primary w-full">
+                {ticketEnvoi ? <><Spinner /> Envoi...</> : <><MessageCircle size={16} /> Ouvrir un ticket sur Discord</>}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       {!statut?.premium && statut?.demande_en_attente && (
         <div className="card p-8 text-center space-y-5">
           <div className="w-16 h-16 bg-sky-50 dark:bg-sky-900/30 rounded-full flex items-center justify-center mx-auto">
@@ -102,12 +203,30 @@ export default function ClientPremium() {
               </div>
             </div>
             <div className="flex items-start gap-3">
+              <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-900/20 text-violet-500 shrink-0">
+                <Zap size={17} />
+              </span>
+              <div>
+                <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">Avis traités en priorité</p>
+                <p className="text-[13px] text-slate-400 mt-0.5">Tes commandes sont marquées prioritaires pour les membres.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 shrink-0">
+                <MessageCircle size={17} />
+              </span>
+              <div>
+                <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">Support prioritaire sur Discord</p>
+                <p className="text-[13px] text-slate-400 mt-0.5">Ouvre un vrai ticket Discord directement depuis le site.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
               <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-900/20 text-sky-500 shrink-0">
                 <Sparkles size={17} />
               </span>
               <div>
-                <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">Statut premium</p>
-                <p className="text-[13px] text-slate-400 mt-0.5">D'autres avantages premium arriveront bientôt.</p>
+                <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">Personnalisation</p>
+                <p className="text-[13px] text-slate-400 mt-0.5">Choisis la couleur d'accent de ton espace client.</p>
               </div>
             </div>
           </div>
