@@ -14,6 +14,11 @@ import {
   XCircle,
   Loader2,
   ChevronRight,
+  Sparkles,
+  MapPin,
+  Send,
+  Coins,
+  TrendingUp,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -55,31 +60,40 @@ export default function Dashboard() {
   return (
     <div className="space-y-10 animate-fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-[28px] leading-tight font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
-          Bonjour, {user?.email?.split('@')[0]}
-        </h1>
-        <p className="text-[15px] text-slate-500 dark:text-slate-400 mt-1">Voici ce qui se passe sur ton compte.</p>
+      <div className="flex items-center gap-3.5">
+        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center shrink-0 shadow-lg shadow-sky-500/25">
+          <Sparkles size={19} className="text-white" />
+        </div>
+        <div>
+          <h1 className="text-[28px] leading-tight font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
+            Bonjour, {user?.email?.split('@')[0]}
+          </h1>
+          <p className="text-[15px] text-slate-500 dark:text-slate-400 mt-0.5">Voici ce qui se passe sur ton compte.</p>
+        </div>
       </div>
 
-      {/* Solde — seul bloc coloré, tout le reste reste en typographie nue */}
+      {/* Solde — carte dégradée avec motif décoratif */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl bg-sky-500 text-white p-7"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-400 via-sky-500 to-sky-600 text-white p-7 shadow-xl shadow-sky-500/20"
       >
-        <p className="text-sky-100 text-[13px] font-medium">Solde disponible</p>
-        <p className="text-[44px] font-semibold tracking-tight leading-none mt-2">
+        <Coins size={140} className="absolute -right-6 -bottom-8 text-white/10 rotate-12" strokeWidth={1.2} />
+        <div className="relative flex items-center gap-2 text-sky-100 text-[13px] font-medium">
+          <Wallet size={15} />
+          Solde disponible
+        </div>
+        <p className="relative text-[44px] font-semibold tracking-tight leading-none mt-2">
           {solde.toFixed(2)} <span className="text-[20px] font-medium text-sky-100">EUR</span>
         </p>
-        <div className="flex items-center gap-6 mt-6 pt-5 border-t border-white/15 text-[14px]">
+        <div className="relative flex items-center gap-6 mt-6 pt-5 border-t border-white/15 text-[14px]">
           <div>
-            <p className="text-sky-100">Après vérification</p>
+            <p className="text-sky-100 flex items-center gap-1.5"><Clock size={12} /> Après vérification</p>
             <p className="font-semibold mt-0.5">{soldeAttente.toFixed(2)} EUR</p>
           </div>
           <div className="w-px h-8 bg-white/15" />
           <div>
-            <p className="text-sky-100">Avis rédigés</p>
+            <p className="text-sky-100 flex items-center gap-1.5"><TrendingUp size={12} /> Avis rédigés</p>
             <p className="font-semibold mt-0.5">{avis?.length || 0}</p>
           </div>
         </div>
@@ -115,24 +129,25 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Comment ça marche — numéros monochromes, pas de fond coloré par étape */}
+      {/* Comment ça marche — cartes avec icônes colorées */}
       <div>
-        <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide mb-5">Comment ça marche</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6">
+        <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide mb-4">Comment ça marche</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { n: '1', t: 'Réserve un avis', d: 'Choisis un établissement à noter' },
-            { n: '2', t: 'Publie ton avis', d: 'Mets les étoiles demandées sur Google Maps' },
-            { n: '3', t: 'Soumets le lien', d: 'Copie le lien de ton avis publié' },
-            { n: '4', t: 'Reçois ton argent', d: 'Ton solde est crédité après vérification' },
+            { icon: MapPin, t: 'Réserve un avis', d: 'Choisis un établissement à noter', bg: 'bg-sky-50 dark:bg-sky-900/20', fg: 'text-sky-500' },
+            { icon: Star, t: 'Publie ton avis', d: 'Mets les étoiles demandées sur Google Maps', bg: 'bg-amber-50 dark:bg-amber-900/20', fg: 'text-amber-500' },
+            { icon: Send, t: 'Soumets le lien', d: 'Copie le lien de ton avis publié', bg: 'bg-violet-50 dark:bg-violet-900/20', fg: 'text-violet-500' },
+            { icon: Coins, t: 'Reçois ton argent', d: 'Ton solde est crédité après vérification', bg: 'bg-emerald-50 dark:bg-emerald-900/20', fg: 'text-emerald-500' },
           ].map((s, i) => (
             <motion.div
-              key={s.n}
+              key={s.t}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + i * 0.05 }}
+              className="card p-4"
             >
-              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-[12px] font-semibold mb-2.5">
-                {s.n}
+              <span className={`inline-flex items-center justify-center w-9 h-9 rounded-xl mb-3 ${s.bg} ${s.fg}`}>
+                <s.icon size={17} />
               </span>
               <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">{s.t}</p>
               <p className="text-[13px] text-slate-400 mt-0.5 leading-relaxed">{s.d}</p>
