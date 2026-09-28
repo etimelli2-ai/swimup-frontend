@@ -176,9 +176,8 @@ export default function AdminAvis() {
 
   const faireLeMenuage = async () => {
     const nbSuppr = avis.filter(a => a.statut === 'paye').length
-    const nbReset = avis.filter(a => a.statut === 'refuse').length
 
-    if (!confirm(`Ménage :\n- ${nbSuppr} avis payés → supprimés\n- ${nbReset} avis refusés → supprimés (remplacement déjà en dispo)\n\nConfirmer ?`)) return
+    if (!confirm(`Ménage :\n- ${nbSuppr} avis payés → supprimés\n\n(Les avis refusés ne sont plus touchés : leur remplacement est déjà en dispo, et le membre doit pouvoir les voir marqués "refusé" dans son historique.)\n\nConfirmer ?`)) return
 
     setLA('menage')
     try {
@@ -312,7 +311,7 @@ export default function AdminAvis() {
   const formatDate = d => d ? new Date(d).toLocaleString('fr-FR') : '—'
   const closeDetail = () => { setDetail(null); setEditForm(null); setNewLien(''); setVerifResult(null) }
 
-  const nbMenuage = avis.filter(a => a.statut === 'refuse' || a.statut === 'paye').length
+  const nbMenuage = avis.filter(a => a.statut === 'paye').length
 
   const nbAVerifier = avis.filter(a => checkpointInfo(a)?.aVerifierMaintenant).length
 
