@@ -43,6 +43,16 @@ function getDelaiRestant(avis) {
   return `${jours}j restantes`
 }
 
+// Fix — affiche un prénom lisible plutôt que le préfixe brut de l'email
+// (ex: "enzo.timelli" -> "Enzo" au lieu de "enzo.timelli").
+function getPrenomAffiche(email) {
+  if (!email) return ''
+  const prefixe = email.split('@')[0]
+  const premierMot = prefixe.split(/[._-]+/)[0]
+  if (!premierMot) return prefixe
+  return premierMot.charAt(0).toUpperCase() + premierMot.slice(1)
+}
+
 export default function Dashboard() {
   const { user } = useAuth()
   const { data: soldeData, isLoading: soldeLoading } = useSolde()
@@ -66,7 +76,7 @@ export default function Dashboard() {
         </div>
         <div>
           <h1 className="text-[28px] leading-tight font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
-            Bonjour, {user?.email?.split('@')[0]}
+            Bonjour, {getPrenomAffiche(user?.email)}
           </h1>
           <p className="text-[15px] text-slate-500 dark:text-slate-400 mt-0.5">Voici ce qui se passe sur ton compte.</p>
         </div>
