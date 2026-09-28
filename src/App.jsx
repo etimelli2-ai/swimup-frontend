@@ -20,6 +20,7 @@ import ClientDashboard from './pages/client/ClientDashboard'
 import ClientPaiement from './pages/client/ClientPaiement'
 import ClientCommandes from './pages/client/ClientCommandes'
 import ClientSuccess from './pages/client/ClientSuccess'
+import ClientPremium from './pages/client/ClientPremium'
 import PublicCommander from './pages/PublicCommander'
 import PublicSuivi from './pages/PublicSuivi'
 import VerifierEmail from './pages/VerifierEmail'
@@ -100,6 +101,7 @@ export default function App() {
       <Route path="/client" element={<PrivateRoute roles={['client','admin']}><Layout /></PrivateRoute>}>
         <Route index            element={<ClientDashboard />} />
         <Route path="payer"     element={<ClientPaiement />} />
+        <Route path="premium"   element={<ClientPremium />} />
         <Route path="commandes" element={<ClientCommandes />} />
       </Route>
 

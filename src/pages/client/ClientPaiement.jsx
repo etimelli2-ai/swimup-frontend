@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import api from '../../lib/api'
-import { CreditCard, Star, Building, Link, Clock, Loader2, CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react'
+import { CreditCard, Star, Building, Link, Clock, Loader2, CheckCircle2, ArrowRight, ShieldCheck, Gift, Crown } from 'lucide-react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
@@ -33,8 +33,12 @@ export default function ClientPaiement() {
     nb_avis:            '1',
   })
 
+  const estPremium = !!user?.premium
+
   const nb = parseInt(form.nb_avis) || 1
-  const total = nb * PRIX_AVIS
+  const nbBonus = Math.floor(nb / 10)
+  const sousTotal = nb * PRIX_AVIS
+  const total = estPremium ? Math.round(sousTotal * 0.9 * 100) / 100 : sousTotal
 
   const handleCommander = async () => {
     if (!form.nom_etablissement) return toast.error('Entre le nom de l\'établissement')
@@ -220,16 +224,36 @@ export default function ClientPaiement() {
             onChange={e => setForm(p => ({ ...p, nb_avis: e.target.value }))} />
         </div>
 
+        {!isAdmin && nbBonus === 0 && nb >= 5 && (
+          <div className="flex items-center gap-2 text-xs text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 rounded-xl p-3">
+            <Gift size={14} className="shrink-0" />
+            Encore {10 - (nb % 10)} avis pour en obtenir 1 offert
+          </div>
+        )}
+
+        {!isAdmin && nbBonus > 0 && (
+          <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3">
+            <Gift size={14} className="shrink-0" />
+            {nbBonus} avis offert{nbBonus > 1 ? 's' : ''} sur cette commande !
+          </div>
+        )}
+
         {/* Récap prix */}
         <div className={`rounded-xl p-4 space-y-2 ${isAdmin ? 'bg-green-50 dark:bg-green-900/20' : 'bg-sky-50 dark:bg-sky-900/20'}`}>
           <div className="flex justify-between text-sm">
             <span className="text-slate-600 dark:text-slate-400">
-              {nb} avis × {isAdmin ? '0€ (admin)' : `${PRIX_AVIS}€`}
+              {nb} avis{nbBonus > 0 && ` (+${nbBonus} offert${nbBonus > 1 ? 's' : ''})`} × {isAdmin ? '0€ (admin)' : `${PRIX_AVIS}€`}
             </span>
             <span className="font-semibold text-slate-900 dark:text-white">
-              {isAdmin ? '0.00€' : `${total.toFixed(2)}€`}
+              {isAdmin ? '0.00€' : `${sousTotal.toFixed(2)}€`}
             </span>
           </div>
+          {!isAdmin && estPremium && (
+            <div className="flex justify-between text-sm">
+              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><Crown size={12} /> Remise premium -10%</span>
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">-{(sousTotal - total).toFixed(2)}€</span>
+            </div>
+          )}
           <div className={`flex justify-between text-sm border-t pt-2 ${isAdmin ? 'border-green-100 dark:border-green-800' : 'border-sky-100 dark:border-sky-800'}`}>
             <span className="font-semibold text-slate-700 dark:text-slate-300">Total</span>
             <span className={`font-semibold text-lg ${isAdmin ? 'text-green-600 dark:text-green-400' : 'text-sky-600 dark:text-sky-400'}`}>
@@ -244,6 +268,13 @@ export default function ClientPaiement() {
             <p>L'admin valide ta commande dès réception du paiement</p>
             <p>Une fois validée, tu pourras remplir les textes de tes avis</p>
           </div>
+        )}
+
+        {!isAdmin && !estPremium && (
+          <RouterLink to="/client/premium" className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 hover:opacity-80 transition-opacity">
+            <Crown size={14} className="shrink-0" />
+            Passe premium pour -10% sur toutes tes commandes
+          </RouterLink>
         )}
 
         <button
@@ -262,6 +293,7 @@ export default function ClientPaiement() {
           ) : (
             <><CreditCard size={18} /> Commander {total.toFixed(2)}€</>
           )}
+
         </button>
       </div>
     </div>

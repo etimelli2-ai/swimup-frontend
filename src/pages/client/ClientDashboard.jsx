@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../lib/api'
-import { CreditCard, ShoppingBag, Bell, CheckCircle2, Clock, AlertTriangle, Star, TrendingUp } from 'lucide-react'
+import { useAuth } from '../../hooks/useAuth'
+import { CreditCard, ShoppingBag, Bell, CheckCircle2, Clock, AlertTriangle, Star, TrendingUp, Crown } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function ClientDashboard() {
+  const { user } = useAuth()
   const [stats, setStats]           = useState(null)
   const [commandes, setCommandes]   = useState([])
   const [notifs, setNotifs]         = useState([])
@@ -171,7 +173,7 @@ export default function ClientDashboard() {
       )}
 
       {/* Actions principales */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <Link to="/client/payer" className="card p-5 hover:shadow-md transition-all group cursor-pointer">
           <div className="w-12 h-12 bg-sky-50 dark:bg-sky-900/30 rounded-xl flex items-center justify-center mb-3 group-hover:bg-sky-100 dark:group-hover:bg-sky-900/50 transition-colors">
             <CreditCard size={24} className="text-sky-500" />
@@ -198,6 +200,19 @@ export default function ClientDashboard() {
             {commandesIncompletes.length > 0 && (
               <span className="ml-2 badge-amber text-xs">{commandesIncompletes.length} à compléter</span>
             )}
+          </div>
+        </Link>
+
+        <Link to="/client/premium" className="card p-5 hover:shadow-md transition-all group cursor-pointer">
+          <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 rounded-xl flex items-center justify-center mb-3 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/50 transition-colors">
+            <Crown size={24} className="text-amber-500" />
+          </div>
+          <h3 className="font-bold text-slate-900 dark:text-white">Abonnement premium</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            -10% sur tes commandes et statut premium — 5€/mois
+          </p>
+          <div className="mt-3 flex items-center gap-1 text-amber-600 dark:text-amber-400 text-sm font-medium">
+            {user?.premium ? 'Actif ✓' : 'Découvrir'}
           </div>
         </Link>
       </div>

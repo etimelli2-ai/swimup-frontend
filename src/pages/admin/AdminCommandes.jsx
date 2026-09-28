@@ -1,20 +1,50 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
 import toast from 'react-hot-toast'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Crown } from 'lucide-react'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
 }
 
 export default function AdminCommandes() {
+  const [onglet, setOnglet]       = useState('commandes') // 'commandes' | 'abonnements'
   const [commandes, setCommandes] = useState([])
+  const [abonnements, setAbonnements] = useState([])
   const [filter, setFilter]       = useState('en_attente')
   const [loadingAction, setLA]    = useState(null)
   const [nettoyage, setNettoyage] = useState(false)
 
   const load = () => api.get('/admin/commandes').then(r => setCommandes(r.data))
-  useEffect(() => { load() }, [])
+  const loadAbonnements = () => api.get('/admin/abonnements').then(r => setAbonnements(r.data))
+  useEffect(() => { load(); loadAbonnements() }, [])
+
+  const validerAbonnement = async (id) => {
+    setLA(`valider_ab_${id}`)
+    try {
+      await api.put(`/admin/abonnements/${id}/valider`)
+      toast.success('Abonnement premium activé !')
+      loadAbonnements()
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Erreur')
+    }
+    setLA(null)
+  }
+
+  const refuserAbonnement = async (id) => {
+    if (!confirm('Refuser cet abonnement ?')) return
+    setLA(`refuser_ab_${id}`)
+    try {
+      await api.put(`/admin/abonnements/${id}/refuser`)
+      toast.success('Abonnement refusé')
+      loadAbonnements()
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Erreur')
+    }
+    setLA(null)
+  }
+
+  const nbAbonnementsEnAttente = abonnements.filter(a => a.statut === 'en_attente').length
 
   const valider = async (id) => {
     setLA(`valider_${id}`)
@@ -72,71 +102,135 @@ export default function AdminCommandes() {
       </div>
 
       <div className="flex bg-slate-100 dark:bg-slate-700 rounded-xl p-1 gap-1">
-        {[['en_attente', 'En attente'], ['paye', 'Validées'], ['tous', 'Toutes']].map(([v, l]) => (
-          <button key={v} onClick={() => setFilter(v)}
+        {[['commandes', 'Commandes'], ['abonnements', 'Abonnements premium']].map(([v, l]) => (
+          <button key={v} onClick={() => setOnglet(v)}
             className={`flex-1 py-2 text-xs font-medium rounded-full transition-all ${
-              filter === v ? 'bg-white dark:bg-slate-600 text-sky-700 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
+              onglet === v ? 'bg-white dark:bg-slate-600 text-sky-700 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}>
             {l}
-            {v === 'en_attente' && nbEnAttente > 0 && (
-              <span className="ml-1 bg-sky-500 text-white text-xs rounded-full px-1.5">{nbEnAttente}</span>
+            {v === 'abonnements' && nbAbonnementsEnAttente > 0 && (
+              <span className="ml-1 bg-sky-500 text-white text-xs rounded-full px-1.5">{nbAbonnementsEnAttente}</span>
             )}
           </button>
         ))}
       </div>
 
-      <div className="space-y-3">
-        {filtered.map(c => (
-          <div key={c.id} className="card space-y-3">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="font-semibold text-slate-900 dark:text-white text-sm">
-                  {c.nb_avis} avis — {parseFloat(c.montant).toFixed(2)}€
-                </p>
-                <p className="text-sm text-slate-500 dark:text-slate-400">{c.nom_societe || c.client_email}</p>
-                <p className="text-xs text-slate-400">{c.client_email}</p>
-                {c.infos_attente?.nom_etablissement && (
-                  <p className="text-xs text-slate-400 mt-1">
-                    Établissement : <span className="text-slate-600 dark:text-slate-300">{c.infos_attente.nom_etablissement}</span>
-                  </p>
+      {onglet === 'commandes' && (
+        <>
+          <div className="flex bg-slate-100 dark:bg-slate-700 rounded-xl p-1 gap-1">
+            {[['en_attente', 'En attente'], ['paye', 'Validées'], ['tous', 'Toutes']].map(([v, l]) => (
+              <button key={v} onClick={() => setFilter(v)}
+                className={`flex-1 py-2 text-xs font-medium rounded-full transition-all ${
+                  filter === v ? 'bg-white dark:bg-slate-600 text-sky-700 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
+                }`}>
+                {l}
+                {v === 'en_attente' && nbEnAttente > 0 && (
+                  <span className="ml-1 bg-sky-500 text-white text-xs rounded-full px-1.5">{nbEnAttente}</span>
                 )}
-                {c.infos_attente?.lien_maps && (
-                  <a href={c.infos_attente.lien_maps} target="_blank" rel="noreferrer" className="text-xs text-sky-500 hover:underline block truncate max-w-xs">
-                    {c.infos_attente.lien_maps}
-                  </a>
-                )}
-                <p className="text-xs text-slate-400 mt-1">{new Date(c.created_at).toLocaleString('fr-FR')}</p>
-              </div>
-              <div>
-                {c.statut === 'en_attente' && <span className="badge-amber">En attente</span>}
-                {c.statut === 'paye'       && <span className="badge-green">Validée · {c.nb_avis_crees} avis</span>}
-              </div>
-            </div>
+              </button>
+            ))}
+          </div>
 
-            {c.statut === 'en_attente' && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => valider(c.id)}
-                  disabled={loadingAction !== null}
-                  className="flex-1 bg-emerald-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
-                >
-                  {loadingAction === `valider_${c.id}` ? <><Spinner /> Validation...</> : 'Valider (paiement reçu)'}
-                </button>
-                <button
-                  onClick={() => refuser(c.id)}
-                  disabled={loadingAction !== null}
-                  className="flex-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
-                >
-                  {loadingAction === `refuser_${c.id}` ? <><Spinner /> Refus...</> : 'Refuser'}
-                </button>
+          <div className="space-y-3">
+            {filtered.map(c => (
+              <div key={c.id} className="card space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-semibold text-slate-900 dark:text-white text-sm">
+                      {c.nb_avis} avis{c.nb_avis_bonus > 0 && ` (+${c.nb_avis_bonus} offert${c.nb_avis_bonus > 1 ? 's' : ''})`} — {parseFloat(c.montant).toFixed(2)}€
+                    </p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{c.nom_societe || c.client_email}</p>
+                    <p className="text-xs text-slate-400">{c.client_email}</p>
+                    {c.infos_attente?.nom_etablissement && (
+                      <p className="text-xs text-slate-400 mt-1">
+                        Établissement : <span className="text-slate-600 dark:text-slate-300">{c.infos_attente.nom_etablissement}</span>
+                      </p>
+                    )}
+                    {c.infos_attente?.lien_maps && (
+                      <a href={c.infos_attente.lien_maps} target="_blank" rel="noreferrer" className="text-xs text-sky-500 hover:underline block truncate max-w-xs">
+                        {c.infos_attente.lien_maps}
+                      </a>
+                    )}
+                    <p className="text-xs text-slate-400 mt-1">{new Date(c.created_at).toLocaleString('fr-FR')}</p>
+                  </div>
+                  <div>
+                    {c.statut === 'en_attente' && <span className="badge-amber">En attente</span>}
+                    {c.statut === 'paye'       && <span className="badge-green">Validée · {c.nb_avis_crees} avis</span>}
+                  </div>
+                </div>
+
+                {c.statut === 'en_attente' && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => valider(c.id)}
+                      disabled={loadingAction !== null}
+                      className="flex-1 bg-emerald-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
+                    >
+                      {loadingAction === `valider_${c.id}` ? <><Spinner /> Validation...</> : 'Valider (paiement reçu)'}
+                    </button>
+                    <button
+                      onClick={() => refuser(c.id)}
+                      disabled={loadingAction !== null}
+                      className="flex-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
+                    >
+                      {loadingAction === `refuser_${c.id}` ? <><Spinner /> Refus...</> : 'Refuser'}
+                    </button>
+                  </div>
+                )}
               </div>
+            ))}
+            {filtered.length === 0 && (
+              <div className="card text-center py-10 text-slate-400">Aucune commande</div>
             )}
           </div>
-        ))}
-        {filtered.length === 0 && (
-          <div className="card text-center py-10 text-slate-400">Aucune commande</div>
-        )}
-      </div>
+        </>
+      )}
+
+      {onglet === 'abonnements' && (
+        <div className="space-y-3">
+          {abonnements.map(a => (
+            <div key={a.id} className="card space-y-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="font-semibold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
+                    <Crown size={15} className="text-amber-500" />
+                    Abonnement premium — {parseFloat(a.montant).toFixed(2)}€/mois
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{a.nom_societe || a.client_email}</p>
+                  <p className="text-xs text-slate-400">{a.client_email}</p>
+                  <p className="text-xs text-slate-400 mt-1">{new Date(a.created_at).toLocaleString('fr-FR')}</p>
+                </div>
+                <div>
+                  {a.statut === 'en_attente' && <span className="badge-amber">En attente</span>}
+                  {a.statut === 'paye'       && <span className="badge-green">Activé</span>}
+                </div>
+              </div>
+
+              {a.statut === 'en_attente' && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => validerAbonnement(a.id)}
+                    disabled={loadingAction !== null}
+                    className="flex-1 bg-emerald-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
+                  >
+                    {loadingAction === `valider_ab_${a.id}` ? <><Spinner /> Validation...</> : 'Valider (paiement reçu)'}
+                  </button>
+                  <button
+                    onClick={() => refuserAbonnement(a.id)}
+                    disabled={loadingAction !== null}
+                    className="flex-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
+                  >
+                    {loadingAction === `refuser_ab_${a.id}` ? <><Spinner /> Refus...</> : 'Refuser'}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+          {abonnements.length === 0 && (
+            <div className="card text-center py-10 text-slate-400">Aucune demande d'abonnement</div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
