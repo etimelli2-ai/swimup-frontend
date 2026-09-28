@@ -16,6 +16,7 @@ import {
   ShoppingBag,
   ClipboardCheck,
   Globe,
+  Crown,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import React from 'react'
@@ -64,6 +65,7 @@ export default function Layout() {
     { path: '/client',           label: 'Dashboard',    icon: LayoutDashboard },
     { path: '/client/payer',     label: 'Commander',    icon: CreditCard },
     { path: '/client/commandes', label: 'Mes commandes', icon: ShoppingBag },
+    { path: '/client/premium',   label: 'Premium',      icon: Crown },
     { path: '/profil',           label: 'Profil',       icon: User },
   ] : [
     { path: '/dashboard',    label: 'Tableau de bord',  icon: LayoutDashboard },
