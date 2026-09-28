@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import { TONS, TYPES, EtoilesPicker, genererTexteIA } from '../lib/avisPublicShared'
 
-const API = import.meta.env.VITE_API_URL || 'https://swimup-backend-production.up.railway.app/api'
+const API = import.meta.env.VITE_API_URL || 'https://api.swimup.net/api'
 
 const STATUTS = {
   en_attente: {

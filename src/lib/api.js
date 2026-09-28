@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://swimup-backend-production.up.railway.app/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://api.swimup.net/api',
   // La session vit dans un cookie httpOnly (jamais lisible en JS, donc
   // protégé contre le vol de token via une faille XSS) : on demande à
   // axios de toujours l'envoyer/le recevoir, y compris en cross-site

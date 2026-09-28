@@ -7,7 +7,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 
-const API = import.meta.env.VITE_API_URL || 'https://swimup-backend-production.up.railway.app/api'
+const API = import.meta.env.VITE_API_URL || 'https://api.swimup.net/api'
 const PRIX_UNITAIRE = 4
 
 const POURQUOI = [
