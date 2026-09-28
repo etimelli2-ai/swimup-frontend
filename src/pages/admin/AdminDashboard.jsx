@@ -7,7 +7,6 @@ function Spinner() {
 
 export default function AdminDashboard() {
   const [stats, setStats]         = useState(null)
-  const [clients, setClients]     = useState([])
   const [contestations, setCont]  = useState([])
   const [lienInvit, setLien]      = useState(null)
   const [copying, setCopying]     = useState(false)
@@ -15,13 +14,11 @@ export default function AdminDashboard() {
   const [msg, setMsg]             = useState(null)
 
   const load = async () => {
-    const [s, c, co] = await Promise.all([
+    const [s, co] = await Promise.all([
       api.get('/admin/stats'),
-      api.get('/admin/clients'),
       api.get('/admin/contestations'),
     ])
     setStats(s.data)
-    setClients(c.data)
     setCont(co.data)
   }
 
@@ -47,30 +44,6 @@ export default function AdminDashboard() {
     await navigator.clipboard.writeText(lienInvit)
     setCopying(true)
     setTimeout(() => setCopying(false), 2000)
-  }
-
-  const validerPaiement = async (clientId, email, montant) => {
-    if (!confirm(`Confirmer le paiement de ${parseFloat(montant).toFixed(2)}€ reçu de ${email} ?`)) return
-    setLA(`paiement_${clientId}`)
-    try {
-      await api.put(`/admin/clients/${clientId}/valider-paiement`)
-      showMsg('success', `✅ Paiement de ${parseFloat(montant).toFixed(2)}€ validé !`)
-      load()
-    } catch {
-      showMsg('error', 'Erreur lors de la validation')
-    }
-    setLA(null)
-  }
-
-  const toggleBloquer = async (clientId, bloquerActuel) => {
-    setLA(`bloquer_${clientId}`)
-    try {
-      await api.put(`/admin/clients/${clientId}/bloquer`, { bloquer: !bloquerActuel })
-      load()
-    } catch {
-      showMsg('error', 'Erreur')
-    }
-    setLA(null)
   }
 
   const traiterContestation = async (id, statut, avisId, userId, montant) => {
@@ -171,63 +144,12 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Collaborateurs */}
-      {clients.length > 0 && (
-        <div className="card space-y-3">
-          <h3 className="font-bold text-gray-900">🏢 Collaborateurs</h3>
-          <div className="space-y-3">
-            {clients.map(c => (
-              <div key={c.id} className="border border-gray-100 rounded-xl p-3 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-semibold text-gray-900 text-sm">{c.email}</p>
-                    <p className="text-xs text-gray-500">{c.nom_societe}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`font-bold text-lg ${parseFloat(c.solde_depot) > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                      {parseFloat(c.solde_depot || 0).toFixed(2)}€
-                    </p>
-                    <p className="text-xs text-gray-400">à encaisser</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Bloquer si dette</p>
-                    <p className="text-xs text-gray-400">Empêche de commander</p>
-                  </div>
-                  <button
-                    onClick={() => toggleBloquer(c.id, !!c.bloquer_si_dette)}
-                    disabled={loadingAction === `bloquer_${c.id}`}
-                    className={`relative w-12 h-6 rounded-full transition-all disabled:opacity-70 ${c.bloquer_si_dette ? 'bg-red-500' : 'bg-gray-300'}`}
-                  >
-                    {loadingAction === `bloquer_${c.id}` ? (
-                      <span className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-3 h-3 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
-                      </span>
-                    ) : (
-                      <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${c.bloquer_si_dette ? 'left-7' : 'left-1'}`} />
-                    )}
-                  </button>
-                </div>
-
-                {parseFloat(c.solde_depot || 0) > 0 && (
-                  <button
-                    onClick={() => validerPaiement(c.id, c.email, parseFloat(c.solde_depot))}
-                    disabled={loadingAction === `paiement_${c.id}`}
-                    className="w-full bg-emerald-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70"
-                  >
-                    {loadingAction === `paiement_${c.id}`
-                      ? <><Spinner /> Validation...</>
-                      : `Valider paiement de ${parseFloat(c.solde_depot).toFixed(2)}€`
-                    }
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Fix — section "Collaborateurs" (solde_depot / bloquer si dette /
+          valider paiement) retirée : elle appartenait à l'ancien parcours
+          client à crédit (POST /client/avis), remplacé depuis par le
+          paiement PayPal en direct avant validation admin (commandes). Le
+          client paie désormais toujours avant d'obtenir ses avis, ces
+          contrôles de dette n'ont donc plus d'utilité. */}
 
       {/* La vérification se fait maintenant à la main, avis par avis, depuis
           la page Avis (checkpoints tous les 4 jours jusqu'au délai de
