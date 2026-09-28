@@ -178,7 +178,7 @@ export default function AdminAvis() {
     const nbSuppr = avis.filter(a => a.statut === 'paye').length
     const nbReset = avis.filter(a => a.statut === 'refuse').length
 
-    if (!confirm(`Ménage :\n- ${nbSuppr} avis payés → supprimés\n- ${nbReset} avis refusés → remis en disponible\n\nConfirmer ?`)) return
+    if (!confirm(`Ménage :\n- ${nbSuppr} avis payés → supprimés\n- ${nbReset} avis refusés → supprimés (remplacement déjà en dispo)\n\nConfirmer ?`)) return
 
     setLA('menage')
     try {
