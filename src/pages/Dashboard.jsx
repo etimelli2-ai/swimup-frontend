@@ -72,21 +72,20 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Solde — carte dégradée avec motif décoratif */}
+      {/* Solde */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-400 via-sky-500 to-sky-600 text-white p-7 shadow-xl shadow-sky-500/20"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 text-white p-7 shadow-xl shadow-sky-500/20"
       >
-        <Coins size={140} className="absolute -right-6 -bottom-8 text-white/10 rotate-12" strokeWidth={1.2} />
-        <div className="relative flex items-center gap-2 text-sky-100 text-[13px] font-medium">
+        <div className="flex items-center gap-2 text-sky-100 text-[13px] font-medium">
           <Wallet size={15} />
           Solde disponible
         </div>
-        <p className="relative text-[44px] font-semibold tracking-tight leading-none mt-2">
+        <p className="text-[44px] font-semibold tracking-tight leading-none mt-2">
           {solde.toFixed(2)} <span className="text-[20px] font-medium text-sky-100">EUR</span>
         </p>
-        <div className="relative flex items-center gap-6 mt-6 pt-5 border-t border-white/15 text-[14px]">
+        <div className="flex items-center gap-6 mt-6 pt-5 border-t border-white/15 text-[14px]">
           <div>
             <p className="text-sky-100 flex items-center gap-1.5"><Clock size={12} /> Après vérification</p>
             <p className="font-semibold mt-0.5">{soldeAttente.toFixed(2)} EUR</p>
