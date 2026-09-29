@@ -16,6 +16,7 @@ import AdminRetraits from './pages/admin/AdminRetraits'
 import AdminLoterie from './pages/admin/AdminLoterie'
 import AdminBoutique from './pages/admin/AdminBoutique'
 import AdminCommandes from './pages/admin/AdminCommandes'
+import AdminProspection from './pages/admin/AdminProspection'
 import ClientDashboard from './pages/client/ClientDashboard'
 import ClientPaiement from './pages/client/ClientPaiement'
 import ClientCommandes from './pages/client/ClientCommandes'
@@ -95,6 +96,7 @@ export default function App() {
         <Route path="commande" element={<ClientDashboard />} />
         <Route path="commandes-clients" element={<AdminCommandes />} />
         <Route path="boutique" element={<AdminBoutique />} />
+        <Route path="prospection" element={<AdminProspection />} />
       </Route>
 
       {/* Routes client */}

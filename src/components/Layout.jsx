@@ -17,6 +17,7 @@ import {
   ClipboardCheck,
   Globe,
   Crown,
+  Search,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import React from 'react'
@@ -76,6 +77,7 @@ export default function Layout() {
     { path: '/admin/commande', label: 'Commande',     icon: FileText },
     { path: '/admin/commandes-clients', label: 'Commandes clients', icon: ClipboardCheck },
     { path: '/admin/boutique', label: 'Boutique',     icon: ShoppingBag },
+    { path: '/admin/prospection', label: 'Prospection', icon: Search },
     { path: '/profil',         label: 'Profil',       icon: User },
   ] : isClient ? [
     { path: '/client',           label: 'Dashboard',    icon: LayoutDashboard },

@@ -1,0 +1,277 @@
+import { useState, useEffect } from 'react'
+import api from '../../lib/api'
+import { Search, Mail, Phone, Globe, Star, Trash2, Send, Pencil, ExternalLink } from 'lucide-react'
+
+function Spinner() {
+  return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+}
+
+const SUJET_DEFAUT = 'Boostez votre visibilité sur Google Maps'
+const MESSAGE_DEFAUT = (nom) => `Bonjour,
+
+J'ai remarqué que votre établissement "${nom}" a peu d'avis sur Google Maps. Un volume d'avis plus élevé améliore directement votre classement local et la confiance des clients.
+
+Chez SwimUp, on propose de vrais avis Google publiés par de vrais membres, dès 4€ pièce, livrés en 24-48h, avec une garantie de 30 jours si un avis est supprimé.
+
+Plus d'infos : https://swimup.net
+
+Bonne journée,
+L'équipe SwimUp`
+
+export default function AdminProspection() {
+  const [recherches, setRecherches] = useState([{ requete: '', ville: '' }])
+  const [maxAvis, setMaxAvis]       = useState(20)
+  const [prospects, setProspects]   = useState([])
+  const [filtre, setFiltre]         = useState('tous')
+  const [loadingRecherche, setLR]   = useState(false)
+  const [loadingAction, setLA]      = useState(null)
+  const [editEmail, setEditEmail]   = useState({})
+  const [modal, setModal]           = useState(null) // prospect en cours d'envoi
+  const [sujet, setSujet]           = useState(SUJET_DEFAUT)
+  const [message, setMessage]       = useState('')
+  const [msg, setMsg]               = useState(null)
+
+  const load = () => api.get('/admin/prospection').then(r => setProspects(r.data))
+  useEffect(() => { load() }, [])
+
+  const showMsg = (type, text) => {
+    setMsg({ type, text })
+    setTimeout(() => setMsg(null), 4000)
+  }
+
+  const ajouterLigne = () => setRecherches([...recherches, { requete: '', ville: '' }])
+  const retirerLigne = (i) => setRecherches(recherches.filter((_, idx) => idx !== i))
+  const majLigne = (i, champ, val) => {
+    const copie = [...recherches]
+    copie[i][champ] = val
+    setRecherches(copie)
+  }
+
+  const rechercher = async (e) => {
+    e.preventDefault()
+    const valides = recherches.filter(r => r.requete.trim() && r.ville.trim())
+    if (valides.length === 0) return showMsg('error', 'Renseigne au moins un métier + une ville')
+
+    setLR(true)
+    try {
+      const r = await api.post('/admin/prospection/rechercher', { recherches: valides, maxAvis })
+      showMsg('success', `✅ ${r.data.total} prospect(s) trouvé(s)`)
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur lors de la recherche')
+    }
+    setLR(false)
+  }
+
+  const ouvrirModal = (p) => {
+    setModal(p)
+    setSujet(SUJET_DEFAUT)
+    setMessage(MESSAGE_DEFAUT(p.nom))
+  }
+
+  const envoyerEmail = async () => {
+    setLA(`envoi_${modal.id}`)
+    try {
+      await api.post(`/admin/prospection/${modal.id}/envoyer-email`, { sujet, message })
+      showMsg('success', `✅ Email envoyé à ${modal.nom}`)
+      setModal(null)
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || "Erreur lors de l'envoi")
+    }
+    setLA(null)
+  }
+
+  const sauverEmail = async (id) => {
+    const email = editEmail[id]
+    if (!email) return
+    setLA(`email_${id}`)
+    try {
+      await api.put(`/admin/prospection/${id}/email`, { email })
+      showMsg('success', '✅ Email enregistré')
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Email invalide')
+    }
+    setLA(null)
+  }
+
+  const supprimer = async (id) => {
+    if (!confirm('Supprimer ce prospect ?')) return
+    setLA(`suppr_${id}`)
+    try {
+      await api.delete(`/admin/prospection/${id}`)
+      setProspects(prospects.filter(p => p.id !== id))
+    } catch {
+      showMsg('error', 'Erreur')
+    }
+    setLA(null)
+  }
+
+  const filtered = prospects.filter(p => {
+    if (filtre === 'a_contacter') return !p.email_envoye && p.email
+    if (filtre === 'sans_email') return !p.email
+    if (filtre === 'contactes') return !!p.email_envoye
+    return true
+  })
+
+  return (
+    <div className="p-4 space-y-4">
+      <h2 className="page-title">🔎 Prospection</h2>
+      <p className="text-sm text-gray-500">
+        Cherche des commerces peu avisés sur Google Maps et contacte-les directement par email depuis le site.
+      </p>
+
+      {msg && (
+        <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+          {msg.text}
+        </div>
+      )}
+
+      {/* Formulaire de recherche */}
+      <form onSubmit={rechercher} className="card space-y-3">
+        <h3 className="font-bold text-gray-900">Nouvelle recherche</h3>
+        {recherches.map((r, i) => (
+          <div key={i} className="flex gap-2">
+            <input
+              type="text" placeholder="Métier (ex: restaurant)" value={r.requete}
+              onChange={e => majLigne(i, 'requete', e.target.value)}
+              className="input flex-1"
+            />
+            <input
+              type="text" placeholder="Ville (ex: Lyon)" value={r.ville}
+              onChange={e => majLigne(i, 'ville', e.target.value)}
+              className="input flex-1"
+            />
+            {recherches.length > 1 && (
+              <button type="button" onClick={() => retirerLigne(i)} className="text-red-400 px-2">
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
+        ))}
+        <button type="button" onClick={ajouterLigne} className="text-sky-500 text-xs font-medium">
+          + Ajouter un métier/ville
+        </button>
+
+        <div className="flex items-center gap-3">
+          <label className="text-xs text-gray-500 font-medium">Max avis par fiche</label>
+          <input
+            type="number" min="0" value={maxAvis}
+            onChange={e => setMaxAvis(e.target.value)}
+            className="input w-24"
+          />
+        </div>
+
+        <button type="submit" disabled={loadingRecherche} className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-70">
+          {loadingRecherche ? <><Spinner /> Recherche en cours...</> : <><Search size={16} /> Lancer la recherche</>}
+        </button>
+      </form>
+
+      {/* Filtres */}
+      <div className="flex bg-gray-100 rounded-xl p-1 gap-1 overflow-x-auto">
+        {[['tous', 'Tous'], ['a_contacter', 'À contacter'], ['sans_email', 'Sans email'], ['contactes', 'Contactés']].map(([v, l]) => (
+          <button key={v} onClick={() => setFiltre(v)}
+            className={`flex-1 py-2 text-xs font-medium rounded-full transition-all whitespace-nowrap px-3 ${
+              filtre === v ? 'bg-white text-sky-700' : 'text-gray-500'
+            }`}>
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {/* Liste des prospects */}
+      <div className="space-y-3">
+        {filtered.map(p => (
+          <div key={p.id} className="card space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="font-bold text-gray-900">{p.nom}</p>
+                <p className="text-xs text-gray-500">{p.adresse}</p>
+                <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                  <span className="flex items-center gap-1"><Star size={12} className="text-amber-400 fill-amber-400" /> {p.note || '—'} ({p.nb_avis} avis)</span>
+                  {p.telephone && <span className="flex items-center gap-1"><Phone size={12} /> {p.telephone}</span>}
+                </div>
+                {p.site_web && (
+                  <a href={p.site_web} target="_blank" rel="noreferrer" className="text-xs text-sky-500 flex items-center gap-1 mt-1">
+                    <Globe size={12} /> Site web <ExternalLink size={10} />
+                  </a>
+                )}
+              </div>
+              {p.email_envoye ? (
+                <span className="badge-green text-xs shrink-0">✅ Contacté</span>
+              ) : (
+                <button onClick={() => supprimer(p.id)} disabled={loadingAction === `suppr_${p.id}`} className="text-gray-300 hover:text-red-400 shrink-0">
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
+
+            {p.email ? (
+              <div className="flex items-center justify-between gap-2 bg-slate-50 rounded-lg p-2">
+                <span className="text-xs text-gray-700 flex items-center gap-1 truncate"><Mail size={12} className="shrink-0" /> {p.email}</span>
+                {!p.email_envoye && (
+                  <button
+                    onClick={() => ouvrirModal(p)}
+                    className="bg-sky-500 text-white text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-1 active:scale-95 transition-all shrink-0"
+                  >
+                    <Send size={12} /> Envoyer
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="email" placeholder="Email introuvable — renseigne-le"
+                  value={editEmail[p.id] ?? ''}
+                  onChange={e => setEditEmail({ ...editEmail, [p.id]: e.target.value })}
+                  className="input text-xs flex-1 py-2"
+                />
+                <button
+                  onClick={() => sauverEmail(p.id)}
+                  disabled={loadingAction === `email_${p.id}`}
+                  className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-1 shrink-0"
+                >
+                  <Pencil size={12} />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <div className="card text-center py-10 text-gray-400">Aucun prospect pour l'instant — lance une recherche ci-dessus.</div>
+        )}
+      </div>
+
+      {/* Modal d'envoi d'email */}
+      {modal && (
+        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4" onClick={() => setModal(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-md p-5 space-y-3" onClick={e => e.stopPropagation()}>
+            <h3 className="font-bold text-gray-900">Envoyer à {modal.nom}</h3>
+            <p className="text-xs text-gray-500">{modal.email}</p>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Sujet</label>
+              <input type="text" value={sujet} onChange={e => setSujet(e.target.value)} className="input" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Message</label>
+              <textarea rows={8} value={message} onChange={e => setMessage(e.target.value)} className="input text-sm" />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setModal(null)} className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-full text-sm font-medium">
+                Annuler
+              </button>
+              <button
+                onClick={envoyerEmail}
+                disabled={loadingAction === `envoi_${modal.id}`}
+                className="flex-1 btn-primary flex items-center justify-center gap-2 disabled:opacity-70"
+              >
+                {loadingAction === `envoi_${modal.id}` ? <><Spinner /> Envoi...</> : <><Send size={16} /> Envoyer</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
