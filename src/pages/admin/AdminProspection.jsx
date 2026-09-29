@@ -35,9 +35,9 @@ Aujourd'hui, la fiche Google d'un établissement est souvent le tout premier ré
 
 Chez SwimUp, on accompagne des établissements comme le vôtre sur ce sujet : mise en valeur de la fiche, suivi de la réputation, et un vrai service autour des avis Google quand c'est utile pour donner un coup de pouce.
 
-Si ça vous intéresse d'y jeter un œil, on propose un essai gratuit pour voir concrètement ce que ça peut changer, sans engagement de votre part.
+Si ça vous intéresse d'y jeter un œil, on vous offre un premier avis gratuit pour voir concrètement ce que ça peut changer, sans engagement de votre part. Il suffit de cliquer ici pour le réclamer :
 
-Plus d'infos ici si besoin : https://swimup.net
+{{LIEN_ESSAI}}
 
 Bonne journée,
 L'équipe SwimUp`
@@ -53,6 +53,7 @@ export default function AdminProspection() {
   const [modal, setModal]           = useState(null) // prospect en cours d'envoi
   const [sujet, setSujet]           = useState(SUJET_DEFAUT)
   const [message, setMessage]       = useState('')
+  const [essaiGratuit, setEssaiGratuit] = useState(true)
   const [msg, setMsg]               = useState(null)
   const [ajoutManuel, setAjoutManuel] = useState(false)
   const [formManuel, setFormManuel] = useState({ nom: '', email: '', telephone: '', site_web: '', adresse: '', ville: '' })
@@ -99,12 +100,13 @@ export default function AdminProspection() {
     setModal(p)
     setSujet(SUJET_DEFAUT)
     setMessage(MESSAGE_DEFAUT(p.nom))
+    setEssaiGratuit(true)
   }
 
   const envoyerEmail = async () => {
     setLA(`envoi_${modal.id}`)
     try {
-      await api.post(`/admin/prospection/${modal.id}/envoyer-email`, { sujet, message })
+      await api.post(`/admin/prospection/${modal.id}/envoyer-email`, { sujet, message, essaiGratuit })
       showMsg('success', `✅ Email envoyé à ${modal.nom}`)
       setModal(null)
       load()
@@ -373,8 +375,17 @@ export default function AdminProspection() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Message</label>
-              <textarea rows={8} value={message} onChange={e => setMessage(e.target.value)} className="input text-sm" />
+              <textarea rows={9} value={message} onChange={e => setMessage(e.target.value)} className="input text-sm" />
+              <p className="text-[11px] text-gray-400 mt-1">
+                Le texte <code className="bg-gray-100 px-1 rounded">{'{{LIEN_ESSAI}}'}</code> sera remplacé par le vrai lien de réclamation à l'envoi.
+              </p>
             </div>
+            <label className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3 cursor-pointer">
+              <input type="checkbox" checked={essaiGratuit} onChange={e => setEssaiGratuit(e.target.checked)} className="w-4 h-4" />
+              <span className="text-xs font-medium text-emerald-700">
+                Offrir un essai gratuit (1 avis publié offert, sans paiement)
+              </span>
+            </label>
             <div className="flex gap-2">
               <button onClick={() => setModal(null)} className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-full text-sm font-medium">
                 Annuler
