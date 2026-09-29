@@ -6,6 +6,23 @@ function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
 }
 
+// Liste fermée de métiers reconnus par Google Places — évite les fautes de
+// frappe / termes mal formulés qui font que Google ne comprend pas la
+// requête. "__autre__" garde une échappatoire en texte libre si besoin.
+const METIERS = [
+  'Restaurant', 'Bar', 'Café', 'Boulangerie', 'Pâtisserie', 'Traiteur', 'Boucherie',
+  'Hôtel', 'Gîte', 'Chambre d\'hôtes',
+  'Coiffeur', 'Salon de beauté', 'Institut de beauté', 'Barbier', 'Onglerie', 'Spa',
+  'Garage automobile', 'Auto-école', 'Concessionnaire automobile', 'Contrôle technique',
+  'Plombier', 'Électricien', 'Menuisier', 'Peintre en bâtiment', 'Serrurier', 'Maçon', 'Couvreur', 'Chauffagiste',
+  'Pharmacie', 'Dentiste', 'Médecin généraliste', 'Kinésithérapeute', 'Ostéopathe', 'Vétérinaire', 'Opticien',
+  'Avocat', 'Notaire', 'Agence immobilière', 'Assurance', 'Banque', 'Comptable',
+  'Fleuriste', 'Bijouterie', 'Magasin de vêtements', 'Cordonnier', 'Pressing', 'Photographe',
+  'Salle de sport', 'Déménageur', 'Épicerie', 'Supermarché',
+  '__autre__',
+]
+const LABEL_METIER = { __autre__: 'Autre (préciser)' }
+
 const SUJET_DEFAUT = 'Boostez votre visibilité sur Google Maps'
 const MESSAGE_DEFAUT = (nom) => `Bonjour,
 
@@ -19,7 +36,7 @@ Bonne journée,
 L'équipe SwimUp`
 
 export default function AdminProspection() {
-  const [recherches, setRecherches] = useState([{ requete: '', ville: '' }])
+  const [recherches, setRecherches] = useState([{ requete: '', ville: '', autre: false }])
   const [maxAvis, setMaxAvis]       = useState(20)
   const [prospects, setProspects]   = useState([])
   const [filtre, setFiltre]         = useState('tous')
@@ -39,7 +56,7 @@ export default function AdminProspection() {
     setTimeout(() => setMsg(null), 4000)
   }
 
-  const ajouterLigne = () => setRecherches([...recherches, { requete: '', ville: '' }])
+  const ajouterLigne = () => setRecherches([...recherches, { requete: '', ville: '', autre: false }])
   const retirerLigne = (i) => setRecherches(recherches.filter((_, idx) => idx !== i))
   const majLigne = (i, champ, val) => {
     const copie = [...recherches]
@@ -141,21 +158,42 @@ export default function AdminProspection() {
       <form onSubmit={rechercher} className="card space-y-3">
         <h3 className="font-bold text-gray-900">Nouvelle recherche</h3>
         {recherches.map((r, i) => (
-          <div key={i} className="flex gap-2">
-            <input
-              type="text" placeholder="Métier (ex: restaurant)" value={r.requete}
-              onChange={e => majLigne(i, 'requete', e.target.value)}
-              className="input flex-1"
-            />
-            <input
-              type="text" placeholder="Code postal (ex: 75011)" value={r.ville}
-              onChange={e => majLigne(i, 'ville', e.target.value)}
-              className="input flex-1"
-            />
-            {recherches.length > 1 && (
-              <button type="button" onClick={() => retirerLigne(i)} className="text-red-400 px-2">
-                <Trash2 size={16} />
-              </button>
+          <div key={i} className="space-y-2">
+            <div className="flex gap-2">
+              <select
+                value={r.autre ? '__autre__' : r.requete}
+                onChange={e => {
+                  const val = e.target.value
+                  const copie = [...recherches]
+                  copie[i] = val === '__autre__'
+                    ? { ...copie[i], autre: true, requete: '' }
+                    : { ...copie[i], autre: false, requete: val }
+                  setRecherches(copie)
+                }}
+                className="input flex-1"
+              >
+                <option value="" disabled>Choisir un métier</option>
+                {METIERS.map(m => (
+                  <option key={m} value={m}>{LABEL_METIER[m] || m}</option>
+                ))}
+              </select>
+              <input
+                type="text" placeholder="Code postal (ex: 75011)" value={r.ville}
+                onChange={e => majLigne(i, 'ville', e.target.value)}
+                className="input flex-1"
+              />
+              {recherches.length > 1 && (
+                <button type="button" onClick={() => retirerLigne(i)} className="text-red-400 px-2">
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
+            {r.autre && (
+              <input
+                type="text" placeholder="Précise le métier (texte libre)" value={r.requete}
+                onChange={e => majLigne(i, 'requete', e.target.value)}
+                className="input text-sm"
+              />
             )}
           </div>
         ))}
