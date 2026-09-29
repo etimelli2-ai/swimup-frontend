@@ -45,7 +45,8 @@
     @apply w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm
            focus:outline-none focus:ring-2 focus:border-transparent
            bg-white placeholder-slate-400 transition-all
-           dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500;
+           dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500
+           dark:[color-scheme:dark];
   }
   .input:focus {
     --tw-ring-color: var(--accent);
