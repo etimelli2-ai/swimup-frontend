@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
-import { Search, Mail, Phone, Globe, Star, Trash2, Send, Pencil, ExternalLink } from 'lucide-react'
+import { Search, Mail, Phone, Globe, Star, Trash2, Send, Pencil, ExternalLink, Plus } from 'lucide-react'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
@@ -23,14 +23,21 @@ const METIERS = [
 ]
 const LABEL_METIER = { __autre__: 'Autre (préciser)' }
 
-const SUJET_DEFAUT = 'Boostez votre visibilité sur Google Maps'
+// On mène avec la valeur (pourquoi une bonne fiche Google compte) plutôt
+// qu'avec "on vend des avis" — le service n'arrive qu'ensuite, en douceur,
+// avec l'essai gratuit comme porte d'entrée sans engagement.
+const SUJET_DEFAUT = 'Votre visibilité sur Google Maps'
 const MESSAGE_DEFAUT = (nom) => `Bonjour,
 
-J'ai remarqué que votre établissement "${nom}" a peu d'avis sur Google Maps. Un volume d'avis plus élevé améliore directement votre classement local et la confiance des clients.
+En regardant les fiches Google Maps du secteur, je suis tombé sur "${nom}".
 
-Chez SwimUp, on propose de vrais avis Google publiés par de vrais membres, dès 4€ pièce, livrés en 24-48h, avec une garantie de 30 jours si un avis est supprimé.
+Aujourd'hui, la fiche Google d'un établissement est souvent le tout premier réflexe d'un client avant de passer la porte — avant même le site web ou les réseaux sociaux. Une bonne note et une fiche active jouent directement sur le classement dans les recherches locales ("restaurant près de moi", etc.) et sur la confiance des gens qui hésitent encore entre plusieurs adresses du quartier.
 
-Plus d'infos : https://swimup.net
+Chez SwimUp, on accompagne des établissements comme le vôtre sur ce sujet : mise en valeur de la fiche, suivi de la réputation, et un vrai service autour des avis Google quand c'est utile pour donner un coup de pouce.
+
+Si ça vous intéresse d'y jeter un œil, on propose un essai gratuit pour voir concrètement ce que ça peut changer, sans engagement de votre part.
+
+Plus d'infos ici si besoin : https://swimup.net
 
 Bonne journée,
 L'équipe SwimUp`
@@ -47,6 +54,9 @@ export default function AdminProspection() {
   const [sujet, setSujet]           = useState(SUJET_DEFAUT)
   const [message, setMessage]       = useState('')
   const [msg, setMsg]               = useState(null)
+  const [ajoutManuel, setAjoutManuel] = useState(false)
+  const [formManuel, setFormManuel] = useState({ nom: '', email: '', telephone: '', site_web: '', adresse: '', ville: '' })
+  const [loadingManuel, setLM]      = useState(false)
 
   const load = () => api.get('/admin/prospection').then(r => setProspects(r.data))
   useEffect(() => { load() }, [])
@@ -116,6 +126,26 @@ export default function AdminProspection() {
       showMsg('error', e.response?.data?.error || 'Email invalide')
     }
     setLA(null)
+  }
+
+  const ajouterManuellement = async (e) => {
+    e.preventDefault()
+    if (!formManuel.nom.trim()) return showMsg('error', 'Le nom est requis')
+    setLM(true)
+    try {
+      await api.post('/admin/prospection/manuel', {
+        ...formManuel,
+        site_web: formManuel.site_web || undefined,
+        email: formManuel.email || undefined,
+      })
+      showMsg('success', `✅ ${formManuel.nom} ajouté`)
+      setFormManuel({ nom: '', email: '', telephone: '', site_web: '', adresse: '', ville: '' })
+      setAjoutManuel(false)
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || "Erreur lors de l'ajout")
+    }
+    setLM(false)
   }
 
   const supprimer = async (id) => {
@@ -214,6 +244,47 @@ export default function AdminProspection() {
           {loadingRecherche ? <><Spinner /> Recherche en cours...</> : <><Search size={16} /> Lancer la recherche</>}
         </button>
       </form>
+
+      {/* Ajout manuel — utile tant que la recherche Google est HS, ou pour
+          un prospect trouvé par un autre biais (bouche-à-oreille, etc.) */}
+      {!ajoutManuel ? (
+        <button
+          onClick={() => setAjoutManuel(true)}
+          className="w-full flex items-center justify-center gap-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl py-2.5"
+        >
+          <Plus size={16} /> Ajouter un prospect manuellement
+        </button>
+      ) : (
+        <form onSubmit={ajouterManuellement} className="card space-y-3">
+          <h3 className="font-bold text-gray-900">Ajouter manuellement</h3>
+          <input type="text" placeholder="Nom de l'établissement *" required
+            value={formManuel.nom} onChange={e => setFormManuel({ ...formManuel, nom: e.target.value })}
+            className="input" />
+          <input type="email" placeholder="Email"
+            value={formManuel.email} onChange={e => setFormManuel({ ...formManuel, email: e.target.value })}
+            className="input" />
+          <input type="text" placeholder="Téléphone"
+            value={formManuel.telephone} onChange={e => setFormManuel({ ...formManuel, telephone: e.target.value })}
+            className="input" />
+          <input type="url" placeholder="Site web (https://...)"
+            value={formManuel.site_web} onChange={e => setFormManuel({ ...formManuel, site_web: e.target.value })}
+            className="input" />
+          <input type="text" placeholder="Adresse"
+            value={formManuel.adresse} onChange={e => setFormManuel({ ...formManuel, adresse: e.target.value })}
+            className="input" />
+          <input type="text" placeholder="Ville / code postal"
+            value={formManuel.ville} onChange={e => setFormManuel({ ...formManuel, ville: e.target.value })}
+            className="input" />
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setAjoutManuel(false)} className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-full text-sm font-medium">
+              Annuler
+            </button>
+            <button type="submit" disabled={loadingManuel} className="flex-1 btn-primary flex items-center justify-center gap-2 disabled:opacity-70">
+              {loadingManuel ? <><Spinner /> Ajout...</> : 'Ajouter'}
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* Filtres */}
       <div className="flex bg-gray-100 rounded-xl p-1 gap-1 overflow-x-auto">
