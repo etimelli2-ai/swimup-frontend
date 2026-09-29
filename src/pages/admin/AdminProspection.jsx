@@ -55,7 +55,12 @@ export default function AdminProspection() {
     setLR(true)
     try {
       const r = await api.post('/admin/prospection/rechercher', { recherches: valides, maxAvis })
-      showMsg('success', `✅ ${r.data.total} prospect(s) trouvé(s)`)
+      if (r.data.notes?.length) {
+        setMsg({ type: 'info', text: `✅ ${r.data.total} prospect(s) trouvé(s). ${r.data.notes.join(' ')}` })
+        setTimeout(() => setMsg(null), 10000)
+      } else {
+        showMsg('success', `✅ ${r.data.total} prospect(s) trouvé(s)`)
+      }
       load()
     } catch (e) {
       showMsg('error', e.response?.data?.error || 'Erreur lors de la recherche')
@@ -123,7 +128,11 @@ export default function AdminProspection() {
       </p>
 
       {msg && (
-        <div className={`rounded-xl p-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+        <div className={`rounded-xl p-3 text-sm font-medium ${
+          msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' :
+          msg.type === 'info'    ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+          'bg-red-50 text-red-600 border border-red-200'
+        }`}>
           {msg.text}
         </div>
       )}
