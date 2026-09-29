@@ -148,7 +148,7 @@ export default function AdminProspection() {
               className="input flex-1"
             />
             <input
-              type="text" placeholder="Ville (ex: Lyon)" value={r.ville}
+              type="text" placeholder="Code postal (ex: 75011)" value={r.ville}
               onChange={e => majLigne(i, 'ville', e.target.value)}
               className="input flex-1"
             />
