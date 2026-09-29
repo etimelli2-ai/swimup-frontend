@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import {
   ChevronRight, ChevronDown, AlertCircle, Loader2, CheckCircle2, Users, Star, Zap, Shield, Lock,
   Sparkles, MapPin, ThumbsUp, UtensilsCrossed, Hotel, Wrench, Scissors, Stethoscope, ShoppingBag,
+  TrendingUp, MessageCircle,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
@@ -32,6 +33,11 @@ const SECTEURS = [
   { icon: Stethoscope,     label: 'Médecins & Santé' },
   { icon: ShoppingBag,     label: 'Commerces locaux' },
 ]
+
+// Lien de contact public — réutilise le serveur Discord déjà utilisé pour
+// les tickets premium, pour donner un canal de contact direct aux visiteurs
+// non-connectés (avant même qu'ils ne créent un compte ou ne payent).
+const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
 const FAQ = [
   { q: 'Est-ce que les avis Google achetés sont authentiques ?', r: "Oui. Chaque avis est publié par un vrai membre de notre réseau depuis son compte Google personnel. Nous n'utilisons jamais de bots ou de faux comptes." },
@@ -127,9 +133,20 @@ export default function PublicCommander() {
             </div>
             <span className="text-slate-900 text-[15px] font-semibold tracking-tight">SwimUp</span>
           </div>
-          <a href="/login" className="text-[13px] text-sky-600 hover:text-sky-700 font-medium transition-colors">
-            Se connecter
-          </a>
+          <div className="flex items-center gap-4">
+            <a
+              href={LIEN_DISCORD}
+              target="_blank"
+              rel="noreferrer"
+              className="hidden sm:inline-flex items-center gap-1.5 text-[13px] text-slate-500 hover:text-slate-700 font-medium transition-colors"
+            >
+              <MessageCircle size={14} />
+              Une question ?
+            </a>
+            <a href="/login" className="text-[13px] text-sky-600 hover:text-sky-700 font-medium transition-colors">
+              Se connecter
+            </a>
+          </div>
         </div>
       </header>
 
@@ -170,33 +187,95 @@ export default function PublicCommander() {
               Comment ça marche ›
             </a>
           </div>
+
+          {/* Badge garantie — mis en avant dans le hero, pas seulement plus bas */}
+          <div className="mt-6 inline-flex items-center gap-2.5 rounded-full bg-emerald-50 border border-emerald-200 pl-2 pr-4 py-2 shadow-sm shadow-emerald-500/10">
+            <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/30">
+              <Shield size={14} className="text-white" />
+            </div>
+            <span className="text-[13px] font-semibold text-emerald-700">
+              Garantie 30 jours — avis republié gratuitement s'il est supprimé
+            </span>
+          </div>
+
+          <p className="mt-4 text-[13px] text-slate-400">
+            Une question avant de commander ?{' '}
+            <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="text-sky-500 font-medium hover:underline underline-offset-4">
+              Discute avec nous sur Discord
+            </a>
+          </p>
         </motion.div>
 
-        {/* Carte "exemple d'avis" — illustration, pas un vrai témoignage */}
+        {/* Capture Google Maps floutée/anonymisée — étoiles qui se remplissent
+            progressivement au scroll (whileInView), à la place de la carte
+            "exemple d'avis" mockée précédente */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.6 }}
           className="relative max-w-md mx-auto px-4 pb-4"
         >
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-violet-500 flex items-center justify-center text-white font-semibold text-[15px] shrink-0">
-                M
-              </div>
-              <div className="text-left">
-                <p className="text-[14px] font-semibold text-slate-900">Marine D.</p>
-                <div className="flex items-center gap-0.5 mt-0.5">
-                  {[1, 2, 3, 4, 5].map(n => <Star key={n} size={12} className="text-amber-400 fill-amber-400" />)}
-                </div>
-              </div>
-              <span className="ml-auto text-[11px] text-slate-400 font-medium">Exemple</span>
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 overflow-hidden">
+            <div className="bg-slate-50 border-b border-slate-100 px-4 py-2.5 flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-gradient-to-br from-sky-400 via-emerald-400 to-amber-400 shrink-0" />
+              <div className="h-2.5 rounded-full bg-slate-200 w-28" style={{ filter: 'blur(1.5px)' }} />
+              <span className="ml-auto text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                <MapPin size={10} /> Google Maps
+              </span>
             </div>
-            <p className="text-[14px] text-slate-600 leading-relaxed mt-3 text-left">
-              "Super accueil et service impeccable, je recommande vivement cet établissement à tous ceux qui cherchent la qualité !"
-            </p>
+            <div className="p-5">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center text-white font-semibold text-[15px] shrink-0"
+                  style={{ filter: 'blur(2px)' }}
+                >
+                  M
+                </div>
+                <div className="text-left flex-1">
+                  <div className="h-2.5 rounded-full bg-slate-200 w-24 mb-1.5" style={{ filter: 'blur(1.5px)' }} />
+                  <div className="flex items-center gap-0.5">
+                    {[0, 1, 2, 3, 4].map(i => (
+                      <motion.span
+                        key={i}
+                        initial={{ scale: 0, opacity: 0 }}
+                        whileInView={{ scale: 1, opacity: 1 }}
+                        viewport={{ once: true, amount: 0.5 }}
+                        transition={{ delay: 0.12 * i, duration: 0.3, type: 'spring', stiffness: 300 }}
+                      >
+                        <Star size={13} className="text-amber-400 fill-amber-400" />
+                      </motion.span>
+                    ))}
+                  </div>
+                </div>
+                <span className="text-[11px] text-slate-400 font-medium shrink-0">Anonymisé</span>
+              </div>
+              <div className="mt-3.5 space-y-1.5">
+                <div className="h-2 rounded-full bg-slate-100 w-full" />
+                <div className="h-2 rounded-full bg-slate-100 w-[85%]" />
+                <div className="h-2 rounded-full bg-slate-100 w-[60%]" />
+              </div>
+              <p className="text-[12px] text-slate-400 italic mt-3 text-left">
+                Capture anonymisée — exemple d'avis Google Maps publié pour un de nos clients.
+              </p>
+            </div>
           </div>
         </motion.div>
+
+        {/* Stat concrète — bénéfice chiffré plutôt qu'abstrait */}
+        <div className="relative max-w-md mx-auto px-4 pb-2">
+          <div className="rounded-2xl bg-gradient-to-r from-emerald-50 to-sky-50 border border-emerald-100 px-5 py-4 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/25">
+              <TrendingUp size={18} className="text-white" />
+            </div>
+            <p className="text-[13.5px] sm:text-[14.5px] text-slate-700 leading-snug text-left">
+              <span className="font-semibold text-emerald-600">+40% de visibilité</span> sur Google Maps en moyenne pour une fiche qui passe de 5 à 15 avis*
+            </p>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1.5 text-center">
+            *Le classement local Google Maps favorise les fiches avec un volume d'avis plus élevé.
+          </p>
+        </div>
 
         {/* Stats — cartes avec icônes */}
         <div className="relative max-w-2xl mx-auto px-4 pb-16 pt-8">
