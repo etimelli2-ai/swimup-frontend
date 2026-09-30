@@ -56,7 +56,7 @@ export default function AdminProspection() {
   const [essaiGratuit, setEssaiGratuit] = useState(true)
   const [msg, setMsg]               = useState(null)
   const [ajoutManuel, setAjoutManuel] = useState(false)
-  const [formManuel, setFormManuel] = useState({ nom: '', email: '', telephone: '', site_web: '', adresse: '', ville: '' })
+  const [formManuel, setFormManuel] = useState({ nom: '', email: '', telephone: '', site_web: '', adresse: '' })
   const [loadingManuel, setLM]      = useState(false)
 
   const load = () => api.get('/admin/prospection').then(r => setProspects(r.data))
@@ -141,7 +141,7 @@ export default function AdminProspection() {
         email: formManuel.email || undefined,
       })
       showMsg('success', `✅ ${formManuel.nom} ajouté`)
-      setFormManuel({ nom: '', email: '', telephone: '', site_web: '', adresse: '', ville: '' })
+      setFormManuel({ nom: '', email: '', telephone: '', site_web: '', adresse: '' })
       setAjoutManuel(false)
       load()
     } catch (e) {
@@ -271,11 +271,8 @@ export default function AdminProspection() {
           <input type="url" placeholder="Site web (https://...)"
             value={formManuel.site_web} onChange={e => setFormManuel({ ...formManuel, site_web: e.target.value })}
             className="input" />
-          <input type="text" placeholder="Adresse"
+          <input type="text" placeholder="Adresse complète (rue, code postal, ville)"
             value={formManuel.adresse} onChange={e => setFormManuel({ ...formManuel, adresse: e.target.value })}
-            className="input" />
-          <input type="text" placeholder="Ville / code postal"
-            value={formManuel.ville} onChange={e => setFormManuel({ ...formManuel, ville: e.target.value })}
             className="input" />
           <div className="flex gap-2">
             <button type="button" onClick={() => setAjoutManuel(false)} className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-full text-sm font-medium">
