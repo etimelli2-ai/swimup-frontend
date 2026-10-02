@@ -19,6 +19,7 @@ import {
   Send,
   Coins,
   TrendingUp,
+  Gift,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -137,6 +138,18 @@ export default function Dashboard() {
           )}
         </div>
       )}
+
+      {/* Parrainage — bandeau CTA */}
+      <Link to="/parrainage" className="flex items-center gap-3.5 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 text-white p-5 shadow-lg shadow-violet-500/20 hover:brightness-105 transition-all">
+        <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+          <Gift size={18} />
+        </div>
+        <div className="flex-1">
+          <p className="text-[14px] font-semibold">Parraine tes amis</p>
+          <p className="text-[13px] text-violet-100">Touche un bonus dès leur premier avis publié</p>
+        </div>
+        <ChevronRight size={18} className="shrink-0" />
+      </Link>
 
       {/* Comment ça marche — cartes avec icônes colorées */}
       <div>

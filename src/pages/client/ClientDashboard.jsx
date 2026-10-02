@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
-import { CreditCard, ShoppingBag, Bell, CheckCircle2, Clock, AlertTriangle, Star, TrendingUp, Crown } from 'lucide-react'
+import { CreditCard, ShoppingBag, Bell, CheckCircle2, Clock, AlertTriangle, Star, TrendingUp, Crown, BarChart3 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function ClientDashboard() {
@@ -213,6 +213,19 @@ export default function ClientDashboard() {
           </p>
           <div className="mt-3 flex items-center gap-1 text-amber-600 dark:text-amber-400 text-sm font-medium">
             {user?.premium ? 'Actif ✓' : 'Découvrir'}
+          </div>
+        </Link>
+
+        <Link to="/client/stats" className="card p-5 hover:shadow-md transition-all group cursor-pointer">
+          <div className="w-12 h-12 bg-violet-50 dark:bg-violet-900/30 rounded-xl flex items-center justify-center mb-3 group-hover:bg-violet-100 dark:group-hover:bg-violet-900/50 transition-colors">
+            <BarChart3 size={24} className="text-violet-500" />
+          </div>
+          <h3 className="font-bold text-slate-900 dark:text-white">Statistiques</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Évolution de ta note Google et de tes avis publiés
+          </p>
+          <div className="mt-3 flex items-center gap-1 text-violet-600 dark:text-violet-400 text-sm font-medium">
+            Voir l'évolution
           </div>
         </Link>
       </div>

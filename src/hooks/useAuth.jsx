@@ -43,8 +43,8 @@ export function AuthProvider({ children }) {
     return r.data.user
   }, [])
 
-  const register = useCallback(async (email, password, discord_id, invitation_code, commande_token) => {
-    const r = await api.post('/auth/register', { email, password, discord_id, invitation_code, commande_token })
+  const register = useCallback(async (email, password, discord_id, invitation_code, commande_token, parrainage_code) => {
+    const r = await api.post('/auth/register', { email, password, discord_id, invitation_code, commande_token, parrainage_code })
     setUser(r.data.user)
     return r.data.user
   }, [])

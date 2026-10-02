@@ -22,6 +22,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [discordId, setDiscordId] = useState('')
   const [invitationCode, setInvitationCode] = useState(searchParams.get('invite') || '')
+  const [parrainageCode, setParrainageCode] = useState(searchParams.get('parrain') || '')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -65,7 +66,7 @@ export default function Register() {
 
     setLoading(true)
     try {
-      await register(email, password, discordId || null, invitationCode || null, commandeToken && commande ? commandeToken : null)
+      await register(email, password, discordId || null, invitationCode || null, commandeToken && commande ? commandeToken : null, parrainageCode || null)
       toast.success('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.', { duration: 6000 })
       navigate('/dashboard')
     } catch (err) {
@@ -206,6 +207,19 @@ export default function Register() {
                 />
               </div>
             )}
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Code de parrainage <span className="text-slate-400 font-normal">(optionnel)</span>
+              </label>
+              <input
+                type="text"
+                value={parrainageCode}
+                onChange={e => setParrainageCode(e.target.value)}
+                className="input"
+                placeholder="Ex: AB12CD"
+              />
+            </div>
 
             <button
               type="submit"
