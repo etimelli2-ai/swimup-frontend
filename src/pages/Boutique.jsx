@@ -1,3 +1,4 @@
+import usePageTitle from '../hooks/usePageTitle'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import api from '../lib/api'
@@ -83,6 +84,8 @@ function statutBadge(s) {
 }
 
 export default function Boutique() {
+  usePageTitle('Boutique')
+
   const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const [produits, setProduits]         = useState([])
@@ -217,7 +220,7 @@ export default function Boutique() {
                   className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800"
                 >
                   {p.image_url ? (
-                    <img src={p.image_url} alt={p.nom}
+                    <img loading="lazy" src={p.image_url} alt={p.nom}
                       className="w-full h-48 object-cover"
                       onError={e => { e.target.style.display = 'none' }} />
                   ) : (
@@ -294,7 +297,7 @@ export default function Boutique() {
               <div key={c.id} className="card p-5 space-y-4">
                 <div className="flex items-center gap-4">
                   {c.image_url ? (
-                    <img src={c.image_url} alt={c.nom}
+                    <img loading="lazy" src={c.image_url} alt={c.nom}
                       className="w-16 h-16 object-cover rounded-2xl shrink-0"
                       onError={e => { e.target.style.display = 'none' }} />
                   ) : (

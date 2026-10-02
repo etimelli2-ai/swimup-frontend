@@ -186,7 +186,7 @@ export default function AdminBoutique() {
 
           {form.image_url && (
             <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-              <img src={form.image_url} alt="Preview" className="w-full h-40 object-cover"
+              <img loading="lazy" src={form.image_url} alt="Preview" className="w-full h-40 object-cover"
                 onError={e => { e.target.style.display = 'none' }} />
             </div>
           )}
@@ -218,7 +218,7 @@ export default function AdminBoutique() {
           ) : produits.map(p => (
             <div key={p.id} className={`card p-4 flex items-center gap-4 ${!p.actif ? 'opacity-50' : ''}`}>
               {p.image_url ? (
-                <img src={p.image_url} alt={p.nom}
+                <img loading="lazy" src={p.image_url} alt={p.nom}
                   className="w-16 h-16 object-cover rounded-xl shrink-0"
                   onError={e => { e.target.style.display = 'none' }} />
               ) : (

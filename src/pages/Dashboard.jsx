@@ -1,8 +1,10 @@
+import usePageTitle from '../hooks/usePageTitle'
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useSolde, useMesAvis } from '../hooks/useAvis'
 import { DashboardSkeleton } from '../components/Skeleton'
+import OnboardingTour from '../components/OnboardingTour'
 import {
   Wallet,
   Star,
@@ -55,6 +57,8 @@ function getPrenomAffiche(email) {
 }
 
 export default function Dashboard() {
+  usePageTitle('Tableau de bord')
+
   const { user } = useAuth()
   const { data: soldeData, isLoading: soldeLoading } = useSolde()
   const { data: avis, isLoading: avisLoading } = useMesAvis()
@@ -70,6 +74,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10 animate-fade-in">
+      <OnboardingTour />
       {/* Header */}
       <div className="flex items-center gap-3.5">
         <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center shrink-0 shadow-lg shadow-sky-500/25">

@@ -1,3 +1,4 @@
+import usePageTitle from '../hooks/usePageTitle'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
@@ -145,7 +146,7 @@ function Deux2FA() {
           Scanne ce QR code avec Google Authenticator, Authy ou une autre appli TOTP, puis entre le code généré.
         </p>
         <div className="flex justify-center">
-          <img src={qrCode} alt="QR code 2FA" className="w-44 h-44 rounded-lg border border-slate-200 dark:border-slate-700" />
+          <img loading="lazy" src={qrCode} alt="QR code 2FA" className="w-44 h-44 rounded-lg border border-slate-200 dark:border-slate-700" />
         </div>
         <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
           <span>Ou entre la clé manuellement : <code className="font-mono">{secret}</code></span>
@@ -195,6 +196,8 @@ function Deux2FA() {
 }
 
 export default function Profil() {
+  usePageTitle('Mon profil')
+
   const { user, updateUser } = useAuth()
   const { dark, toggle } = useTheme()
   const [discordId, setDiscordId]         = useState(user?.discord_id || '')

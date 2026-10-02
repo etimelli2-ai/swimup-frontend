@@ -1,3 +1,4 @@
+import usePageTitle from '../hooks/usePageTitle'
 import { useState, useEffect } from 'react'
 import {
   useMesAvis, useAvisDisponibles, useReserverAvis,
@@ -243,6 +244,8 @@ function AvisRefuse({ a, onContester, contestant }) {
 }
 
 export default function Avis() {
+  usePageTitle('Avis')
+
   const { data: mesAvis, isLoading: mesAvisLoading } = useMesAvis()
   const { data: disponibles, isLoading: dispoLoading } = useAvisDisponibles()
   const reserver = useReserverAvis()

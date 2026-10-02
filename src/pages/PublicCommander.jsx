@@ -39,6 +39,14 @@ const SECTEURS = [
 // non-connectés (avant même qu'ils ne créent un compte ou ne payent).
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
+// Valeurs de repli si /public/stats est indisponible — jamais affichées
+// comme "temps réel", juste pour ne pas laisser la section vide.
+const STATS_REPLI = { membres_actifs: 500, avis_publies: 2000 }
+
+function formatStat(n) {
+  return n.toLocaleString('fr-FR')
+}
+
 const FAQ = [
   { q: 'Est-ce que les avis Google achetés sont authentiques ?', r: "Oui. Chaque avis est publié par un vrai membre de notre réseau depuis son compte Google personnel. Nous n'utilisons jamais de bots ou de faux comptes." },
   { q: 'Combien coûte un avis Google Maps ?', r: 'Un avis Google Maps coûte 4€ sans compte. Si vous créez un compte SwimUp, le tarif est réduit à 3€ par avis avec des fonctionnalités supplémentaires.' },
@@ -105,6 +113,15 @@ export default function PublicCommander() {
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState(null)
   const [faqOpen, setFaqOpen]   = useState(0)
+  const [stats, setStats]       = useState(STATS_REPLI)
+
+  // Chiffres réels plutôt que des valeurs figées en dur — repli silencieux
+  // sur STATS_REPLI si l'API ne répond pas (jamais d'erreur visible ici).
+  useEffect(() => {
+    axios.get(`${API}/public/stats`)
+      .then(r => setStats(r.data))
+      .catch(() => {})
+  }, [])
 
   const total = quantite * PRIX_UNITAIRE
 
@@ -281,8 +298,8 @@ export default function PublicCommander() {
         <div className="relative max-w-2xl mx-auto px-4 pb-16 pt-8">
           <div className="grid grid-cols-3 gap-3 sm:gap-4">
             {[
-              { icon: Users, label: 'Membres actifs', value: '500+' },
-              { icon: Star,  label: 'Avis publiés',   value: '2 000+' },
+              { icon: Users, label: 'Membres actifs', value: formatStat(stats.membres_actifs) },
+              { icon: Star,  label: 'Avis publiés',   value: formatStat(stats.avis_publies) },
               { icon: Zap,   label: 'Livraison',      value: '24-48h' },
             ].map((s, i) => (
               <div key={i} className="rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 text-center">

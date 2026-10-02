@@ -1,3 +1,4 @@
+import usePageTitle from '../hooks/usePageTitle'
 // ============================================================
 // frontend/src/pages/Portefeuille.jsx -- NOUVEAU (redesign)
 // ============================================================
@@ -24,6 +25,8 @@ const typeConfig = {
 }
 
 export default function Portefeuille() {
+  usePageTitle('Portefeuille')
+
   const { user } = useAuth()
   const { data: soldeData } = useSolde()
   const { data: transactions, isLoading } = useTransactions()

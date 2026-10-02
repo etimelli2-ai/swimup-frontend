@@ -1,3 +1,4 @@
+import usePageTitle from '../hooks/usePageTitle'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import api from '../lib/api'
@@ -76,6 +77,8 @@ function ModalPaiement({ loterie, nbTickets, onClose, onSolde, onStripe, loading
 }
 
 export default function Loterie() {
+  usePageTitle('Loterie')
+
   const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const [data, setData]           = useState(null)

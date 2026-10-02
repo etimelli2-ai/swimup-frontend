@@ -1,3 +1,4 @@
+import usePageTitle from '../../hooks/usePageTitle'
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
 import MiniLineChart from '../../components/MiniLineChart'
@@ -21,6 +22,8 @@ function formatJour(dateStr) {
 }
 
 export default function ClientStats() {
+  usePageTitle('Statistiques')
+
   const [data, setData]       = useState(null)
   const [loading, setLoading] = useState(true)
 

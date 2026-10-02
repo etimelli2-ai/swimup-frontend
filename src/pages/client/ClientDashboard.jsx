@@ -1,3 +1,4 @@
+import usePageTitle from '../../hooks/usePageTitle'
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../lib/api'
@@ -6,6 +7,8 @@ import { CreditCard, ShoppingBag, Bell, CheckCircle2, Clock, AlertTriangle, Star
 import { motion } from 'framer-motion'
 
 export default function ClientDashboard() {
+  usePageTitle('Dashboard client')
+
   const { user } = useAuth()
   const [stats, setStats]           = useState(null)
   const [commandes, setCommandes]   = useState([])

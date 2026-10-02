@@ -1,3 +1,4 @@
+import usePageTitle from '../hooks/usePageTitle'
 // ============================================================
 // frontend/src/pages/Register.jsx -- NOUVEAU (redesign)
 // ============================================================
@@ -11,6 +12,8 @@ import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
 export default function Register() {
+  usePageTitle('Inscription')
+
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { register } = useAuth()

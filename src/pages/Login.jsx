@@ -1,3 +1,4 @@
+import usePageTitle from '../hooks/usePageTitle'
 // ============================================================
 // frontend/src/pages/Login.jsx -- NOUVEAU (redesign)
 // ============================================================
@@ -9,6 +10,8 @@ import { Star, Eye, EyeOff, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-
 import { motion } from 'framer-motion'
 
 export default function Login() {
+  usePageTitle('Connexion')
+
   const navigate = useNavigate()
   const { login, loginAvec2fa } = useAuth()
   const [email, setEmail] = useState('')

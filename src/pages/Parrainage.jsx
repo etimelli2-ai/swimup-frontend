@@ -1,3 +1,4 @@
+import usePageTitle from '../hooks/usePageTitle'
 import { useState, useEffect } from 'react'
 import api from '../lib/api'
 import { Gift, Copy, Check, Users, Coins } from 'lucide-react'
@@ -5,6 +6,8 @@ import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
 export default function Parrainage() {
+  usePageTitle('Parrainage')
+
   const [data, setData]       = useState(null)
   const [loading, setLoading] = useState(true)
   const [copie, setCopie]     = useState(false)
