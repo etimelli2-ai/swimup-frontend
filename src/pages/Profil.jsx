@@ -20,6 +20,7 @@ import {
   Check,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { springSmooth } from '../lib/motion'
 
 function Deux2FA() {
   const { user, updateUser } = useAuth()
@@ -249,6 +250,7 @@ export default function Profil() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={springSmooth}
         className="card p-5"
       >
         <div className="flex items-center gap-4">
@@ -268,12 +270,7 @@ export default function Profil() {
       </motion.div>
 
       {/* Thème */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05 }}
-        className="card p-5"
-      >
+      <div className="card p-5">
         <h2 className="section-title flex items-center gap-2 mb-4">
           {dark ? <Moon size={18} className="text-sky-500" /> : <Sun size={18} className="text-sky-500" />}
           Apparence
@@ -303,27 +300,19 @@ export default function Profil() {
             </span>
           </button>
         </div>
-      </motion.div>
+      </div>
 
       {/* Double authentification */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.08 }}
-        className="card p-5"
-      >
+      <div className="card p-5">
         <h2 className="section-title flex items-center gap-2 mb-4">
           <Shield size={18} className="text-sky-500" />
           Double authentification (2FA)
         </h2>
         <Deux2FA />
-      </motion.div>
+      </div>
 
       {/* Edit form */}
-      <motion.form
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+      <form
         onSubmit={handleSave}
         className="card p-5 space-y-5"
       >
@@ -420,7 +409,7 @@ export default function Profil() {
             </>
           )}
         </button>
-      </motion.form>
+      </form>
     </div>
   )
 }

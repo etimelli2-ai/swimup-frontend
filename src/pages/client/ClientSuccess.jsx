@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircle2, ArrowRight, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { springSmooth } from '../../lib/motion'
 
 export default function ClientSuccess() {
   const [searchParams] = useSearchParams()
@@ -12,6 +13,7 @@ export default function ClientSuccess() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
+        transition={springSmooth}
         className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 max-w-md w-full text-center space-y-6"
       >
         <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto">

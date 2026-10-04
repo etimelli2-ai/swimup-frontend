@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import api from '../../lib/api'
 import { Star, ChevronDown, ChevronUp, Save, Loader2, AlertTriangle, Trash2, CalendarClock, Clock3 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { springSheet } from '../../lib/motion'
 import toast from 'react-hot-toast'
 
 const PRIX_AVIS = 3
@@ -232,6 +233,7 @@ function CommandeCard({ commande, onAvisDeleted }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
+            transition={springSheet}
             className="overflow-hidden border-t border-slate-100 dark:border-slate-700"
           >
             <div className="p-4 space-y-3">

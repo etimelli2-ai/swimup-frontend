@@ -4,6 +4,7 @@ import api from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { Crown, CheckCircle2, ArrowRight, Percent, Sparkles, Zap, Check, MessageCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { springSmooth } from '../../lib/motion'
 import toast from 'react-hot-toast'
 
 function Spinner() {
@@ -95,6 +96,7 @@ export default function ClientPremium() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={springSmooth}
           className="card p-6 text-center space-y-4 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-900/10"
         >
           <div className="w-14 h-14 bg-amber-500 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-amber-500/25">

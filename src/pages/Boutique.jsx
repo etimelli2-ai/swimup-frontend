@@ -5,6 +5,7 @@ import api from '../lib/api'
 import { useAuth } from '../hooks/useAuth'
 import { ShoppingBag, Package, Loader2, CreditCard, Wallet, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { springSheet } from '../lib/motion'
 import toast from 'react-hot-toast'
 
 function Spinner() {
@@ -19,6 +20,7 @@ function ModalPaiement({ produit, quantite, onClose, onSolde, onStripe, loading 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
+        transition={springSheet}
         onClick={e => e.stopPropagation()}
         className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 space-y-5"
       >
@@ -211,12 +213,9 @@ export default function Boutique() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {produits.map((p, i) => (
-                <motion.div
+              {produits.map((p) => (
+                <div
                   key={p.id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
                   className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800"
                 >
                   {p.image_url ? (
@@ -276,7 +275,7 @@ export default function Boutique() {
                       {p.stock === 0 ? 'Rupture de stock' : 'Commander'}
                     </button>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           )}

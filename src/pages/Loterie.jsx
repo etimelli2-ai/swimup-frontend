@@ -5,6 +5,7 @@ import api from '../lib/api'
 import { useAuth } from '../hooks/useAuth'
 import { Wallet, CreditCard, X, Loader2, Trophy, AlertTriangle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { springSheet } from '../lib/motion'
 import toast from 'react-hot-toast'
 
 function Spinner() {
@@ -19,6 +20,7 @@ function ModalPaiement({ loterie, nbTickets, onClose, onSolde, onStripe, loading
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
+        transition={springSheet}
         onClick={e => e.stopPropagation()}
         className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 space-y-5"
       >

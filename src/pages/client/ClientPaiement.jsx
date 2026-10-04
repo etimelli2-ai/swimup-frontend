@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import api from '../../lib/api'
 import { CreditCard, Star, Building, Link, Clock, Loader2, CheckCircle2, ArrowRight, ShieldCheck, Gift, Crown } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { springSmooth } from '../../lib/motion'
 import toast from 'react-hot-toast'
 
 function Spinner() {
@@ -77,6 +78,7 @@ export default function ClientPaiement() {
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
+          transition={springSmooth}
           className="card p-8 text-center space-y-5"
         >
           <div className="w-16 h-16 bg-sky-50 dark:bg-sky-900/30 rounded-full flex items-center justify-center mx-auto">

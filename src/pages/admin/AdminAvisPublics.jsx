@@ -4,7 +4,6 @@ import toast from 'react-hot-toast'
 import {
   ExternalLink, CheckCircle2, XCircle, Loader2, Mail, Building2, Euro,
 } from 'lucide-react'
-import { motion } from 'framer-motion'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
@@ -85,7 +84,7 @@ export default function AdminAvisPublics() {
       ) : (
         <div className="space-y-3">
           {aVerifier.map(a => (
-            <motion.div key={a.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="card p-4 space-y-3">
+            <div key={a.id} className="card p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -116,7 +115,7 @@ export default function AdminAvisPublics() {
                   <XCircle size={16} /> Refuser
                 </button>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
