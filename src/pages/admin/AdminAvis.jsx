@@ -317,7 +317,12 @@ export default function AdminAvis() {
 
   let avisFiltres = [...avis]
   if (filtre === 'a_verifier') avisFiltres = avisFiltres.filter(a => checkpointInfo(a)?.aVerifierMaintenant)
-  else if (filtre !== 'tous') avisFiltres = avisFiltres.filter(a => a.statut === filtre)
+  // "Tous" masque les refusés par défaut — ils ne sont pas supprimés (le
+  // membre doit toujours les voir marqués "refusé" dans son historique),
+  // juste rangés hors de la vue principale. Toujours accessibles via
+  // l'onglet dédié "Refusé".
+  else if (filtre === 'tous') avisFiltres = avisFiltres.filter(a => a.statut !== 'refuse')
+  else avisFiltres = avisFiltres.filter(a => a.statut === filtre)
   if (search) avisFiltres = avisFiltres.filter(a =>
     getNomEtablissement(a).toLowerCase().includes(search.toLowerCase()) ||
     a.membre_email?.toLowerCase().includes(search.toLowerCase()) ||
@@ -393,7 +398,7 @@ export default function AdminAvis() {
                   : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
             }`}>
             {v === 'a_verifier' && <Clock size={12} />}
-            {v === 'tous' ? `Tous (${avis.length})` : v === 'a_verifier' ? `À vérifier (${nbAVerifier})` : l}
+            {v === 'tous' ? `Tous (${avis.filter(a => a.statut !== 'refuse').length})` : v === 'a_verifier' ? `À vérifier (${nbAVerifier})` : l}
           </button>
         ))}
       </div>
