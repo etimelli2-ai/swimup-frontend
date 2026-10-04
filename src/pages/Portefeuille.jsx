@@ -16,6 +16,7 @@ import {
   CreditCard
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { springSmooth } from '../lib/motion'
 
 const typeConfig = {
   credit: { label: 'Credit', color: 'text-emerald-600', bg: 'bg-emerald-50', icon: ArrowDownLeft },
@@ -54,6 +55,7 @@ export default function Portefeuille() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={springSmooth}
         className="card p-6 bg-sky-500 border-sky-400 text-white"
       >
         <div className="flex items-center justify-between mb-2">
@@ -70,11 +72,7 @@ export default function Portefeuille() {
 
       {/* Retrait form */}
       {!hasPaypal ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="card p-5 flex items-center gap-3"
-        >
+        <div className="card p-5 flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
             <AlertTriangle size={16} className="text-amber-500" />
           </div>
@@ -84,12 +82,9 @@ export default function Portefeuille() {
               Ajoute ton adresse PayPal dans ton profil pour pouvoir retirer ton solde.
             </p>
           </div>
-        </motion.div>
+        </div>
       ) : (
-        <motion.form
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+        <form
           onSubmit={handleRetrait}
           className="card p-5"
         >
@@ -123,7 +118,7 @@ export default function Portefeuille() {
           <p className="text-xs text-slate-400 mt-2">
             Paiement effectue sous 24 a 48h sur : {user.paypal_email}
           </p>
-        </motion.form>
+        </form>
       )}
 
       {/* Historique */}

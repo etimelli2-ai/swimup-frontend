@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { CreditCard, ShoppingBag, Bell, CheckCircle2, Clock, AlertTriangle, Star, TrendingUp, Crown, BarChart3 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { springSmooth, springSheet } from '../../lib/motion'
 
 export default function ClientDashboard() {
   usePageTitle('Dashboard client')
@@ -74,31 +75,40 @@ export default function ClientDashboard() {
         </button>
       </div>
 
-      {/* Notifications */}
-      {showNotifs && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="card p-4 space-y-2"
-        >
-          <h3 className="section-title">🔔 Notifications</h3>
-          {notifs.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-4">Aucune notification</p>
-          ) : notifs.slice(0, 5).map(n => (
-            <div key={n.id} className={`rounded-xl p-3 ${n.lu ? 'bg-slate-50 dark:bg-slate-700/50' : 'bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800'}`}>
-              <p className="text-sm font-semibold dark:text-white">{n.titre}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{n.message}</p>
-              <p className="text-xs text-slate-400 mt-1">{new Date(n.created_at).toLocaleString('fr-FR')}</p>
+      {/* Notifications — vraie ouverture/fermeture (pas juste un fade),
+          déclenchée par le clic sur la cloche : c'est une interaction, pas
+          une entrée de page, donc hauteur + AnimatePresence pour l'exit. */}
+      <AnimatePresence initial={false}>
+        {showNotifs && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={springSheet}
+            className="overflow-hidden"
+          >
+            <div className="card p-4 space-y-2">
+              <h3 className="section-title">🔔 Notifications</h3>
+              {notifs.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-4">Aucune notification</p>
+              ) : notifs.slice(0, 5).map(n => (
+                <div key={n.id} className={`rounded-xl p-3 ${n.lu ? 'bg-slate-50 dark:bg-slate-700/50' : 'bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800'}`}>
+                  <p className="text-sm font-semibold dark:text-white">{n.titre}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{n.message}</p>
+                  <p className="text-xs text-slate-400 mt-1">{new Date(n.created_at).toLocaleString('fr-FR')}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Alerte commandes incomplètes */}
       {commandesIncompletes.length > 0 && (
         <motion.div
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
+          transition={springSmooth}
           className="card p-4 border-l-4 border-l-amber-400 flex items-start gap-3"
         >
           <AlertTriangle size={18} className="text-amber-500 mt-0.5 shrink-0" />
@@ -119,51 +129,31 @@ export default function ClientDashboard() {
       {/* Stats */}
       {stats && (
         <div className="grid grid-cols-2 gap-3">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="stat-card"
-          >
+          <div className="stat-card">
             <div className="w-10 h-10 bg-sky-50 dark:bg-sky-900/30 rounded-lg flex items-center justify-center mb-3">
               <Star size={20} className="text-sky-500" />
             </div>
             <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{stats.total || 0}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Total avis</p>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="stat-card"
-          >
+          <div className="stat-card">
             <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center mb-3">
               <CheckCircle2 size={20} className="text-emerald-500" />
             </div>
             <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{stats.valides || 0}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Validés</p>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="stat-card"
-          >
+          <div className="stat-card">
             <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/30 rounded-lg flex items-center justify-center mb-3">
               <Clock size={20} className="text-amber-500" />
             </div>
             <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{stats.enCours || 0}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">En cours</p>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="stat-card"
-          >
+          <div className="stat-card">
             <div className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-3">
               <TrendingUp size={20} className="text-purple-500" />
             </div>
@@ -171,7 +161,7 @@ export default function ClientDashboard() {
               {commandes.length || 0}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Commandes</p>
-          </motion.div>
+          </div>
         </div>
       )}
 
@@ -242,14 +232,8 @@ export default function ClientDashboard() {
             { n: '2', t: 'Remplir les textes', d: 'Après paiement, remplis ou génère avec l\'IA les textes de chaque avis', color: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
             { n: '3', t: 'Publication', d: 'Les membres de SwimUp publient tes avis sur Google Maps', color: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
             { n: '4', t: 'Vérification', d: 'Nos systèmes vérifient que les avis sont bien publiés et maintenus', color: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
-          ].map((s, i) => (
-            <motion.div
-              key={s.n}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 + i * 0.05 }}
-              className="flex items-start gap-3"
-            >
+          ].map((s) => (
+            <div key={s.n} className="flex items-start gap-3">
               <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 ${s.color}`}>
                 {s.n}
               </span>
@@ -257,7 +241,7 @@ export default function ClientDashboard() {
                 <p className="text-sm font-semibold text-slate-800 dark:text-white">{s.t}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{s.d}</p>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

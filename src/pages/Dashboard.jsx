@@ -24,6 +24,7 @@ import {
   Gift,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { springSmooth } from '../lib/motion'
 
 const statutConfig = {
   reserve: { label: 'En cours', dot: 'bg-amber-400', icon: Clock },
@@ -92,6 +93,7 @@ export default function Dashboard() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={springSmooth}
         className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 text-white p-7 shadow-xl shadow-sky-500/20"
       >
         <div className="flex items-center gap-2 text-sky-100 text-[13px] font-medium">
@@ -165,20 +167,14 @@ export default function Dashboard() {
             { icon: Star, t: 'Publie ton avis', d: 'Mets les étoiles demandées sur Google Maps', bg: 'bg-amber-50 dark:bg-amber-900/20', fg: 'text-amber-500' },
             { icon: Send, t: 'Soumets le lien', d: 'Copie le lien de ton avis publié', bg: 'bg-violet-50 dark:bg-violet-900/20', fg: 'text-violet-500' },
             { icon: Coins, t: 'Reçois ton argent', d: 'Ton solde est crédité après vérification', bg: 'bg-emerald-50 dark:bg-emerald-900/20', fg: 'text-emerald-500' },
-          ].map((s, i) => (
-            <motion.div
-              key={s.t}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.05 }}
-              className="card p-4"
-            >
+          ].map((s) => (
+            <div key={s.t} className="card p-4">
               <span className={`inline-flex items-center justify-center w-9 h-9 rounded-xl mb-3 ${s.bg} ${s.fg}`}>
                 <s.icon size={17} />
               </span>
               <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">{s.t}</p>
               <p className="text-[13px] text-slate-400 mt-0.5 leading-relaxed">{s.d}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

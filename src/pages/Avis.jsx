@@ -9,6 +9,7 @@ import {
   ExternalLink, Send, RotateCcw, CheckCircle2, XCircle, MessageSquare,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { springSheet } from '../lib/motion'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
@@ -223,6 +224,7 @@ function AvisRefuse({ a, onContester, contestant }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
+            transition={springSheet}
             className="overflow-hidden"
           >
             <div className="pt-3 mt-3 border-t border-red-100 dark:border-red-900/40 space-y-2">
