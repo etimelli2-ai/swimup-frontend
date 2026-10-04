@@ -7,7 +7,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { Star, Eye, EyeOff, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { springSmooth, springSnappy, springSheet } from '../lib/motion'
 
 export default function Login() {
   usePageTitle('Connexion')
@@ -57,34 +58,49 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Halo d'ambiance — même grammaire que le hero de /commander, pour que
+          l'entrée dans le produit ne tranche pas avec la landing page. */}
+      <div
+        className="absolute inset-x-0 top-0 h-[520px] -z-0 pointer-events-none"
+        style={{ background: 'radial-gradient(60% 50% at 50% 0%, rgba(14,165,233,0.14) 0%, rgba(14,165,233,0) 70%)' }}
+      />
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-sm"
+        initial={{ opacity: 0, y: 24, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={springSmooth}
+        className="relative w-full max-w-sm"
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <motion.div
+            initial={{ scale: 0.6, rotate: -8 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={springSnappy}
+            className="w-14 h-14 bg-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-4"
+          >
             <Star size={26} className="text-white fill-white" />
-          </div>
+          </motion.div>
           <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">SwimUp</h1>
           <p className="text-[15px] text-slate-500 mt-1">Connecte-toi à ton compte</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg mb-4"
-            >
-              <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
-              <p className="text-sm text-red-700">{error}</p>
-            </motion.div>
-          )}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xl shadow-slate-200/50">
+          <AnimatePresence initial={false}>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                transition={springSheet}
+                className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg overflow-hidden"
+              >
+                <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
+                <p className="text-sm text-red-700">{error}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {tempToken ? (
             <form onSubmit={handleSubmit2fa} className="space-y-4">

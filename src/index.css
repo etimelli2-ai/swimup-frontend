@@ -16,28 +16,45 @@
 }
 
 @layer components {
-  /* Buttons — pilules, un seul accent (Action Blue par défaut), micro-interaction scale(0.95) */
+  /* Buttons — pilules, un seul accent (Action Blue par défaut). Le relâchement
+     après appui utilise une easing "back-out" (légère élasticité, comme un
+     ressort qui dépasse sa cible d'un cheveu avant de se stabiliser) au lieu
+     d'une easing linéaire — ça se sent au clic sans jamais être voyant.
+     prefers-reduced-motion : la transition retombe sur un simple fade
+     (pas de scale) pour ne pas imposer de mouvement non désiré. */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 py-2.5 px-5 text-white font-medium rounded-full
-           active:scale-95 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed;
+           active:scale-95 text-sm disabled:opacity-50 disabled:cursor-not-allowed;
     background-color: var(--accent);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease, opacity 0.15s ease;
   }
   .btn-primary:hover:not(:disabled) {
     background-color: var(--accent-hover);
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 py-2.5 px-5 bg-slate-50 text-slate-700 font-medium rounded-full
-           border border-slate-200 hover:bg-slate-100 active:scale-95 transition-all text-sm
+           border border-slate-200 hover:bg-slate-100 active:scale-95 text-sm
            dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease;
   }
   .btn-danger {
     @apply inline-flex items-center justify-center gap-2 py-2.5 px-5 bg-red-500 text-white font-medium rounded-full
-           hover:bg-red-600 active:scale-95 transition-all text-sm disabled:opacity-50;
+           hover:bg-red-600 active:scale-95 text-sm disabled:opacity-50;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease;
   }
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 py-2.5 px-4 text-slate-500 font-medium rounded-full
-           hover:bg-slate-100 active:scale-95 transition-all text-sm
+           hover:bg-slate-100 active:scale-95 text-sm
            dark:text-slate-400 dark:hover:bg-slate-800;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn-primary, .btn-secondary, .btn-danger, .btn-ghost {
+      transition: background-color 0.15s ease, opacity 0.15s ease;
+    }
+    .btn-primary:active, .btn-secondary:active, .btn-danger:active, .btn-ghost:active {
+      transform: none;
+    }
   }
 
   /* Inputs */
@@ -88,6 +105,14 @@
   .badge-red    { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400; }
   .badge-gray   { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300; }
   .badge-aqua   { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400; }
+
+  /* Matériau translucide (verre dépoli) — réservé aux surfaces qui flottent
+     au-dessus du contenu (barre de nav, feuille modale, menu) : jamais sur
+     une carte de contenu normale, où on veut une lecture nette (grammaire
+     Apple : le verre marque la profondeur/la hiérarchie, pas la décoration). */
+  .material-glass {
+    @apply backdrop-blur-xl bg-white/75 dark:bg-slate-900/75;
+  }
 }
 
 @layer utilities {

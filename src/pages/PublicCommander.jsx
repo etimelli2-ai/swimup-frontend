@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
+import { springSmooth, springSheet } from '../lib/motion'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.swimup.net/api'
 const PRIX_UNITAIRE = 4
@@ -74,7 +75,7 @@ function FaqItem({ item, open, onClick }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={springSheet}
             className="overflow-hidden"
           >
             <p className="text-[14px] text-slate-500 leading-relaxed pb-4 pr-8">{item.r}</p>
@@ -178,7 +179,7 @@ export default function PublicCommander() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={springSmooth}
           className="relative max-w-2xl mx-auto px-4 pt-16 pb-8 text-center"
         >
           <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 text-sky-600 border border-sky-100 px-3.5 py-1.5 text-[12px] font-semibold tracking-wide uppercase mb-5">
@@ -230,7 +231,7 @@ export default function PublicCommander() {
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
-          transition={{ duration: 0.6 }}
+          transition={springSmooth}
           className="relative max-w-md mx-auto px-4 pb-4"
         >
           <div className="rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 overflow-hidden">
