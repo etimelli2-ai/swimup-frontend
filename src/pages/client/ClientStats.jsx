@@ -6,7 +6,6 @@ import {
   Star, BarChart3, Info, MessageSquare, Download, TrendingUp, TrendingDown,
   CheckCircle2, Clock, PackageOpen, XCircle,
 } from 'lucide-react'
-import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
 const MOIS_LABELS = {
@@ -163,7 +162,7 @@ export default function ClientStats() {
       </div>
 
       {/* Répartition des avis commandés */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card p-5">
+      <div className="card p-5">
         <h3 className="font-bold text-slate-900 dark:text-white mb-3">Répartition de tes avis commandés</h3>
         {repartition.total > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -178,10 +177,10 @@ export default function ClientStats() {
         ) : (
           <p className="text-sm text-slate-400">Pas encore d'avis commandé.</p>
         )}
-      </motion.div>
+      </div>
 
       {/* Évolution de la note Google */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="card p-5">
+      <div className="card p-5">
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Star size={16} className="text-amber-400 fill-amber-400" /> Note Google
@@ -213,10 +212,10 @@ export default function ClientStats() {
             </p>
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* Évolution du nombre d'avis Google */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="card p-5">
+      <div className="card p-5">
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <MessageSquare size={16} className="text-violet-500" /> Avis Google au total
@@ -241,10 +240,10 @@ export default function ClientStats() {
             </p>
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* Avis SwimUp publiés dans le temps */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="card p-5">
+      <div className="card p-5">
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <BarChart3 size={16} className="text-sky-500" /> Avis publiés par SwimUp
@@ -262,7 +261,7 @@ export default function ClientStats() {
             </p>
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   )
 }

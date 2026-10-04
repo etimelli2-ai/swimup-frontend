@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import React from 'react'
+import { springSheet, springSmooth } from '../lib/motion'
 
 // Palette fixe des couleurs de thème premium (doit rester alignée avec
 // COULEURS_THEME côté backend, routes/client.js) — chaque couleur de base a
@@ -112,22 +113,33 @@ export default function Layout() {
        location.pathname.startsWith(path + '/'))
   }
 
-  const NavLink = ({ item, onClick }) => {
+  // scope distingue la pastille active de la sidebar desktop de celle du
+  // menu mobile — deux instances React séparées, chacune doit avoir son
+  // propre layoutId sinon Framer Motion essaie de faire glisser une pastille
+  // entre deux arbres différents au lieu de l'animer dans chacun.
+  const NavLink = ({ item, onClick, scope }) => {
     const active = isActive(item.path)
     const Icon = item.icon
     return (
       <Link
         to={item.path}
         onClick={onClick}
-        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
           active
             ? ''
             : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-slate-200'
         }`}
-        style={active ? { backgroundColor: `${accent}1a`, color: accent } : undefined}
       >
-        <Icon size={18} className={active ? '' : 'text-slate-400 dark:text-slate-500'} style={active ? { color: accent } : undefined} />
-        {item.label}
+        {active && (
+          <motion.div
+            layoutId={`nav-active-pill-${scope}`}
+            transition={springSmooth}
+            className="absolute inset-0 rounded-lg"
+            style={{ backgroundColor: `${accent}1a` }}
+          />
+        )}
+        <Icon size={18} className={`relative ${active ? '' : 'text-slate-400 dark:text-slate-500'}`} style={active ? { color: accent } : undefined} />
+        <span className="relative" style={active ? { color: accent } : undefined}>{item.label}</span>
       </Link>
     )
   }
@@ -147,7 +159,7 @@ export default function Layout() {
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {navItems.map(item => <NavLink key={item.path} item={item} />)}
+          {navItems.map(item => <NavLink key={item.path} item={item} scope="desktop" />)}
         </nav>
 
         <div className="p-3 border-t border-slate-100 dark:border-slate-700 space-y-0.5">
@@ -166,8 +178,9 @@ export default function Layout() {
         </div>
       </aside>
 
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 z-30 flex items-center justify-between px-4">
+      {/* Mobile Header — verre dépoli façon barre de nav iOS : laisse deviner
+          le contenu qui défile dessous au lieu d'une plaque opaque. */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 material-glass border-b border-slate-200/70 dark:border-slate-700/70 z-30 flex items-center justify-between px-4">
         <Link to={isAdmin ? '/admin' : isClient ? '/client' : '/dashboard'} className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent }}>
             <Star size={15} className="text-white fill-white" />
@@ -182,18 +195,41 @@ export default function Layout() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Menu mobile — vraie feuille qui glisse depuis le bord, au lieu d'un
+          plein écran qui apparaît d'un coup. Se ferme au tap sur le fond
+          assombri, ou en la faisant glisser vers la gauche (hérite de la
+          vélocité du geste : un petit coup sec la ferme même sans aller au
+          bout de la course). */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="lg:hidden fixed inset-0 z-20 bg-white dark:bg-slate-800 pt-14"
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden fixed top-14 inset-x-0 bottom-0 z-20 bg-slate-900/30"
+          />
+        )}
+        {mobileOpen && (
+          <motion.div
+            key="sheet"
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={springSheet}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={{ left: 0.5, right: 0 }}
+            onDragEnd={(e, { offset, velocity }) => {
+              if (offset.x < -90 || velocity.x < -500) setMobileOpen(false)
+            }}
+            className="lg:hidden fixed left-0 top-14 bottom-0 z-[25] w-[82vw] max-w-[300px] material-glass border-r border-slate-200/70 dark:border-slate-700/70"
           >
-            <nav className="p-3 space-y-0.5">
+            <nav className="p-3 space-y-0.5 h-full overflow-y-auto">
               {navItems.map(item => (
-                <NavLink key={item.path} item={item} onClick={() => setMobileOpen(false)} />
+                <NavLink key={item.path} item={item} scope="mobile" onClick={() => setMobileOpen(false)} />
               ))}
               <DiscordButton />
               <button
