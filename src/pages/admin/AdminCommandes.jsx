@@ -74,7 +74,7 @@ export default function AdminCommandes() {
   const nettoyer = async () => {
     setNettoyage(true)
     try {
-      const r = await api.get('/cleanup-commandes-vides')
+      const r = await api.post('/cleanup-commandes-vides')
       toast.success(`${r.data.supprimees || 0} commande(s) vide(s) supprimée(s)`)
       load()
     } catch (e) {

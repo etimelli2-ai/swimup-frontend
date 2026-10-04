@@ -2,6 +2,7 @@
 // PublicSuivi.jsx (après paiement, le client remplit les infos de son
 // établissement) — évite de dupliquer ces constantes/composants.
 import { Star } from 'lucide-react'
+import api from './api'
 
 export const TONS = [
   { id: 'enthousiaste', label: 'Enthousiaste', emoji: '🔥' },
@@ -39,44 +40,13 @@ export function EtoilesPicker({ value, onChange }) {
   )
 }
 
-const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY
-
+// Génère le texte via notre backend (qui appelle Groq avec sa propre clé
+// GROQ_API_KEY, jamais exposée au navigateur — avant, la clé était en
+// VITE_GROQ_API_KEY donc visible en clair dans le bundle JS public).
 export async function genererTexteIA(nom, type, etoiles, ton) {
   try {
-    const tonDesc = {
-      enthousiaste: 'très enthousiaste et positif',
-      naturel: 'naturel et authentique',
-      neutre: 'neutre et factuel',
-      drole: 'drôle et léger',
-      poetique: 'poétique et imagé',
-      severe: 'critique et sévère',
-    }[ton] || 'naturel'
-
-    const positif = etoiles >= 4
-    const negatif = etoiles <= 2
-    const prompt = `Écris un avis Google ${positif ? 'positif' : negatif ? 'négatif' : 'mitigé'} en français pour "${nom}" (${type || 'établissement'}). Ton : ${tonDesc}. ${etoiles} étoiles sur 5. 2-3 phrases naturelles. Sans guillemets. Sans introduction. Juste le texte de l'avis.`
-
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: [
-          { role: 'system', content: 'Tu génères des avis Google authentiques. UNIQUEMENT le texte, sans guillemets, sans entités HTML.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 200,
-        temperature: 1.1,
-      }),
-    })
-    const data = await res.json()
-    return data.choices?.[0]?.message?.content?.trim()
-      .replace(/^["'«»]|["'«»]$/g, '')
-      .replace(/&quot;/g, '"')
-      .replace(/&#039;/g, "'") || ''
+    const { data } = await api.post('/public/generer-avis-ia', { nom, type, etoiles, ton })
+    return data.texte || ''
   } catch {
     return ''
   }
