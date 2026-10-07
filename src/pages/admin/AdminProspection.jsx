@@ -83,7 +83,11 @@ export default function AdminProspection() {
     setLR(true)
     try {
       const r = await api.post('/admin/prospection/rechercher', { recherches: valides, maxAvis })
-      if (r.data.notes?.length) {
+      if (r.data.total === 0 && r.data.notes?.length) {
+        // Rien trouvé ET une raison : c'est un échec, pas un succès à 0
+        setMsg({ type: 'error', text: r.data.notes.join(' ') })
+        setTimeout(() => setMsg(null), 15000)
+      } else if (r.data.notes?.length) {
         setMsg({ type: 'info', text: `✅ ${r.data.total} prospect(s) trouvé(s). ${r.data.notes.join(' ')}` })
         setTimeout(() => setMsg(null), 10000)
       } else {
@@ -128,6 +132,27 @@ export default function AdminProspection() {
       showMsg('error', e.response?.data?.error || 'Email invalide')
     }
     setLA(null)
+  }
+
+  const chercherEmail = async (p) => {
+    setLA(`cherche_${p.id}`)
+    try {
+      const r = await api.post(`/admin/prospection/${p.id}/chercher-email`)
+      if (r.data.trouve) {
+        showMsg('success', `✅ Email trouvé : ${r.data.email}`)
+        load()
+      } else {
+        showMsg('error', r.data.raison || 'Aucun email trouvé')
+      }
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur pendant la recherche')
+    }
+    setLA(null)
+  }
+
+  const lienRechercheGoogle = (p) => {
+    const ville = (p.ville || p.adresse || '').toString()
+    return `https://www.google.com/search?q=${encodeURIComponent(`${p.nom} ${ville} email contact`)}`
   }
 
   const ajouterManuellement = async (e) => {
@@ -337,20 +362,46 @@ export default function AdminProspection() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <input
-                  type="email" placeholder="Email introuvable — renseigne-le"
-                  value={editEmail[p.id] ?? ''}
-                  onChange={e => setEditEmail({ ...editEmail, [p.id]: e.target.value })}
-                  className="input text-xs flex-1 py-2"
-                />
-                <button
-                  onClick={() => sauverEmail(p.id)}
-                  disabled={loadingAction === `email_${p.id}`}
-                  className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-1 shrink-0"
-                >
-                  <Pencil size={12} />
-                </button>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="email" placeholder="Email introuvable — renseigne-le"
+                    value={editEmail[p.id] ?? ''}
+                    onChange={e => setEditEmail({ ...editEmail, [p.id]: e.target.value })}
+                    className="input text-xs flex-1 py-2"
+                  />
+                  <button
+                    onClick={() => sauverEmail(p.id)}
+                    disabled={loadingAction === `email_${p.id}`}
+                    className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-1 shrink-0"
+                  >
+                    <Pencil size={12} />
+                  </button>
+                </div>
+                {/* Pas d'email : on garde d'autres pistes de contact à portée de main */}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => chercherEmail(p)}
+                    disabled={loadingAction === `cherche_${p.id}`}
+                    className="bg-sky-50 text-sky-600 px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 disabled:opacity-70"
+                  >
+                    {loadingAction === `cherche_${p.id}` ? <><Spinner /> Recherche...</> : <><Search size={12} /> Chercher l'email</>}
+                  </button>
+                  <a
+                    href={lienRechercheGoogle(p)} target="_blank" rel="noreferrer"
+                    className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1"
+                  >
+                    <Globe size={12} /> Chercher sur Google
+                  </a>
+                  {p.telephone && (
+                    <a
+                      href={`tel:${String(p.telephone).replace(/\s/g, '')}`}
+                      className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1"
+                    >
+                      <Phone size={12} /> Appeler
+                    </a>
+                  )}
+                </div>
               </div>
             )}
           </div>
