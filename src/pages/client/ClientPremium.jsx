@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
-import { Crown, CheckCircle2, ArrowRight, Percent, Sparkles, Zap, Check, MessageCircle } from 'lucide-react'
+import { Crown, CheckCircle2, ArrowRight, Percent, Sparkles, Zap, Check, MessageCircle, RotateCcw } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { springSmooth } from '../../lib/motion'
 import toast from 'react-hot-toast'
+import { PALETTE, ARRONDIS, TAILLES, ICONES, ACCENT_DEFAUT, NOM_ESPACE_MAX, couleurTropClaire } from '../../lib/themePremium'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
@@ -14,40 +15,46 @@ function Spinner() {
 // Ton lien PayPal.me (identique à ClientPaiement.jsx)
 const PAYPAL_ME = import.meta.env.VITE_PAYPAL_ME || 'https://paypal.me/tonpseudo'
 
-// Palette de couleurs de thème — doit rester alignée avec COULEURS_THEME
-// côté backend (routes/client.js).
-const PALETTE = [
-  { key: 'sky',     hex: '#0ea5e9', label: 'Bleu' },
-  { key: 'emerald', hex: '#10b981', label: 'Émeraude' },
-  { key: 'violet',  hex: '#8b5cf6', label: 'Violet' },
-  { key: 'amber',   hex: '#f59e0b', label: 'Ambre' },
-  { key: 'rose',    hex: '#f43f5e', label: 'Rose' },
-  { key: 'indigo',  hex: '#6366f1', label: 'Indigo' },
-]
-
 export default function ClientPremium() {
   const navigate = useNavigate()
   const { user, updateUser } = useAuth()
   const [loading, setLoading] = useState(true)
   const [envoi, setEnvoi] = useState(false)
   const [statut, setStatut] = useState(null) // { premium, premium_expire_at, demande_en_attente, montant }
-  const [couleurEnvoi, setCouleurEnvoi] = useState(null)
+  const [themeEnvoi, setThemeEnvoi] = useState(null) // clé du réglage en cours d'enregistrement
+  const [couleurLibre, setCouleurLibre] = useState(user?.theme_color || ACCENT_DEFAUT)
+  const [nomEspace, setNomEspace] = useState(user?.theme?.nom_espace || '')
   const [ticketEnvoi, setTicketEnvoi] = useState(false)
   const [ticket, setTicket] = useState({ sujet: '', message: '' })
 
   const load = () => api.get('/client/abonnement').then(r => setStatut(r.data)).finally(() => setLoading(false))
   useEffect(() => { load() }, [])
 
-  const choisirCouleur = async (key) => {
-    setCouleurEnvoi(key)
+  // Un seul appel pour tous les réglages d'interface : le serveur ne touche
+  // qu'aux champs envoyés. La réponse met à jour l'utilisateur, donc le
+  // Layout (couleur, forme, taille, nom, icône) change tout de suite.
+  const appliquerTheme = async (patch, cle, message = 'Réglage enregistré') => {
+    setThemeEnvoi(cle)
     try {
-      const r = await api.put('/client/theme', { couleur: key })
-      updateUser({ theme_color: r.data.theme_color })
-      toast.success('Thème mis à jour !')
+      const r = await api.put('/client/theme', patch)
+      updateUser({ theme_color: r.data.theme_color, theme: r.data.theme })
+      toast.success(message)
+      return r.data
     } catch (e) {
       toast.error(e.response?.data?.error || 'Erreur')
+      return null
+    } finally {
+      setThemeEnvoi(null)
     }
-    setCouleurEnvoi(null)
+  }
+
+  const reinitialiserTheme = async () => {
+    if (!confirm('Remettre toute la personnalisation par défaut ?')) return
+    const r = await appliquerTheme({ reset: true }, 'reset', 'Personnalisation réinitialisée')
+    if (r) {
+      setNomEspace('')
+      setCouleurLibre(ACCENT_DEFAUT)
+    }
   }
 
   const envoyerTicket = async () => {
@@ -115,33 +122,167 @@ export default function ClientPremium() {
         </motion.div>
       )}
 
-      {statut?.premium && (
-        <div className="card p-5 space-y-4">
-          <h2 className="section-title flex items-center gap-2">
-            <Sparkles size={17} className="text-amber-500" />
-            Couleur de ton espace
-          </h2>
-          <div className="flex flex-wrap gap-3">
-            {PALETTE.map(c => (
+      {statut?.premium && (() => {
+        const theme = user?.theme || {}
+        const couleurActuelle = (user?.theme_color || ACCENT_DEFAUT).toLowerCase()
+        const arrondiActuel = theme.arrondi || 'pilule'
+        const tailleActuelle = theme.taille_texte || 'normale'
+        const iconeActuelle = theme.icone || 'etoile'
+        const occupe = themeEnvoi !== null
+        const couleurLibreActive = !PALETTE.some(c => c.hex === couleurActuelle)
+        const trop = couleurTropClaire(couleurLibre)
+
+        // Sélecteur segmenté (même grammaire que "Immédiat / Programmer")
+        const Segments = ({ options, valeur, onChoisir }) => (
+          <div className="flex bg-slate-100 dark:bg-slate-700 rounded-full p-0.5 text-xs w-fit max-w-full">
+            {options.map(([val, label]) => (
               <button
-                key={c.key}
-                onClick={() => choisirCouleur(c.key)}
-                disabled={couleurEnvoi !== null}
-                title={c.label}
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-90 disabled:opacity-50 ring-2 ring-offset-2 dark:ring-offset-slate-800"
-                style={{
-                  backgroundColor: c.hex,
-                  '--tw-ring-color': user?.theme_color === c.hex || (!user?.theme_color && c.key === 'sky') ? c.hex : 'transparent',
-                }}
+                key={val}
+                onClick={() => val !== valeur && onChoisir(val)}
+                disabled={occupe}
+                className={`px-3.5 py-1.5 rounded-full font-medium transition-all disabled:opacity-60 ${
+                  valeur === val ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'
+                }`}
               >
-                {(user?.theme_color === c.hex || (!user?.theme_color && c.key === 'sky')) && (
-                  <Check size={16} className="text-white" />
-                )}
+                {label}
               </button>
             ))}
           </div>
-        </div>
-      )}
+        )
+
+        const Titre = ({ children }) => (
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{children}</p>
+        )
+
+        return (
+          <div className="card p-5 space-y-5">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="section-title flex items-center gap-2">
+                <Sparkles size={17} className="text-amber-500" />
+                Personnaliser ton espace
+              </h2>
+              <button
+                onClick={reinitialiserTheme}
+                disabled={occupe}
+                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 disabled:opacity-50"
+              >
+                <RotateCcw size={12} /> Réinitialiser
+              </button>
+            </div>
+
+            {/* Couleur : préréglages + couleur libre */}
+            <div>
+              <Titre>Couleur d'accent</Titre>
+              <div className="flex flex-wrap gap-3">
+                {PALETTE.map(c => {
+                  const actif = couleurActuelle === c.hex
+                  return (
+                    <button
+                      key={c.key}
+                      onClick={() => appliquerTheme({ couleur: c.key }, 'couleur', 'Couleur mise à jour')}
+                      disabled={occupe}
+                      title={c.label}
+                      aria-label={c.label}
+                      className="w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-90 disabled:opacity-50 ring-2 ring-offset-2 dark:ring-offset-slate-800"
+                      style={{ backgroundColor: c.hex, '--tw-ring-color': actif ? c.hex : 'transparent' }}
+                    >
+                      {actif && <Check size={16} className="text-white" />}
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="flex flex-wrap items-center gap-3 mt-3">
+                <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <input
+                    type="color" value={couleurLibre}
+                    onChange={e => setCouleurLibre(e.target.value)}
+                    className="w-10 h-10 rounded-full border-0 bg-transparent p-0 cursor-pointer"
+                    aria-label="Couleur libre"
+                  />
+                  Couleur libre <span className="font-mono">{couleurLibre}</span>
+                  {couleurLibreActive && <span className="badge-blue">active</span>}
+                </label>
+                <button
+                  onClick={() => appliquerTheme({ couleur_hex: couleurLibre }, 'couleur', 'Couleur mise à jour')}
+                  disabled={occupe || trop || couleurLibre.toLowerCase() === couleurActuelle}
+                  className="btn-secondary py-1.5 px-4 text-xs"
+                >
+                  Appliquer
+                </button>
+              </div>
+              {trop && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                  Cette couleur est trop claire : le texte blanc des boutons ne serait plus lisible.
+                </p>
+              )}
+            </div>
+
+            {/* Forme des boutons et des cartes */}
+            <div>
+              <Titre>Forme des boutons et des cartes</Titre>
+              <Segments
+                valeur={arrondiActuel}
+                options={Object.entries(ARRONDIS).map(([k, v]) => [k, v.label])}
+                onChoisir={v => appliquerTheme({ arrondi: v === 'pilule' ? null : v }, 'arrondi', 'Forme mise à jour')}
+              />
+            </div>
+
+            {/* Taille du texte */}
+            <div>
+              <Titre>Taille du texte</Titre>
+              <Segments
+                valeur={tailleActuelle}
+                options={Object.entries(TAILLES).map(([k, v]) => [k, v.label])}
+                onChoisir={v => appliquerTheme({ taille_texte: v === 'normale' ? null : v }, 'taille', 'Taille mise à jour')}
+              />
+            </div>
+
+            {/* Nom affiché dans le menu */}
+            <div>
+              <Titre>Nom affiché dans le menu</Titre>
+              <div className="flex gap-2">
+                <input
+                  className="input flex-1" placeholder="SwimUp" maxLength={NOM_ESPACE_MAX}
+                  value={nomEspace} onChange={e => setNomEspace(e.target.value)}
+                />
+                <button
+                  onClick={() => appliquerTheme({ nom_espace: nomEspace.trim() || null }, 'nom', 'Nom mis à jour')}
+                  disabled={occupe || nomEspace.trim() === (theme.nom_espace || '')}
+                  className="btn-secondary px-4 text-xs"
+                >
+                  Enregistrer
+                </button>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">Laisse vide pour garder « SwimUp » ({NOM_ESPACE_MAX} caractères max).</p>
+            </div>
+
+            {/* Icône du logo */}
+            <div>
+              <Titre>Icône du logo</Titre>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(ICONES).map(([key, { label, Icon, plein }]) => {
+                  const actif = iconeActuelle === key
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => !actif && appliquerTheme({ icone: key === 'etoile' ? null : key }, 'icone', 'Icône mise à jour')}
+                      disabled={occupe}
+                      title={label}
+                      aria-label={label}
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform active:scale-90 disabled:opacity-50 ${
+                        actif ? 'text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300'
+                      }`}
+                      style={actif ? { backgroundColor: 'var(--accent)' } : undefined}
+                    >
+                      <Icon size={18} className={actif && plein ? 'fill-white' : ''} />
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {statut?.premium && (
         <div className="card p-5 space-y-4">
@@ -228,7 +369,7 @@ export default function ClientPremium() {
               </span>
               <div>
                 <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">Personnalisation</p>
-                <p className="text-[13px] text-slate-400 mt-0.5">Choisis la couleur d'accent de ton espace client.</p>
+                <p className="text-[13px] text-slate-400 mt-0.5">Couleur (préréglée ou libre), forme des boutons, taille du texte, nom et icône de ton menu.</p>
               </div>
             </div>
           </div>

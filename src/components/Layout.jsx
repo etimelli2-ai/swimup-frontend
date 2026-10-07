@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import {
@@ -24,18 +24,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import React from 'react'
 import { springSheet, springSmooth } from '../lib/motion'
-
-// Palette fixe des couleurs de thème premium (doit rester alignée avec
-// COULEURS_THEME côté backend, routes/client.js) — chaque couleur de base a
-// sa teinte "hover" associée pour .btn-primary.
-const ACCENT_HOVER = {
-  '#0ea5e9': '#0284c7', // sky (défaut)
-  '#10b981': '#059669', // emerald
-  '#8b5cf6': '#7c3aed', // violet
-  '#f59e0b': '#d97706', // amber
-  '#f43f5e': '#e11d48', // rose
-  '#6366f1': '#4f46e5', // indigo
-}
+import { ACCENT_DEFAUT, couleurHover, ARRONDIS, TAILLES, ICONES } from '../lib/themePremium'
 
 const DiscordIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -66,9 +55,26 @@ export default function Layout() {
   const isAdmin  = user?.role === 'admin'
   const isClient = user?.role === 'client'
 
-  // Thème premium — couleur d'accent choisie par le client (sinon défaut).
-  const accent = (isClient && user?.theme_color) || '#0ea5e9'
-  const accentHover = ACCENT_HOVER[accent] || '#0284c7'
+  // Thème premium — couleur d'accent, forme, taille du texte, nom et icône
+  // choisis par le client (sinon valeurs par défaut du site). Le backend ne
+  // renvoie user.theme que tant que le premium est actif.
+  const accent = (isClient && user?.theme_color) || ACCENT_DEFAUT
+  const accentHover = couleurHover(accent)
+  const theme = isClient ? user?.theme : null
+  const forme = ARRONDIS[theme?.arrondi] || ARRONDIS.pilule
+  const nomEspace = theme?.nom_espace || 'SwimUp'
+  const { Icon: LogoIcon, plein: logoPlein } = ICONES[theme?.icone] || ICONES.etoile
+  const taillePct = TAILLES[theme?.taille_texte]?.pct || null
+
+  // La taille du texte se règle sur la racine (tout est en rem) ; on remet
+  // la valeur d'origine en quittant le layout (déconnexion, autre rôle).
+  useEffect(() => {
+    if (!taillePct) return
+    const html = document.documentElement
+    const avant = html.style.fontSize
+    html.style.fontSize = taillePct
+    return () => { html.style.fontSize = avant }
+  }, [taillePct])
 
   const navItems = isAdmin ? [
     { path: '/admin',          label: 'Dashboard',   icon: LayoutDashboard },
@@ -145,16 +151,22 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex" style={{ '--accent': accent, '--accent-hover': accentHover }}>
+    <div
+      className="min-h-screen bg-slate-50 dark:bg-slate-900 flex"
+      style={{
+        '--accent': accent, '--accent-hover': accentHover,
+        '--radius-btn': forme.btn, '--radius-card': forme.card, '--radius-input': forme.input,
+      }}
+    >
 
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 fixed h-full z-20">
         <div className="p-5 border-b border-slate-100 dark:border-slate-700">
           <Link to={isAdmin ? '/admin' : isClient ? '/client' : '/dashboard'} className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent }}>
-              <Star size={18} className="text-white fill-white" />
+              <LogoIcon size={18} className={`text-white ${logoPlein ? 'fill-white' : ''}`} />
             </div>
-            <span className="text-lg font-semibold text-slate-900 dark:text-slate-100 tracking-tight">SwimUp</span>
+            <span className="text-lg font-semibold text-slate-900 dark:text-slate-100 tracking-tight truncate">{nomEspace}</span>
           </Link>
         </div>
 
@@ -183,9 +195,9 @@ export default function Layout() {
       <div className="lg:hidden fixed top-0 left-0 right-0 h-14 material-glass border-b border-slate-200/70 dark:border-slate-700/70 z-30 flex items-center justify-between px-4">
         <Link to={isAdmin ? '/admin' : isClient ? '/client' : '/dashboard'} className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent }}>
-            <Star size={15} className="text-white fill-white" />
+            <LogoIcon size={15} className={`text-white ${logoPlein ? 'fill-white' : ''}`} />
           </div>
-          <span className="font-semibold text-slate-900 dark:text-slate-100 tracking-tight">SwimUp</span>
+          <span className="font-semibold text-slate-900 dark:text-slate-100 tracking-tight truncate max-w-[200px]">{nomEspace}</span>
         </Link>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}

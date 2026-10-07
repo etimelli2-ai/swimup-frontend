@@ -27,6 +27,13 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('swimup:logout', handleLogout)
   }, [])
 
+  // Les réponses de login/inscription ne contiennent pas le statut premium ni
+  // les réglages d'interface : on recharge le profil complet juste après,
+  // sinon ils n'apparaissent qu'au prochain rechargement de la page.
+  const hydraterProfil = useCallback(() => {
+    api.get('/auth/me').then(r => setUser(r.data)).catch(() => {})
+  }, [])
+
   const login = useCallback(async (email, password) => {
     const r = await api.post('/auth/login', { email, password })
     // Compte protégé par la 2FA : pas encore de session, il faut d'abord
@@ -34,20 +41,23 @@ export function AuthProvider({ children }) {
     // l'écran de login sache afficher l'étape suivante.
     if (r.data?.requires2fa) return r.data
     setUser(r.data.user)
+    hydraterProfil()
     return r.data
-  }, [])
+  }, [hydraterProfil])
 
   const loginAvec2fa = useCallback(async (tempToken, code) => {
     const r = await api.post('/auth/2fa/verify-login', { tempToken, code })
     setUser(r.data.user)
+    hydraterProfil()
     return r.data.user
-  }, [])
+  }, [hydraterProfil])
 
   const register = useCallback(async (email, password, discord_id, invitation_code, commande_token, parrainage_code) => {
     const r = await api.post('/auth/register', { email, password, discord_id, invitation_code, commande_token, parrainage_code })
     setUser(r.data.user)
+    hydraterProfil()
     return r.data.user
-  }, [])
+  }, [hydraterProfil])
 
   const logout = useCallback(() => {
     // Le cookie httpOnly ne peut pas être supprimé en JS : il faut demander
