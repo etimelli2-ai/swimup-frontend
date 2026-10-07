@@ -23,6 +23,20 @@ const METIERS = [
 ]
 const LABEL_METIER = { __autre__: 'Autre (préciser)' }
 
+// Canaux de prise de contact à la main (l'email envoyé depuis le site est
+// compté automatiquement côté serveur).
+const CANAUX = [
+  ['telephone', 'Téléphone'],
+  ['sur_place', 'Sur place'],
+  ['instagram', 'Instagram'],
+  ['facebook', 'Facebook'],
+  ['linkedin', 'LinkedIn'],
+  ['email', 'Email (hors site)'],
+  ['autre', 'Autre'],
+]
+const LABEL_CANAL = { ...Object.fromEntries(CANAUX), email: 'Email' }
+const estContacte = (p) => !!p.email_envoye || !!p.dernier_contact_at
+
 // On mène avec la valeur (pourquoi une bonne fiche Google compte) plutôt
 // qu'avec "on vend des avis" — le service n'arrive qu'ensuite, en douceur,
 // avec l'essai gratuit comme porte d'entrée sans engagement.
@@ -58,8 +72,18 @@ export default function AdminProspection() {
   const [ajoutManuel, setAjoutManuel] = useState(false)
   const [formManuel, setFormManuel] = useState({ nom: '', email: '', telephone: '', site_web: '', adresse: '' })
   const [loadingManuel, setLM]      = useState(false)
+  const [objectif, setObjectif]     = useState({ objectif: 0, fait: 0 })
+  const [objInput, setObjInput]     = useState('')
+  const [canalChoisi, setCanalChoisi] = useState({})
 
-  const load = () => api.get('/admin/prospection').then(r => setProspects(r.data))
+  const loadObjectif = () => api.get('/admin/prospection/objectif').then(r => {
+    setObjectif(r.data)
+    setObjInput(String(r.data.objectif))
+  }).catch(() => {})
+  const load = () => {
+    api.get('/admin/prospection').then(r => setProspects(r.data))
+    loadObjectif()
+  }
   useEffect(() => { load() }, [])
 
   const showMsg = (type, text) => {
@@ -134,6 +158,43 @@ export default function AdminProspection() {
     setLA(null)
   }
 
+  const sauverObjectif = async () => {
+    const n = Number(objInput)
+    if (!Number.isInteger(n) || n < 0) return showMsg('error', 'Mets un nombre entier (0 ou plus)')
+    setLA('objectif')
+    try {
+      await api.put('/admin/prospection/objectif', { objectif: n })
+      showMsg('success', `✅ Objectif de la semaine : ${n}`)
+      loadObjectif()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || "Erreur à l'enregistrement")
+    }
+    setLA(null)
+  }
+
+  const marquerContacte = async (p) => {
+    const canal = canalChoisi[p.id] || 'telephone'
+    setLA(`contact_${p.id}`)
+    try {
+      await api.post(`/admin/prospection/${p.id}/contacte`, { canal })
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
+    }
+    setLA(null)
+  }
+
+  const annulerContact = async (p) => {
+    setLA(`contact_${p.id}`)
+    try {
+      await api.delete(`/admin/prospection/${p.id}/contacte`)
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
+    }
+    setLA(null)
+  }
+
   const chercherEmail = async (p) => {
     setLA(`cherche_${p.id}`)
     try {
@@ -188,9 +249,9 @@ export default function AdminProspection() {
   }
 
   const filtered = prospects.filter(p => {
-    if (filtre === 'a_contacter') return !p.email_envoye && p.email
+    if (filtre === 'a_contacter') return !estContacte(p)
     if (filtre === 'sans_email') return !p.email
-    if (filtre === 'contactes') return !!p.email_envoye
+    if (filtre === 'contactes') return estContacte(p)
     return true
   })
 
@@ -198,8 +259,49 @@ export default function AdminProspection() {
     <div className="p-4 space-y-4">
       <h2 className="page-title">🔎 Prospection</h2>
       <p className="text-sm text-gray-500">
-        Cherche des commerces peu avisés sur Google Maps et contacte-les directement par email depuis le site.
+        Cherche des commerces peu avisés sur Google Maps et contacte-les par email depuis le site, ou à la main (téléphone, sur place, réseaux).
       </p>
+
+      {/* Objectif de la semaine : nombre de prospects différents contactés
+          (tous canaux) du lundi au dimanche */}
+      <div className="card space-y-3">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <h3 className="font-bold text-gray-900">Objectif de la semaine</h3>
+            <p className="text-xs text-gray-500">Prospects contactés du lundi au dimanche</p>
+          </div>
+          <p className="text-2xl font-bold text-gray-900 tabular-nums">
+            {objectif.fait}<span className="text-gray-400 text-lg"> / {objectif.objectif}</span>
+          </p>
+        </div>
+        <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${objectif.objectif > 0 && objectif.fait >= objectif.objectif ? 'bg-emerald-500' : 'bg-sky-500'}`}
+            style={{ width: `${objectif.objectif > 0 ? Math.min(100, (objectif.fait / objectif.objectif) * 100) : 0}%` }}
+          />
+        </div>
+        <p className="text-xs text-gray-500">
+          {objectif.objectif === 0
+            ? "Pas d'objectif fixé — mets le nombre de prospects à contacter cette semaine."
+            : objectif.fait >= objectif.objectif
+              ? 'Objectif atteint.'
+              : `Il en reste ${objectif.objectif - objectif.fait} à contacter.`}
+        </p>
+        <div className="flex items-center gap-2">
+          <input
+            type="number" min="0" max="1000" inputMode="numeric" value={objInput}
+            onChange={e => setObjInput(e.target.value)}
+            className="input w-24 py-2 text-sm" aria-label="Objectif de la semaine"
+          />
+          <button
+            onClick={sauverObjectif}
+            disabled={loadingAction === 'objectif' || objInput === String(objectif.objectif)}
+            className="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-xs font-medium disabled:opacity-50"
+          >
+            Enregistrer l'objectif
+          </button>
+        </div>
+      </div>
 
       {msg && (
         <div className={`rounded-xl p-3 text-sm font-medium ${
@@ -340,7 +442,7 @@ export default function AdminProspection() {
                   </a>
                 )}
               </div>
-              {p.email_envoye ? (
+              {estContacte(p) ? (
                 <span className="badge-green text-xs shrink-0">✅ Contacté</span>
               ) : (
                 <button onClick={() => supprimer(p.id)} disabled={loadingAction === `suppr_${p.id}`} className="text-gray-300 hover:text-red-400 shrink-0">
@@ -402,6 +504,40 @@ export default function AdminProspection() {
                     </a>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* Contact à la main : compte dans l'objectif de la semaine */}
+            {Number(p.contacte_cette_semaine) > 0 ? (
+              <div className="flex items-center justify-between gap-2 text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2">
+                <span>Compté cette semaine — {LABEL_CANAL[p.dernier_canal] || p.dernier_canal}</span>
+                {p.dernier_canal !== 'email' && (
+                  <button
+                    onClick={() => annulerContact(p)}
+                    disabled={loadingAction === `contact_${p.id}`}
+                    className="underline disabled:opacity-50"
+                  >
+                    Annuler
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <select
+                  value={canalChoisi[p.id] || 'telephone'}
+                  onChange={e => setCanalChoisi({ ...canalChoisi, [p.id]: e.target.value })}
+                  className="input text-xs py-2 flex-1"
+                  aria-label="Canal de contact"
+                >
+                  {CANAUX.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+                <button
+                  onClick={() => marquerContacte(p)}
+                  disabled={loadingAction === `contact_${p.id}`}
+                  className="bg-emerald-500 text-white px-3 py-2 rounded-full text-xs font-medium shrink-0 disabled:opacity-70 active:scale-95 transition-all"
+                >
+                  Marquer contacté
+                </button>
               </div>
             )}
           </div>
