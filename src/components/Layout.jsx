@@ -17,6 +17,7 @@ import {
   ClipboardCheck,
   Globe,
   Crown,
+  QrCode,
   Search,
   TrendingUp,
   Gift,
@@ -93,6 +94,7 @@ export default function Layout() {
     { path: '/client/payer',     label: 'Commander',    icon: CreditCard },
     { path: '/client/commandes', label: 'Mes commandes', icon: ShoppingBag },
     { path: '/client/stats',     label: 'Statistiques', icon: TrendingUp },
+    { path: '/client/outils',    label: 'Outils avis',  icon: QrCode },
     { path: '/client/premium',   label: 'Premium',      icon: Crown },
     { path: '/profil',           label: 'Profil',       icon: User },
   ] : [

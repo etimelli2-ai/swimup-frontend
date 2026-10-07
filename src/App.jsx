@@ -23,9 +23,11 @@ import ClientCommandes from './pages/client/ClientCommandes'
 import ClientSuccess from './pages/client/ClientSuccess'
 import ClientPremium from './pages/client/ClientPremium'
 import ClientStats from './pages/client/ClientStats'
+import ClientOutils from './pages/client/ClientOutils'
 import Parrainage from './pages/Parrainage'
 import PublicCommander from './pages/PublicCommander'
 import PublicSuivi from './pages/PublicSuivi'
+import { AideCommercantsIndex, AideCommercantsGuide } from './pages/AideCommercants'
 import VerifierEmail from './pages/VerifierEmail'
 import VerificationRequise from './pages/VerificationRequise'
 import Layout from './components/Layout'
@@ -80,6 +82,8 @@ export default function App() {
       {/* Pages publiques — sans auth */}
       <Route path="/commander" element={<PublicCommander />} />
       <Route path="/suivi"     element={<PublicSuivi />} />
+      <Route path="/aide-commercants" element={<AideCommercantsIndex />} />
+      <Route path="/aide-commercants/:slug" element={<AideCommercantsGuide />} />
       <Route path="/verifier-email" element={<VerifierEmail />} />
       <Route path="/verification-requise" element={
         <RouteConnecteSeulement><VerificationRequise /></RouteConnecteSeulement>
@@ -123,6 +127,7 @@ export default function App() {
         <Route path="premium"   element={<ClientPremium />} />
         <Route path="commandes" element={<ClientCommandes />} />
         <Route path="stats"     element={<ClientStats />} />
+        <Route path="outils"    element={<ClientOutils />} />
       </Route>
 
       <Route path="/client/success" element={

@@ -549,7 +549,10 @@ export default function PublicCommander() {
         <div className="max-w-2xl mx-auto px-4 py-8 space-y-2">
           <div className="flex items-center justify-between text-[12px] text-slate-400 flex-wrap gap-2">
             <span>© 2025 SwimUp — Acheter des avis Google Maps authentiques</span>
-            <a href="/login" className="text-sky-500 hover:underline">Espace membres</a>
+            <span className="flex items-center gap-4">
+              <a href="/aide-commercants" className="text-sky-500 hover:underline">Aide aux commerçants</a>
+              <a href="/login" className="text-sky-500 hover:underline">Espace membres</a>
+            </span>
           </div>
           <p className="text-[11px] text-slate-400">
             SwimUp · Avis Google Maps · 4€ par avis · Livraison 24h · Garantie 30 jours · Paiement Stripe sécurisé
