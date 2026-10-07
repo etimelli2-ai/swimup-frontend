@@ -5,6 +5,8 @@
 export const GUIDES = [
   {
     slug: 'obtenir-des-avis-google',
+    icone: 'Star',
+    couleur: 'sky',
     titre: 'Obtenir plus d\'avis Google, honnêtement',
     resume: 'Les gestes simples pour que tes vrais clients laissent un avis, sans enfreindre les règles de Google.',
     description: 'Comment obtenir plus d\'avis Google pour ton commerce : lien direct, QR code, bon moment pour demander, et ce qu\'il ne faut pas faire.',
@@ -21,18 +23,20 @@ export const GUIDES = [
       { t: 'Demande à tout le monde', p: [
         'Google interdit de ne solliciter que les clients contents (« filtrage des avis »). Pose la même demande à tous tes clients, avec le même lien, et accepte ce qui arrive. Un profil avec quelques avis moyens mais authentiques inspire plus confiance qu\'une page parfaite.',
       ] },
-      { t: 'Ce qu\'il ne faut pas faire', p: [
+      { t: 'Ce qu\'il ne faut pas faire', type: 'attention', p: [
         'Offrir une réduction, un cadeau ou un service en échange d\'un avis est contraire aux règles de Google sur les avis, même si tu ne demandes pas qu\'il soit positif.',
         'Acheter des avis, faire écrire des avis par tes proches ou tes employés, ou en poster toi-même sur ta propre fiche est aussi interdit. Google peut supprimer les avis et sanctionner la fiche, et en France les faux avis peuvent être sanctionnés comme pratique commerciale trompeuse.',
         'Les règles évoluent : le plus sûr est de relire de temps en temps la page d\'aide officielle de Google sur les avis.',
       ] },
-      { t: 'Avec SwimUp', p: [
+      { t: 'Avec SwimUp', type: 'swimup', p: [
         'Dans ton espace client, l\'onglet « Outils avis » génère ton QR code, une affiche à imprimer et te permet d\'envoyer une demande d\'avis par email à tes propres clients.',
       ] },
     ],
   },
   {
     slug: 'repondre-aux-avis',
+    icone: 'MessageSquareReply',
+    couleur: 'violet',
     titre: 'Répondre aux avis Google : méthode et modèles',
     resume: 'Une structure simple pour répondre aux avis positifs et négatifs, avec des modèles à adapter.',
     description: 'Comment répondre aux avis Google, positifs ou négatifs : structure d\'une bonne réponse, modèles prêts à adapter et erreurs à éviter.',
@@ -40,30 +44,32 @@ export const GUIDES = [
       { t: 'Pourquoi répondre', p: [
         'Ta réponse est lue par le client, mais surtout par les futurs clients qui comparent plusieurs commerces. Elle montre que quelqu\'un s\'occupe de la fiche et comment tu réagis quand ça se passe moins bien.',
       ] },
-      { t: 'La structure qui marche', p: [
+      { t: 'La structure qui marche', type: 'etapes', p: [
         '1. Remercie en citant un élément précis de l\'avis (le plat, le délai, la personne qui l\'a servi).',
         '2. Réponds au fond : confirme ce qui s\'est bien passé, ou reconnais ce qui n\'a pas fonctionné.',
         '3. Termine par une suite concrète : une invitation à revenir, ou un moyen de te contacter pour régler le problème.',
         'Reste court. Deux à quatre phrases suffisent.',
       ] },
-      { t: 'Modèle : avis positif', p: [
+      { t: 'Modèle : avis positif', type: 'modele', p: [
         '« Merci beaucoup [prénom] pour ce retour ! Ça nous fait plaisir que [élément précis] vous ait plu. Toute l\'équipe sera ravie de vous revoir bientôt. »',
       ] },
-      { t: 'Modèle : avis négatif', p: [
+      { t: 'Modèle : avis négatif', type: 'modele', p: [
         '« Bonjour [prénom], merci d\'avoir pris le temps de nous écrire. Nous sommes désolés que [problème] ait gâché votre visite : ce n\'est pas le niveau que nous voulons offrir. Pouvez-vous nous écrire à [contact] pour que nous regardions ça ensemble ? »',
         'N\'écris pas de détails sur la commande ou la personne dans une réponse publique, et ne promets pas de compensation que tu ne pourras pas tenir.',
       ] },
-      { t: 'À éviter', p: [
+      { t: 'À éviter', type: 'attention', p: [
         'Répondre à chaud, accuser le client de mentir, copier-coller exactement la même réponse sous chaque avis, ou donner des informations personnelles.',
         'Si l\'avis te semble faux ou hors sujet, ne te bats pas en public : voir le guide sur les avis injustes.',
       ] },
-      { t: 'Avec SwimUp', p: [
+      { t: 'Avec SwimUp', type: 'swimup', p: [
         'L\'outil « Répondre à un avis » de ton espace client te propose un brouillon à partir de l\'avis collé. Relis-le toujours et adapte-le avant de publier.',
       ] },
     ],
   },
   {
     slug: 'optimiser-fiche-google',
+    icone: 'MapPin',
+    couleur: 'emerald',
     titre: 'Optimiser ta fiche Google Business Profile',
     resume: 'La checklist des éléments à renseigner pour que ta fiche soit complète et à jour.',
     description: 'Checklist pour optimiser ta fiche Google Business Profile : informations, catégories, photos, horaires, publications et avis.',
@@ -93,6 +99,8 @@ export const GUIDES = [
   },
   {
     slug: 'avis-injuste-ou-faux',
+    icone: 'ShieldAlert',
+    couleur: 'amber',
     titre: 'Avis injuste ou faux : que faire ?',
     resume: 'Quand signaler un avis à Google, comment réagir et quoi ne pas faire.',
     description: 'Avis Google injuste, faux ou abusif : comment le signaler, comment répondre et quels recours existent pour un commerçant.',
@@ -110,7 +118,7 @@ export const GUIDES = [
       { t: 'Si ça devient grave', p: [
         'Menaces, harcèlement, diffamation répétée : conserve les preuves et renseigne-toi auprès d\'un professionnel du droit ou d\'une organisation de commerçants. Je ne donne pas de conseil juridique ici.',
       ] },
-      { t: 'Ce qu\'il ne faut pas faire', p: [
+      { t: 'Ce qu\'il ne faut pas faire', type: 'attention', p: [
         'Ne contre-attaque pas avec de faux avis positifs ou de faux avis sur un concurrent : c\'est interdit, risqué, et ça finit souvent par se voir.',
         'La meilleure protection reste un volume régulier de vrais avis : un avis injuste pèse beaucoup moins quand il est entouré de dizaines d\'avis authentiques.',
       ] },
