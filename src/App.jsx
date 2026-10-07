@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -47,6 +47,20 @@ function PrivateRoute({ children, roles }) {
   return children
 }
 
+// Racine du site (swimup.net) : un visiteur non connecté arrive sur la page de
+// commande publique au lieu d'être renvoyé vers /login — c'est la page qui
+// vend, elle doit être la première chose qu'il voit. Un compte connecté garde
+// son espace comme avant, et les autres adresses (/dashboard, /avis...) restent
+// protégées. Pendant le chargement de la session on laisse PrivateRoute afficher
+// son spinner, pour ne pas montrer la page publique une demi-seconde à un
+// membre déjà connecté.
+function RacineRoute({ children }) {
+  const { user, loading } = useAuth()
+  const location = useLocation()
+  if (!loading && !user && location.pathname === '/') return <PublicCommander />
+  return <PrivateRoute>{children}</PrivateRoute>
+}
+
 // Le compte doit être connecté pour voir cette page, mais elle ne doit PAS
 // elle-même être bloquée par la vérification email (sinon boucle infinie).
 function RouteConnecteSeulement({ children }) {
@@ -75,7 +89,7 @@ export default function App() {
       <Route path="/register" element={<Register />} />
 
       {/* Routes membres */}
-      <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+      <Route path="/" element={<RacineRoute><Layout /></RacineRoute>}>
         <Route index               element={<Dashboard />} />
         <Route path="dashboard"    element={<Dashboard />} />
         <Route path="avis"         element={<Avis />} />

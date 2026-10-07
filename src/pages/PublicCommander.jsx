@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   ChevronRight, ChevronDown, AlertCircle, Loader2, CheckCircle2, Users, Star, Zap, Shield, Lock,
@@ -90,31 +90,29 @@ export default function PublicCommander() {
   const [searchParams] = useSearchParams()
   const wasCancelled = searchParams.get('cancel') === '1'
 
-  useEffect(() => {
-    document.title = 'Acheter des avis Google Maps authentiques — SwimUp | 4€ sans compte'
-
-    let meta = document.querySelector('meta[name="description"]')
-    if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta) }
-    meta.content = 'Achetez de vrais avis Google Maps en 24h à partir de 4€. Sans inscription, sans abonnement. Paiement sécurisé Stripe, garantie 30 jours. Plus de 500 avis publiés pour des restaurants, commerces, artisans.'
-
-    const ogMetas = [
-      { property: 'og:title',       content: 'Acheter des avis Google Maps — SwimUp | 4€ pièce' },
-      { property: 'og:description', content: 'Vrais avis Google Maps en 24h pour 4€. Sans compte, paiement Stripe, garantie 30 jours.' },
-      { property: 'og:url',         content: 'https://swimup.net/commander' },
-      { property: 'og:type',        content: 'website' },
-    ]
-    ogMetas.forEach(({ property, content }) => {
-      let el = document.querySelector(`meta[property="${property}"]`)
-      if (!el) { el = document.createElement('meta'); el.setAttribute('property', property); document.head.appendChild(el) }
-      el.content = content
-    })
-  }, [])
-
   const [quantite, setQuantite] = useState(1)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState(null)
   const [faqOpen, setFaqOpen]   = useState(0)
   const [stats, setStats]       = useState(STATS_REPLI)
+
+  // Barre "Commander" collante sur mobile : elle apparaît quand on a dépassé
+  // le haut de page et disparaît dès que le formulaire est à l'écran (inutile
+  // de proposer d'y aller quand on y est déjà).
+  const formRef = useRef(null)
+  const [formVisible, setFormVisible] = useState(false)
+  const [aDefile, setADefile]         = useState(false)
+  useEffect(() => {
+    const el = formRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([e]) => setFormVisible(e.isIntersecting), { threshold: 0.15 })
+    io.observe(el)
+    const onScroll = () => setADefile(window.scrollY > 500)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => { io.disconnect(); window.removeEventListener('scroll', onScroll) }
+  }, [])
+  const afficherBarre = aDefile && !formVisible
 
   // Chiffres réels plutôt que des valeurs figées en dur — repli silencieux
   // sur STATS_REPLI si l'API ne répond pas (jamais d'erreur visible ici).
@@ -358,7 +356,7 @@ export default function PublicCommander() {
       </section>
 
       {/* Formulaire — tuile claire, réduit au strict minimum avant paiement */}
-      <section id="commander" className="w-full bg-white">
+      <section id="commander" ref={formRef} className="w-full bg-white">
         <div className="max-w-2xl mx-auto px-4 py-16">
           <h2 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-center mb-3">
             Commander des avis Google Maps
@@ -402,6 +400,23 @@ export default function PublicCommander() {
                       onClick={() => setQuantite(quantite + 1)}
                       className="w-11 h-11 rounded-full border border-slate-200 bg-white text-lg font-medium hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center"
                     >+</button>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 pt-1">
+                    {[1, 5, 10, 25].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setQuantite(n)}
+                        aria-label={`${n} avis`}
+                        className={`min-w-[52px] px-3 py-1.5 rounded-full text-[14px] font-medium border transition-all active:scale-95 ${
+                          quantite === n
+                            ? 'bg-sky-50 border-sky-300 text-sky-700'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    ))}
                   </div>
                   <p className="text-[13px] text-slate-400">
                     Chaque avis est publié par un membre différent avec un profil Google distinct.
@@ -541,6 +556,29 @@ export default function PublicCommander() {
           </p>
         </div>
       </footer>
+
+      {/* Espace pour que la barre collante ne masque pas le bas du footer */}
+      <div className="h-20 sm:hidden" aria-hidden="true" />
+
+      <AnimatePresence>
+        {afficherBarre && (
+          <motion.div
+            key="barre-commander"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={springSheet}
+            className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white/90 backdrop-blur-md border-t border-slate-200 px-4 py-3"
+          >
+            <a
+              href="#commander"
+              className="w-full rounded-full bg-sky-500 text-white py-3 font-medium text-[15px] flex items-center justify-center gap-2 active:scale-95 transition-all"
+            >
+              Commander · {PRIX_UNITAIRE}€ l'avis <ChevronRight size={16} />
+            </a>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

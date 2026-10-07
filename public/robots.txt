@@ -1,4 +1,5 @@
 User-agent: *
+Allow: /
 Allow: /commander
 Allow: /suivi
 Disallow: /admin
