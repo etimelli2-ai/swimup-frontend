@@ -166,6 +166,17 @@ export default function PublicCommander() {
         </div>
       </header>
 
+      {/* Les membres qui arrivent ici pour écrire des avis (et être payés) ne
+          doivent pas croire qu'il faut payer : bandeau juste sous la nav */}
+      <div className="w-full bg-sky-50 border-b border-sky-100">
+        <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-center gap-x-2 gap-y-1 flex-wrap text-center">
+          <span className="text-[13px] text-slate-600">Tu veux écrire des avis et être rémunéré ? Rien à payer.</span>
+          <a href="/register" className="text-[13px] font-semibold text-sky-600 hover:text-sky-700 underline-offset-4 hover:underline">
+            Créer un compte membre gratuit ›
+          </a>
+        </div>
+      </div>
+
       {/* Hero — fond dégradé + carte "exemple d'avis" flottante */}
       <section className="relative w-full bg-white overflow-hidden">
         <div
