@@ -154,7 +154,7 @@ export default function Layout() {
 
   return (
     <div
-      className="min-h-screen bg-slate-50 dark:bg-slate-900 flex"
+      className="app-shell min-h-screen bg-slate-50 dark:bg-slate-900 flex"
       style={{
         '--accent': accent, '--accent-hover': accentHover,
         '--radius-btn': forme.btn, '--radius-card': forme.card, '--radius-input': forme.input,

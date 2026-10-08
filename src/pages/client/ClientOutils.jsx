@@ -193,7 +193,7 @@ export default function ClientOutils() {
           <div className="flex flex-col items-center gap-3 md:w-52">
             {data.qr ? (
               <>
-                <img src={data.qr} alt="QR code vers ta page d'avis" width="180" height="180" className="rounded-lg border border-slate-200 bg-white p-1" />
+                <img src={data.qr} alt="QR code vers ta page d'avis" width="180" height="180" className="rounded-lg border border-slate-200 p-1" style={{ backgroundColor: '#ffffff' }} />
                 <div className="flex gap-2">
                   {['a4', 'a5'].map(f => (
                     <button key={f} type="button" className="btn-secondary text-xs" disabled={!!pdfEnCours} onClick={() => telechargerAffiche(f)}>

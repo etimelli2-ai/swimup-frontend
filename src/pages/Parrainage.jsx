@@ -61,7 +61,7 @@ export default function Parrainage() {
           />
           <button
             onClick={copier}
-            className="shrink-0 bg-white text-violet-600 text-sm font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 active:scale-95 transition-all"
+            className="shrink-0 bg-[#ffffff] text-violet-600 text-sm font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 active:scale-95 transition-all"
           >
             {copie ? <Check size={14} /> : <Copy size={14} />}
             {copie ? 'Copié' : 'Copier'}

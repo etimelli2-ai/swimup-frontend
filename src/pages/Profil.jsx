@@ -290,7 +290,7 @@ export default function Profil() {
               dark ? 'bg-sky-500' : 'bg-slate-200'
             }`}
           >
-            <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-all duration-300 flex items-center justify-center ${
+            <span className={`absolute top-1 w-5 h-5 bg-[#ffffff] rounded-full shadow transition-all duration-300 flex items-center justify-center ${
               dark ? 'left-8' : 'left-1'
             }`}>
               {dark

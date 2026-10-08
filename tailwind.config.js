@@ -36,9 +36,9 @@ export default {
         },
         // Neutres recalés sur les gris "ink" d'Apple pour le dark mode
         slate: {
-          900: '#1d1d1f', // ink — fond dark mode
-          800: '#272729', // surface-tile-1 — cards en dark mode
-          700: '#3a3a3c', // bordures en dark mode
+          900: '#141416', // fond dark mode (plus sombre pour mieux détacher les cartes)
+          800: '#232326', // cartes en dark mode
+          700: '#46464c', // bordures et surfaces relevées en dark mode
         },
       },
       fontFamily: {
