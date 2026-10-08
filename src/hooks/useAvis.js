@@ -24,6 +24,14 @@ export function useMesAvis() {
   });
 }
 
+export function useMonPalier() {
+  return useQuery({
+    queryKey: ['avis', 'mon-palier'],
+    queryFn: () => api.get('/avis/mon-palier').then(r => r.data),
+    staleTime: 60 * 1000,
+  });
+}
+
 export function useSolde() {
   return useQuery({
     queryKey: ['solde'],

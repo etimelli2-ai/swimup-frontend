@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
+import BaremeMembre from '../../components/BaremeMembre'
 import {
   Search, Plus, Trash2, X, Flame, Clock, CheckCircle2, XCircle,
   Loader2, AlertTriangle, ExternalLink, Link2, Pencil, Save,
@@ -85,6 +86,8 @@ export default function AdminAvis() {
   const [search, setSearch]           = useState('')
   const [verifResult, setVerifResult] = useState(null)
   const [prixPrioritaire, setPrixPrio] = useState('2')
+  const [gainSaisi, setGainSaisi]     = useState('')
+  const [gainNouveau, setGainNouveau]  = useState('')
 
   const load = async () => {
     const [a, c] = await Promise.all([api.get('/admin/avis'), api.get('/admin/clients')])
@@ -102,9 +105,10 @@ export default function AdminAvis() {
   const ajouter = async () => {
     setLA('ajouter')
     try {
-      await api.post('/admin/avis', { ...form, prix: 1 })
+      await api.post('/admin/avis', { ...form, prix: gainNouveau ? parseFloat(String(gainNouveau).replace(',', '.')) : undefined })
       showMsg('success', 'Avis ajouté.')
       setForm({ client_id: '', lien_maps: '', texte: '', delai_paiement: '30' })
+      setGainNouveau('')
       setShow(false)
       load()
     } catch (e) {
@@ -223,6 +227,19 @@ export default function AdminAvis() {
       showMsg('success', 'Lien modifié et validé.')
       setNewLien('')
       setDetail(null)
+      load()
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
+  // gain = nombre -> fixé à la main sur cet avis ; null -> retour au barème
+  const fixerGain = async (avisId, gain) => {
+    setLA('gain')
+    try {
+      const r = await api.put(`/admin/avis/${avisId}/gain`, { gain })
+      showMsg('success', gain === null ? 'Cet avis suit de nouveau le barème.' : `Gain fixé à ${r.data.prix.toFixed(2)} €.`)
+      setDetail(p => ({ ...p, prix: r.data.prix, prix_manuel: r.data.prix_manuel }))
+      setGainSaisi('')
       load()
     } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
     setLA(null)
@@ -357,6 +374,8 @@ export default function AdminAvis() {
           </button>
         </div>
       </div>
+
+      <BaremeMembre />
 
       {msg && (
         <div className={`rounded-xl p-3 text-sm font-medium border ${
@@ -563,6 +582,35 @@ export default function AdminAvis() {
             <div className="space-y-2 border-t border-slate-100 dark:border-slate-700 pt-3">
               <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Actions</p>
 
+              {/* Gain du membre sur cet avis */}
+              {!['paye', 'refuse'].includes(detail.statut) && (
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 space-y-2">
+                  <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">
+                    Gain membre : {detail.prix_manuel
+                      ? `${parseFloat(detail.prix).toFixed(2)} € (fixé à la main)`
+                      : detail.statut === 'disponible' ? 'selon le barème du membre' : `${parseFloat(detail.prix).toFixed(2)} € (barème)`}
+                  </p>
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">Fixer le gain pour cet avis (€)</label>
+                      <input className="input text-sm" type="number" min="0.1" step="0.05" placeholder="ex : 0.85"
+                        value={gainSaisi} onChange={e => setGainSaisi(e.target.value)} />
+                    </div>
+                    <button onClick={() => fixerGain(detail.id, Number(String(gainSaisi).replace(',', '.')))}
+                      disabled={!gainSaisi || loadingAction === 'gain'}
+                      className="btn-primary py-2 text-sm disabled:opacity-60">
+                      {loadingAction === 'gain' ? <Spinner /> : 'Fixer'}
+                    </button>
+                  </div>
+                  {!!detail.prix_manuel && (
+                    <button onClick={() => fixerGain(detail.id, null)} disabled={loadingAction === 'gain'}
+                      className="text-xs text-emerald-700 dark:text-emerald-400 underline underline-offset-2">
+                      Revenir au barème
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* Prioritaire */}
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 space-y-2">
                 <p className="text-xs text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1.5">
@@ -571,7 +619,7 @@ export default function AdminAvis() {
                 <div className="flex gap-2">
                   <div className="flex-1">
                     <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">Gain membre (€)</label>
-                    <input className="input text-sm" type="number" min="1" step="0.5"
+                    <input className="input text-sm" type="number" min="0.1" step="0.05"
                       value={prixPrioritaire}
                       onChange={e => setPrixPrio(e.target.value)} />
                   </div>
@@ -679,6 +727,11 @@ export default function AdminAvis() {
               <input className="input" type="number" placeholder="30"
                 value={form.delai_paiement} onChange={e => setForm(p => ({ ...p, delai_paiement: e.target.value }))} />
             </div>
+          </div>
+          <div>
+            <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">Gain membre (€) — vide = selon le barème</label>
+            <input className="input" type="number" min="0.1" step="0.05" placeholder="barème"
+              value={gainNouveau} onChange={e => setGainNouveau(e.target.value)} />
           </div>
           <button onClick={ajouter} disabled={loadingAction === 'ajouter'} className="w-full btn-primary">
             {loadingAction === 'ajouter' ? <><Spinner /> Ajout...</> : "Ajouter l'avis directement"}

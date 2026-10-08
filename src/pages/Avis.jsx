@@ -1,7 +1,7 @@
 import usePageTitle from '../hooks/usePageTitle'
 import { useState, useEffect } from 'react'
 import {
-  useMesAvis, useAvisDisponibles, useReserverAvis,
+  useMesAvis, useAvisDisponibles, useReserverAvis, useMonPalier,
   useSoumettreAvis, useAnnulerAvis, useContesterAvis,
 } from '../hooks/useAvis'
 import {
@@ -29,7 +29,7 @@ function Etoiles({ n }) {
 // ─── Avis disponible à réserver ───
 function CarteDisponible({ a, onReserver, reserving }) {
   const [copied, setCopied] = useState(false)
-  const gain = parseFloat(a.prix_membre || a.prix || 1)
+  const gain = parseFloat(a.gain_membre ?? a.prix ?? 1)
   const isPrioritaire = !!a.prioritaire
 
   const copierTexte = () => {
@@ -251,6 +251,7 @@ export default function Avis() {
   const { data: mesAvis, isLoading: mesAvisLoading } = useMesAvis()
   const { data: disponibles, isLoading: dispoLoading } = useAvisDisponibles()
   const reserver = useReserverAvis()
+  const { data: palier } = useMonPalier()
   const soumettre = useSoumettreAvis()
   const annuler = useAnnulerAvis()
   const contester = useContesterAvis()
@@ -285,6 +286,22 @@ export default function Avis() {
           {currentAvis ? 'Termine ton avis en cours pour être payé' : 'Réserve un avis disponible et gagne de l\'argent'}
         </p>
       </div>
+
+      {!currentAvis && palier && (
+        <div className="card flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <p className="text-sm font-medium text-slate-900 dark:text-white">
+              Tu gagnes {palier.gain_actuel.toFixed(2)} € par avis
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {palier.prochain
+                ? `Encore ${palier.prochain.reste} avis pour passer à ${palier.prochain.gain.toFixed(2)} € par avis`
+                : 'Tu es au palier maximum'}
+              {' · '}{palier.nb_faits} avis réalisé{palier.nb_faits > 1 ? 's' : ''}
+            </p>
+          </div>
+        </div>
+      )}
 
       {currentAvis ? (
         <AvisEnCours
