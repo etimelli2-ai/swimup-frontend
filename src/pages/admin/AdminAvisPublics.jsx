@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
+import BadgePause from '../../components/BadgePause'
 import toast from 'react-hot-toast'
 import {
   ExternalLink, CheckCircle2, XCircle, Loader2, Mail, Building2, Euro,
@@ -93,7 +94,7 @@ export default function AdminAvisPublics() {
                     {BADGES[a.statut]}
                   </div>
                   <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                    <Mail size={12} /> Membre : {a.membre_email || '—'} · Commande : {a.commande_email}
+                    <Mail size={12} /> Membre : {a.membre_email || '—'}<BadgePause actif={a.membre_avis_bloque} size={12} /> · Commande : {a.commande_email}
                   </p>
                   <p className="text-xs text-slate-400">Soumis le {formatDate(a.soumis_at)}</p>
                 </div>
@@ -127,7 +128,7 @@ export default function AdminAvisPublics() {
             <div key={a.id} className="card-flat p-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-sm text-slate-700 dark:text-slate-300 truncate">{a.nom_etablissement || 'Établissement non précisé'}</p>
-                <p className="text-xs text-slate-400">{a.membre_email || '—'} · {formatDate(a.valide_at || a.soumis_at)}</p>
+                <p className="text-xs text-slate-400">{a.membre_email || '—'}<BadgePause actif={a.membre_avis_bloque} size={12} className="ml-1" /> · {formatDate(a.valide_at || a.soumis_at)}</p>
               </div>
               {BADGES[a.statut]}
             </div>

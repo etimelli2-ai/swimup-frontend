@@ -1,6 +1,7 @@
 import usePageTitle from '../hooks/usePageTitle'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import BadgePause from '../components/BadgePause'
 import { useTheme } from '../hooks/useTheme'
 import api from '../lib/api'
 import toast from 'react-hot-toast'
@@ -259,7 +260,7 @@ export default function Profil() {
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{user?.email}</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">{user?.email}<BadgePause actif={user?.avis_bloque} size={18} /></h2>
               <span className={`badge ${roleLabel.color}`}>{roleLabel.text}</span>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">

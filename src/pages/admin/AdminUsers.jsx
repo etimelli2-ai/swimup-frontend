@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
+import BadgePause from '../../components/BadgePause'
 import {
   Search, X, User, Star, Wallet, Zap, Mail, MailWarning, MessageCircle,
   CreditCard, MapPin, Clock, CalendarPlus, FileText, CheckCircle2,
@@ -222,7 +223,7 @@ export default function AdminUsers() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={closeDetail}>
           <div className="bg-white dark:bg-slate-800 rounded-t-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between gap-3">
-              <h3 className="section-title truncate">{detail.email}</h3>
+              <h3 className="section-title flex items-center gap-2 min-w-0"><span className="truncate">{detail.email}</span><BadgePause actif={detail.avis_bloque} size={18} /></h3>
               <button onClick={closeDetail} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors shrink-0">
                 <X size={22} />
               </button>
@@ -476,7 +477,7 @@ export default function AdminUsers() {
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">{u.email}</p>
                   {u.banned && <Ban size={13} className="text-red-500 shrink-0" />}
-                  {!!u.avis_bloque && <PauseCircle size={13} className="text-amber-500 shrink-0" title="Avis bloqués" />}
+                  <BadgePause actif={u.avis_bloque} size={13} />
                   {!u.email_verifie && u.role !== 'admin' && (
                     <MailWarning size={13} className="text-amber-500 shrink-0" title="Email non vérifié" />
                   )}

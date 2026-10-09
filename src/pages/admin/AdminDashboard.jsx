@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
+import BadgePause from '../../components/BadgePause'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
@@ -108,7 +109,7 @@ export default function AdminDashboard() {
             {contestationsEnAttente.map(c => (
               <div key={c.id} className="bg-orange-50 border border-orange-200 rounded-xl p-3 space-y-2">
                 <div>
-                  <p className="font-semibold text-sm text-gray-900">{c.email}</p>
+                  <p className="font-semibold text-sm text-gray-900 flex items-center gap-1.5">{c.email}<BadgePause actif={c.avis_bloque} /></p>
                   <p className="text-xs text-gray-500">Avis #{c.avis_id} · {new Date(c.created_at).toLocaleDateString('fr-FR')}</p>
                   {c.message && (
                     <p className="text-sm text-gray-700 mt-1 bg-white rounded-lg p-2 border border-orange-100">

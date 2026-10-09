@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import BadgePause from './BadgePause'
 import {
   LayoutDashboard,
   Star,
@@ -178,7 +179,7 @@ export default function Layout() {
 
         <div className="p-3 border-t border-slate-100 dark:border-slate-700 space-y-0.5">
           <div className="px-3 py-2">
-            <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{user?.email}</p>
+            <p className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 min-w-0"><span className="truncate">{user?.email}</span><BadgePause actif={user?.avis_bloque} size={13} /></p>
             <p className="text-xs text-slate-400 dark:text-slate-500 capitalize">{user?.role}</p>
           </div>
           <DiscordButton />

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
 import BaremeMembre from '../../components/BaremeMembre'
+import BadgePause from '../../components/BadgePause'
 import {
   Search, Plus, Trash2, X, Flame, Clock, CheckCircle2, XCircle,
   Loader2, AlertTriangle, ExternalLink, Link2, Pencil, Save,
@@ -520,7 +521,7 @@ export default function AdminAvis() {
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1.5">
                     <User size={12} /> Membre
                   </p>
-                  <p className="font-medium">{detail.membre_email}</p>
+                  <p className="font-medium flex items-center gap-1.5">{detail.membre_email}<BadgePause actif={detail.membre_avis_bloque} /></p>
                 </div>
               )}
 
@@ -759,7 +760,7 @@ export default function AdminAvis() {
                   {cleanText(a.texte) ? `${cleanText(a.texte).slice(0, 50)}...` : <span className="italic text-slate-400">Aucun texte pour le moment</span>}
                 </p>
                 <p className="text-xs text-slate-400 dark:text-slate-500">
-                  {a.membre_email ? a.membre_email : 'Non réservé'}
+                  {a.membre_email ? a.membre_email : 'Non réservé'}<BadgePause actif={a.membre_avis_bloque} size={12} className="ml-1" />
                   {a.soumis_at ? ` · ${new Date(a.soumis_at).toLocaleDateString('fr-FR')}` : ''}
                   {a.prioritaire ? ` · +${parseFloat(a.prix_membre || 1).toFixed(2)}€` : ''}
                 </p>

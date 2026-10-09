@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
+import BadgePause from '../../components/BadgePause'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
@@ -75,7 +76,7 @@ export default function AdminRetraits() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-bold text-xl text-gray-900">{parseFloat(r.montant || 0).toFixed(2)}€</p>
-                <p className="text-sm text-gray-600">{r.email}</p>
+                <p className="text-sm text-gray-600 flex items-center gap-1.5">{r.email}<BadgePause actif={r.avis_bloque} /></p>
                 <p className="text-xs text-gray-400">
                   PayPal : <span className="font-medium text-gray-700">{r.paypal}</span>
                 </p>
