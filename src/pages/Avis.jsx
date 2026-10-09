@@ -1,12 +1,14 @@
 import usePageTitle from '../hooks/usePageTitle'
+import { useAuth } from '../hooks/useAuth'
 import { useState, useEffect } from 'react'
+import api from '../lib/api'
 import {
   useMesAvis, useAvisDisponibles, useReserverAvis, useMonPalier,
   useSoumettreAvis, useAnnulerAvis, useContesterAvis,
 } from '../hooks/useAvis'
 import {
   Star, Flame, Copy, Check, AlertTriangle, Loader2, Clock,
-  ExternalLink, Send, RotateCcw, CheckCircle2, XCircle, MessageSquare,
+  ExternalLink, Send, RotateCcw, CheckCircle2, XCircle, MessageSquare, PauseCircle,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { springSheet } from '../lib/motion'
@@ -27,7 +29,9 @@ function Etoiles({ n }) {
 }
 
 // ─── Avis disponible à réserver ───
-function CarteDisponible({ a, onReserver, reserving }) {
+const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
+
+function CarteDisponible({ a, onReserver, reserving, bloque }) {
   const [copied, setCopied] = useState(false)
   const gain = parseFloat(a.gain_membre ?? a.prix ?? 1)
   const isPrioritaire = !!a.prioritaire
@@ -257,6 +261,17 @@ export default function Avis() {
   const contester = useContesterAvis()
 
   const [reserving, setReserving] = useState(null)
+  const { user, updateUser } = useAuth()
+  const bloque = !!user?.avis_bloque
+
+  // Le statut peut avoir changé depuis la connexion (blocage ou déblocage
+  // par l'admin) : on le relit à l'ouverture de la page.
+  useEffect(() => {
+    api.get('/auth/me').then(r => {
+      if (!!r.data.avis_bloque !== bloque) updateUser({ avis_bloque: !!r.data.avis_bloque })
+    }).catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const avisEnCours = mesAvis?.find(a => a.statut === 'reserve')
   const avisEnVerif = mesAvis?.find(a => a.statut === 'en_verification')
@@ -266,7 +281,10 @@ export default function Avis() {
 
   const handleReserver = (id) => {
     setReserving(id)
-    reserver.mutate(id, { onSettled: () => setReserving(null) })
+    reserver.mutate(id, {
+      onSettled: () => setReserving(null),
+      onError: (err) => { if (err.response?.data?.code === 'AVIS_BLOQUE') updateUser({ avis_bloque: true }) },
+    })
   }
 
   const avisPrioritaires = disponibles?.filter(a => a.prioritaire) || []
@@ -287,7 +305,30 @@ export default function Avis() {
         </p>
       </div>
 
-      {!currentAvis && palier && (
+      {bloque && (
+        <div className="card border-amber-200 dark:border-amber-800 space-y-3" role="alert">
+          <div className="flex items-start gap-3">
+            <span className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+              <PauseCircle size={18} className="text-amber-600" />
+            </span>
+            <div>
+              <p className="font-semibold text-slate-900 dark:text-white">Tes avis sont en pause</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                Une anomalie a été détectée sur ton compte. Tu ne peux plus réserver ni rédiger d'avis pour le moment.
+                Pour être débloqué, ouvre un ticket sur Discord : on regarde ça ensemble.
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                Ton compte, ton solde et les avis déjà soumis ne sont pas touchés.
+              </p>
+            </div>
+          </div>
+          <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="btn-primary w-full">
+            <MessageSquare size={16} /> Ouvrir un ticket sur Discord
+          </a>
+        </div>
+      )}
+
+      {!currentAvis && !bloque && palier && (
         <div className="card flex items-center justify-between gap-3 flex-wrap">
           <div>
             <p className="text-sm font-medium text-slate-900 dark:text-white">
@@ -311,7 +352,7 @@ export default function Avis() {
           soumettant={soumettre.isPending}
           annulant={annuler.isPending}
         />
-      ) : dispoLoading ? (
+      ) : bloque ? null : dispoLoading ? (
         <div className="flex items-center justify-center h-40">
           <Loader2 size={22} className="animate-spin text-sky-500" />
         </div>

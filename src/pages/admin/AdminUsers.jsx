@@ -4,7 +4,7 @@ import {
   Search, X, User, Star, Wallet, Zap, Mail, MailWarning, MessageCircle,
   CreditCard, MapPin, Clock, CalendarPlus, FileText, CheckCircle2,
   ShieldCheck, ShieldOff, KeyRound, Ban, Undo2, Send, CheckCircle,
-  XCircle, AlertCircle,
+  XCircle, AlertCircle, PauseCircle, PlayCircle,
 } from 'lucide-react'
 
 function Spinner() {
@@ -37,6 +37,7 @@ export default function AdminUsers() {
   const [ajustSolde, setAjustSolde]   = useState('')
   const [ajustNote, setAjustNote]     = useState('')
   const [tab, setTab]               = useState('infos')
+  const [motifBlocage, setMotifBlocage] = useState('')
 
   const load = () => api.get('/admin/users').then(r => setUsers(r.data))
   useEffect(() => { load() }, [])
@@ -66,6 +67,23 @@ export default function AdminUsers() {
       setDetail(p => ({ ...p, role }))
       showMsg('success', `Rôle changé en ${role} !`)
     } catch { showMsg('error', 'Erreur') }
+    setLoadingAction(null)
+  }
+
+  // Blocage des avis sans bannir : le membre garde son compte mais ne peut
+  // plus réserver/rédiger d'avis tant qu'il n'est pas passé par un ticket.
+  const toggleAvisBloque = async (id, bloque) => {
+    if (!confirm(bloque ? 'Réactiver les avis de ce membre ?' : 'Bloquer les avis de ce membre (sans le bannir) ?')) return
+    setLoadingAction('avis_bloque')
+    try {
+      const r = await api.put(`/admin/users/${id}/avis-bloque`, { bloque: !bloque, motif: motifBlocage })
+      const maj = { avis_bloque: r.data.avis_bloque, avis_bloque_motif: r.data.avis_bloque_motif }
+      setUsers(u => u.map(x => x.id === id ? { ...x, ...maj } : x))
+      setDetail(p => ({ ...p, ...maj }))
+      if (detailData) setDetailData(d => ({ ...d, user: { ...d.user, ...maj } }))
+      setMotifBlocage('')
+      showMsg('success', !bloque ? 'Avis bloqués : le membre est prévenu.' : 'Avis réactivés : le membre est prévenu.')
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
     setLoadingAction(null)
   }
 
@@ -283,8 +301,15 @@ export default function AdminUsers() {
                       <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><ShieldCheck size={13} /> Statut</span>
                       {detail.banned
                         ? <span className="badge-red"><Ban size={11} /> Banni</span>
-                        : <span className="badge-green"><CheckCircle2 size={11} /> Actif</span>}
+                        : detail.avis_bloque
+                          ? <span className="badge-amber"><PauseCircle size={11} /> Avis bloqués</span>
+                          : <span className="badge-green"><CheckCircle2 size={11} /> Actif</span>}
                     </div>
+                    {!!detail.avis_bloque && detail.avis_bloque_motif && (
+                      <div className="card-flat text-xs text-slate-600 dark:text-slate-300">
+                        <span className="text-slate-500 dark:text-slate-400">Motif : </span>{detail.avis_bloque_motif}
+                      </div>
+                    )}
 
                     <div className="pt-2">
                       <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 font-medium">Changer le rôle</p>
@@ -399,6 +424,26 @@ export default function AdminUsers() {
 
                     <div className="space-y-2 border-t border-slate-100 dark:border-slate-700 pt-3">
                       <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <PauseCircle size={14} className="text-amber-500" /> Blocage des avis
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Le membre garde son compte et son solde mais ne peut plus réserver ni rédiger d'avis. Il est invité à ouvrir un ticket sur Discord.
+                      </p>
+                      {!detail.avis_bloque && (
+                        <input className="input text-sm" maxLength={300} placeholder="Motif (visible par toi seulement)"
+                          value={motifBlocage} onChange={e => setMotifBlocage(e.target.value)} />
+                      )}
+                      <button onClick={() => toggleAvisBloque(detail.id, !!detail.avis_bloque)}
+                        disabled={loadingAction === 'avis_bloque' || detail.role === 'admin'}
+                        className={`w-full py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 text-white active:scale-95 transition-all disabled:opacity-70 ${detail.avis_bloque ? 'bg-emerald-500' : 'bg-amber-500'}`}>
+                        {loadingAction === 'avis_bloque'
+                          ? <><Spinner /> Traitement...</>
+                          : detail.avis_bloque ? <><PlayCircle size={15} /> Réactiver les avis</> : <><PauseCircle size={15} /> Bloquer les avis</>}
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 border-t border-slate-100 dark:border-slate-700 pt-3">
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                         <ShieldOff size={14} className="text-red-500" /> Suspension du compte
                       </p>
                       <button onClick={() => toggleBan(detail.id, !!detail.banned)}
@@ -431,6 +476,7 @@ export default function AdminUsers() {
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">{u.email}</p>
                   {u.banned && <Ban size={13} className="text-red-500 shrink-0" />}
+                  {!!u.avis_bloque && <PauseCircle size={13} className="text-amber-500 shrink-0" title="Avis bloqués" />}
                   {!u.email_verifie && u.role !== 'admin' && (
                     <MailWarning size={13} className="text-amber-500 shrink-0" title="Email non vérifié" />
                   )}
