@@ -22,7 +22,7 @@ const typeConfig = {
   credit: { label: 'Credit', color: 'text-emerald-600', bg: 'bg-emerald-50', icon: ArrowDownLeft },
   debit: { label: 'Debit', color: 'text-red-600', bg: 'bg-red-50', icon: ArrowUpRight },
   retrait: { label: 'Retrait', color: 'text-amber-600', bg: 'bg-amber-50', icon: ArrowUpRight },
-  penalite: { label: 'Penalite', color: 'text-red-600', bg: 'bg-red-50', icon: ArrowUpRight },
+  penalite: { label: 'Gain repris', color: 'text-red-600', bg: 'bg-red-50', icon: ArrowUpRight },
 }
 
 export default function Portefeuille() {
@@ -56,10 +56,10 @@ export default function Portefeuille() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={springSmooth}
-        className="card p-6 bg-sky-500 border-sky-400 text-white"
+        className={`card p-6 text-white ${solde < 0 ? 'bg-red-500 border-red-400' : 'bg-sky-500 border-sky-400'}`}
       >
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sky-100 text-sm font-medium">Solde disponible</span>
+          <span className={`${solde < 0 ? 'text-red-100' : 'text-sky-100'} text-sm font-medium`}>{solde < 0 ? 'Solde négatif' : 'Solde disponible'}</span>
           <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
             <Wallet size={20} className="text-white" />
           </div>
@@ -67,7 +67,11 @@ export default function Portefeuille() {
         <div className="text-4xl font-extrabold tracking-tight">
           {solde.toFixed(2)} <span className="text-xl font-semibold">EUR</span>
         </div>
-        <p className="text-sky-100 text-sm mt-2">Retrait minimum : 1 EUR</p>
+        <p className={`${solde < 0 ? 'text-red-100' : 'text-sky-100'} text-sm mt-2`}>
+          {solde < 0
+            ? 'Un avis refusé t\'a été repris alors que l\'argent était déjà retiré. Tes prochains gains rembourseront ce solde, retrait impossible d\'ici là.'
+            : 'Retrait minimum : 1 EUR'}
+        </p>
       </motion.div>
 
       {/* Retrait form */}

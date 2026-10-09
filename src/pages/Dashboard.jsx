@@ -103,6 +103,11 @@ export default function Dashboard() {
         <p className="text-[44px] font-semibold tracking-tight leading-none mt-2">
           {solde.toFixed(2)} <span className="text-[20px] font-medium text-sky-100">EUR</span>
         </p>
+        {solde < 0 && (
+          <p className="text-[13px] text-red-100 mt-3 bg-red-500/30 rounded-lg px-3 py-2">
+            Solde négatif : un avis refusé t'a été repris. Tes prochains gains le rembourseront.
+          </p>
+        )}
         <div className="flex items-center gap-6 mt-6 pt-5 border-t border-white/15 text-[14px]">
           <div>
             <p className="text-sky-100 flex items-center gap-1.5"><Clock size={12} /> Après vérification</p>

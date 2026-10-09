@@ -29,6 +29,7 @@ export default function AdminUsers() {
   const [users, setUsers]           = useState([])
   const [search, setSearch]         = useState('')
   const [filtreRole, setFiltre]     = useState('tous')
+  const [filtreSolde, setFiltreSolde] = useState('tous')
   const [detail, setDetail]         = useState(null)
   const [detailData, setDetailData] = useState(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
@@ -167,6 +168,11 @@ export default function AdminUsers() {
 
   let filtered = users
   if (filtreRole !== 'tous') filtered = filtered.filter(u => u.role === filtreRole)
+  const solde = u => parseFloat(u.solde || 0)
+  const nbAvecSolde = users.filter(u => solde(u) > 0).length
+  const nbNegatifs  = users.filter(u => solde(u) < 0).length
+  if (filtreSolde === 'positif') filtered = filtered.filter(u => solde(u) > 0).sort((a, b) => solde(b) - solde(a))
+  if (filtreSolde === 'negatif') filtered = filtered.filter(u => solde(u) < 0).sort((a, b) => solde(a) - solde(b))
   if (search) filtered = filtered.filter(u =>
     u.email.toLowerCase().includes(search.toLowerCase()) ||
     (u.discord_id || '').includes(search)
@@ -206,6 +212,23 @@ export default function AdminUsers() {
                 : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
             }`}>
             {r === 'tous' ? 'Tous' : r}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex gap-1.5">
+        {[
+          { v: 'tous',    l: 'Tous les soldes' },
+          { v: 'positif', l: `Avec solde (${nbAvecSolde})` },
+          { v: 'negatif', l: `Solde négatif (${nbNegatifs})` },
+        ].map(f => (
+          <button key={f.v} onClick={() => setFiltreSolde(f.v)}
+            className={`flex-1 py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 ${
+              filtreSolde === f.v
+                ? (f.v === 'negatif' ? 'bg-red-500 text-white' : 'bg-sky-500 text-white')
+                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+            }`}>
+            {f.l}
           </button>
         ))}
       </div>
@@ -476,14 +499,14 @@ export default function AdminUsers() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">{u.email}</p>
-                  {u.banned && <Ban size={13} className="text-red-500 shrink-0" />}
+                  {!!u.banned && <Ban size={13} className="text-red-500 shrink-0" />}
                   <BadgePause actif={u.avis_bloque} size={13} />
                   {!u.email_verifie && u.role !== 'admin' && (
                     <MailWarning size={13} className="text-amber-500 shrink-0" title="Email non vérifié" />
                   )}
                 </div>
                 <p className="text-xs text-slate-400 flex items-center gap-1">
-                  <MessageCircle size={11} className="shrink-0" /> {u.discord_id || 'Aucun'} · {parseFloat(u.solde || 0).toFixed(2)}€
+                  <MessageCircle size={11} className="shrink-0" /> {u.discord_id || 'Aucun'} · <span className={solde(u) < 0 ? 'text-red-500 font-semibold' : solde(u) > 0 ? 'text-slate-600 dark:text-slate-300 font-medium' : ''}>{solde(u).toFixed(2)}€</span>
                   {u.nb_avis > 0 && ` · ${u.nb_avis} avis`}
                 </p>
                 {u.last_login && (

@@ -142,7 +142,7 @@ export default function AdminAvis() {
   }
 
   const refuser = async (avisId) => {
-    if (!confirm("Refuser cet avis (plus sur Google) ? Le membre ne sera pas pénalisé, un avis identique sera recréé gratuitement pour le client et remis dans le pool disponible.")) return
+    if (!confirm("Refuser cet avis (plus sur Google) ? Si cet avis a déjà rapporté de l'argent au membre, il lui sera repris (même déjà retiré : son solde peut devenir négatif). Un avis identique sera recréé gratuitement pour le client et remis dans le pool disponible.")) return
     setLA('refuser')
     try {
       const r = await api.put(`/admin/avis/${avisId}/refuser`)
