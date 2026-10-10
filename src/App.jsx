@@ -31,6 +31,8 @@ const PublicSuivi = lazy(() => import('./pages/PublicSuivi'))
 const AideCommercantsIndex = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideCommercantsIndex })))
 const AideCommercantsGuide = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideCommercantsGuide })))
 const VerifierEmail = lazy(() => import('./pages/VerifierEmail'))
+const MotDePasseOublie = lazy(() => import('./pages/MotDePasseOublie'))
+const ReinitialiserMotDePasse = lazy(() => import('./pages/ReinitialiserMotDePasse'))
 const VerificationRequise = lazy(() => import('./pages/VerificationRequise'))
 import Layout from './components/Layout'
 
@@ -93,6 +95,8 @@ export default function App() {
       } />
 
       <Route path="/login"    element={<Login />} />
+      <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
+      <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
       <Route path="/register" element={<Register />} />
 
       {/* Routes membres */}
