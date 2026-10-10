@@ -803,7 +803,7 @@ export default function AdminAvis() {
                 <p className="text-xs text-slate-400 dark:text-slate-500">
                   {a.membre_email ? a.membre_email : 'Non réservé'}<BadgePause actif={a.membre_avis_bloque} size={12} className="ml-1" />
                   {a.soumis_at ? ` · ${new Date(String(a.soumis_at).replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR')}` : ''}
-                  {' · +1.50€'}
+                  {a.prix != null ? ` · +${parseFloat(a.prix).toFixed(2)}€` : ''}
                 </p>
               </div>
               <div className="flex items-center gap-1 shrink-0">
