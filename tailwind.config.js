@@ -43,6 +43,8 @@ export default {
       },
       fontFamily: {
         // Stack système : -apple-system résout vers San Francisco sur macOS/iOS
+        // Titres de la page publique (SwimUp, commander)
+        display: ['"Bricolage Grotesque"', '-apple-system', 'BlinkMacSystemFont', '"Helvetica Neue"', 'Arial', 'sans-serif'],
         sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"SF Pro Display"', '"Helvetica Neue"', 'Arial', 'sans-serif'],
       },
       fontWeight: {

@@ -1,598 +1,249 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import {
-  ChevronRight, ChevronDown, AlertCircle, Loader2, CheckCircle2, Users, Star, Zap, Shield, Lock,
-  Sparkles, MapPin, ThumbsUp, UtensilsCrossed, Hotel, Wrench, Scissors, Stethoscope, ShoppingBag,
-  TrendingUp, MessageCircle,
-} from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowRight, AlertCircle, Loader2, Check, Lock, Star, ChevronDown, MessageCircle } from 'lucide-react'
 import axios from 'axios'
-import { springSmooth, springSheet } from '../lib/motion'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.swimup.net/api'
 const PRIX_UNITAIRE = 4
+const PACKS = [1, 5, 10, 25]
+const PACK_PAR_DEFAUT = 5
 
-const POURQUOI = [
-  { icon: Users,      color: 'bg-sky-500',     t: 'Vrais profils Google', d: 'Chaque avis est publié par un vrai membre de notre réseau avec un compte Google actif. Aucun bot, aucun faux compte.' },
-  { icon: Sparkles,   color: 'bg-violet-500',  t: 'Texte personnalisé', d: "Une fois payé, vous choisissez le contenu de l'avis, la note et le ton. Notre IA peut aussi générer un texte naturel pour vous." },
-  { icon: Zap,        color: 'bg-amber-500',   t: 'Résultats rapides', d: "La plupart des avis sont publiés en moins de 24h après réception de vos informations. Votre réputation s'améliore immédiatement." },
-  { icon: Lock,       color: 'bg-emerald-500', t: 'Discret et sécurisé', d: 'Paiement 100% sécurisé via Stripe. Aucune donnée sensible stockée. Lien de suivi privé.' },
-]
-
-const ETAPES = [
-  { t: "Choisissez le nombre d'avis et payez", d: "Un seul champ avant paiement : combien d'avis vous voulez. Paiement sécurisé par Stripe, 4€ par avis, sans abonnement." },
-  { t: 'Complétez les infos juste après', d: "Une fois payé, indiquez le lien Google Maps de votre établissement, la note et le ton souhaités. Notre IA peut générer le texte à votre place." },
-  { t: 'Un membre publie votre avis', d: 'Un vrai membre de notre réseau se charge de publier votre avis Google depuis son compte personnel. Livraison en 24-48h.' },
-  { t: 'Vérification et garantie', d: "Nous vérifions que l'avis est bien publié et reste en ligne. Si Google le supprime dans les 30 jours, nous le republions gratuitement." },
-]
-
-const SECTEURS = [
-  { icon: UtensilsCrossed, label: 'Restaurants & Cafés' },
-  { icon: Hotel,           label: 'Hôtels & Gîtes' },
-  { icon: Wrench,          label: 'Artisans & Travaux' },
-  { icon: Scissors,        label: 'Beauté & Bien-être' },
-  { icon: Stethoscope,     label: 'Médecins & Santé' },
-  { icon: ShoppingBag,     label: 'Commerces locaux' },
-]
-
-// Lien de contact public — réutilise le serveur Discord déjà utilisé pour
-// les tickets premium, pour donner un canal de contact direct aux visiteurs
-// non-connectés (avant même qu'ils ne créent un compte ou ne payent).
+// Salon Discord déjà utilisé pour le support : canal direct pour les visiteurs
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
-// Valeurs de repli si /public/stats est indisponible — jamais affichées
-// comme "temps réel", juste pour ne pas laisser la section vide.
-const STATS_REPLI = { membres_actifs: 500, avis_publies: 2000 }
-
-function formatStat(n) {
-  return n.toLocaleString('fr-FR')
-}
-
-const FAQ = [
-  { q: 'Est-ce que les avis Google achetés sont authentiques ?', r: "Oui. Chaque avis est publié par un vrai membre de notre réseau depuis son compte Google personnel. Nous n'utilisons jamais de bots ou de faux comptes." },
-  { q: 'Combien coûte un avis Google Maps ?', r: 'Un avis Google Maps coûte 4€ sans compte. Si vous créez un compte SwimUp, le tarif est réduit à 3€ par avis avec des fonctionnalités supplémentaires.' },
-  { q: 'Pourquoi le formulaire ne demande que la quantité ?', r: "On ne veut pas vous faire remplir des détails avant même de savoir si vous voulez commander. Vous payez d'abord, puis vous complétez les infos de votre établissement (lien Maps, note, ton, texte) directement depuis votre page de suivi." },
-  { q: 'En combien de temps mon avis sera publié ?', r: "La plupart des avis sont publiés en 24 à 48h après que vous ayez complété les infos, selon la disponibilité des membres de notre réseau." },
-  { q: "Que se passe-t-il si l'avis est supprimé par Google ?", r: 'SwimUp offre une garantie de 30 jours. Si Google supprime l\'avis dans ce délai, nous le republions gratuitement. Sans remboursement, mais avec un nouvel avis.' },
-  { q: "Puis-je choisir le texte de l'avis ?", r: 'Oui, une fois payé vous pouvez rédiger votre propre texte ou utiliser notre générateur IA qui créera un avis naturel et authentique adapté à votre établissement.' },
-  { q: 'Comment suivre ma commande ?', r: 'Après le paiement, vous recevez un lien de suivi unique. Ce lien vous permet de compléter les infos de votre établissement et de voir en temps réel l\'avancement de votre commande.' },
+const ETAPES = [
+  { t: 'Vous choisissez et vous payez', d: `${PRIX_UNITAIRE} € par avis, paiement par carte sur Stripe. Pas de compte à créer.` },
+  { t: 'Vous donnez le lien de votre fiche', d: "Juste après le paiement : le lien Google Maps de votre établissement, la note et le texte. Pas de texte ? Notre générateur en propose un." },
+  { t: 'Un membre publie votre avis', d: 'Sous 24 à 48 h. Vous suivez la commande depuis un lien privé, envoyé aussi par email.' },
 ]
 
-function FaqItem({ item, open, onClick }) {
-  return (
-    <div className="py-1">
-      <button
-        type="button"
-        onClick={onClick}
-        className="w-full flex items-center justify-between gap-4 py-4 text-left"
-      >
-        <span className="font-semibold text-[15px] text-slate-900">{item.q}</span>
-        <ChevronDown size={18} className={`text-slate-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={springSheet}
-            className="overflow-hidden"
-          >
-            <p className="text-[14px] text-slate-500 leading-relaxed pb-4 pr-8">{item.r}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
+const FAQ = [
+  { q: 'Combien ça coûte ?', r: `${PRIX_UNITAIRE} € par avis, sans abonnement et sans compte. Avec un compte client gratuit, l'avis passe à 3 €.` },
+  { q: "Qui publie l'avis ?", r: "Un membre de notre réseau, depuis son propre compte Google. Chaque avis vient d'un membre différent." },
+  { q: 'Et si Google supprime un avis ?', r: "La garantie dure 30 jours : si Google le retire dans ce délai, on le republie gratuitement. Pas de remboursement, mais un nouvel avis." },
+  { q: "Puis-je choisir le texte de l'avis ?", r: "Oui. Après le paiement, vous écrivez votre texte, ou vous utilisez le générateur qui en propose un adapté à votre établissement." },
+  { q: 'Comment suivre ma commande ?', r: "Après le paiement, vous recevez un lien de suivi privé. C'est aussi là que vous renseignez votre fiche Google Maps." },
+]
+
+const eur = (n) => `${n.toLocaleString('fr-FR')} €`
 
 export default function PublicCommander() {
   const [searchParams] = useSearchParams()
   const wasCancelled = searchParams.get('cancel') === '1'
 
-  const [quantite, setQuantite] = useState(1)
+  const [quantite, setQuantite] = useState(PACK_PAR_DEFAUT)
+  const [autre, setAutre]       = useState(false)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState(null)
-  const [faqOpen, setFaqOpen]   = useState(0)
-  const [stats, setStats]       = useState(STATS_REPLI)
-
-  // Barre "Commander" collante sur mobile : elle apparaît quand on a dépassé
-  // le haut de page et disparaît dès que le formulaire est à l'écran (inutile
-  // de proposer d'y aller quand on y est déjà).
-  const formRef = useRef(null)
-  const [formVisible, setFormVisible] = useState(false)
-  const [aDefile, setADefile]         = useState(false)
-  useEffect(() => {
-    const el = formRef.current
-    if (!el || typeof IntersectionObserver === 'undefined') return
-    const io = new IntersectionObserver(([e]) => setFormVisible(e.isIntersecting), { threshold: 0.15 })
-    io.observe(el)
-    const onScroll = () => setADefile(window.scrollY > 500)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll()
-    return () => { io.disconnect(); window.removeEventListener('scroll', onScroll) }
-  }, [])
-  const afficherBarre = aDefile && !formVisible
-
-  // Chiffres réels plutôt que des valeurs figées en dur — repli silencieux
-  // sur STATS_REPLI si l'API ne répond pas (jamais d'erreur visible ici).
-  useEffect(() => {
-    axios.get(`${API}/public/stats`)
-      .then(r => setStats(r.data))
-      .catch(() => {})
-  }, [])
 
   const total = quantite * PRIX_UNITAIRE
 
-  const handleSubmit = async (e) => {
+  const payer = async (e) => {
     e.preventDefault()
     setError(null)
     setLoading(true)
     try {
       const r = await axios.post(`${API}/stripe/public-checkout`, { quantite })
       window.location.href = r.data.url
-    } catch (e) {
-      setError(e.response?.data?.error || 'Erreur — réessaie dans quelques secondes')
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erreur — réessayez dans quelques secondes.')
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-white text-[#0B1F33]">
 
-      {/* Nav — sticky, claire avec liseré, cohérente avec le reste de la page */}
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-sky-500 flex items-center justify-center">
-              <Star size={12} className="text-white fill-white" />
-            </div>
-            <span className="text-slate-900 text-[15px] font-semibold tracking-tight">SwimUp</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <a
-              href={LIEN_DISCORD}
-              target="_blank"
-              rel="noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 text-[13px] text-slate-500 hover:text-slate-700 font-medium transition-colors"
-            >
-              <MessageCircle size={14} />
-              Une question ?
-            </a>
-            <a href="/login" className="text-[13px] text-sky-600 hover:text-sky-700 font-medium transition-colors">
-              Se connecter
-            </a>
-          </div>
+      <header className="border-b border-slate-200/80">
+        <div className="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-2" aria-label="SwimUp">
+            <span className="w-7 h-7 rounded-lg bg-[#0369A1] flex items-center justify-center">
+              <Star size={13} className="text-white fill-white" />
+            </span>
+            <span className="font-display text-[17px] font-bold tracking-tight">SwimUp</span>
+          </a>
+          <nav className="flex items-center gap-5 text-[14px]">
+            <a href="/register" className="hidden sm:inline text-slate-600 hover:text-[#0B1F33]">Gagner de l'argent avec des avis</a>
+            <a href="/login" className="font-semibold text-[#0369A1] hover:underline underline-offset-4">Se connecter</a>
+          </nav>
         </div>
       </header>
 
-      {/* Les membres qui arrivent ici pour écrire des avis (et être payés) ne
-          doivent pas croire qu'il faut payer : bandeau juste sous la nav */}
-      <div className="w-full bg-sky-50 border-b border-sky-100">
-        <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-center gap-x-2 gap-y-1 flex-wrap text-center">
-          <span className="text-[13px] text-slate-600">Tu veux écrire des avis et être rémunéré ? Rien à payer.</span>
-          <a href="/register" className="text-[13px] font-semibold text-sky-600 hover:text-sky-700 underline-offset-4 hover:underline">
-            Créer un compte membre gratuit ›
-          </a>
-        </div>
-      </div>
+      {/* Accueil : le message et la commande tiennent sur le même écran */}
+      <section className="bg-[#EEF6FB]">
+        <div className="max-w-5xl mx-auto px-5 py-8 sm:py-16 grid lg:grid-cols-[1.05fr_1fr] gap-10 lg:gap-14 items-center">
 
-      {/* Hero — fond dégradé + carte "exemple d'avis" flottante */}
-      <section className="relative w-full bg-white overflow-hidden">
-        <div
-          className="absolute inset-x-0 top-0 h-[560px] -z-0 pointer-events-none"
-          style={{
-            background: 'radial-gradient(60% 50% at 50% 0%, rgba(14,165,233,0.14) 0%, rgba(14,165,233,0) 70%)',
-          }}
-        />
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={springSmooth}
-          className="relative max-w-2xl mx-auto px-4 pt-16 pb-8 text-center"
-        >
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 text-sky-600 border border-sky-100 px-3.5 py-1.5 text-[12px] font-semibold tracking-wide uppercase mb-5">
-            <Star size={12} className="fill-sky-500 text-sky-500" />
-            Sans compte · Sans abonnement · Livraison 24h
-          </span>
-          <h1 className="text-[40px] sm:text-[52px] leading-[1.05] font-semibold tracking-tight text-slate-900">
-            Des avis Google Maps<br />
-            <span className="bg-gradient-to-r from-sky-500 to-violet-500 bg-clip-text text-transparent">
-              authentiques, dès {PRIX_UNITAIRE}€
-            </span>
-          </h1>
-          <p className="mt-5 text-[19px] leading-relaxed text-slate-500 max-w-xl mx-auto font-light">
-            Boostez la réputation de votre établissement avec de vrais avis publiés par des personnes réelles.
-            Restaurants, commerces, artisans, hôtels — livraison en 24-48h, sans création de compte.
-          </p>
-
-          <div className="mt-8 flex items-center justify-center gap-6 flex-wrap">
-            <a href="#commander" className="btn-primary px-7 py-3.5 text-[15px] shadow-lg shadow-sky-500/20">
-              Commander maintenant
-            </a>
-            <a href="#comment-ca-marche" className="text-sky-500 text-[15px] font-medium hover:underline underline-offset-4">
-              Comment ça marche ›
-            </a>
-          </div>
-
-          {/* Badge garantie — mis en avant dans le hero, pas seulement plus bas */}
-          <div className="mt-6 inline-flex items-center gap-2.5 rounded-full bg-emerald-50 border border-emerald-200 pl-2 pr-4 py-2 shadow-sm shadow-emerald-500/10">
-            <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/30">
-              <Shield size={14} className="text-white" />
-            </div>
-            <span className="text-[13px] font-semibold text-emerald-700">
-              Garantie 30 jours — avis republié gratuitement s'il est supprimé
-            </span>
-          </div>
-
-          <p className="mt-4 text-[13px] text-slate-400">
-            Une question avant de commander ?{' '}
-            <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="text-sky-500 font-medium hover:underline underline-offset-4">
-              Discute avec nous sur Discord
-            </a>
-          </p>
-        </motion.div>
-
-        {/* Capture Google Maps floutée/anonymisée — étoiles qui se remplissent
-            progressivement au scroll (whileInView), à la place de la carte
-            "exemple d'avis" mockée précédente */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.5 }}
-          transition={springSmooth}
-          className="relative max-w-md mx-auto px-4 pb-4"
-        >
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 overflow-hidden">
-            <div className="bg-slate-50 border-b border-slate-100 px-4 py-2.5 flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-gradient-to-br from-sky-400 via-emerald-400 to-amber-400 shrink-0" />
-              <div className="h-2.5 rounded-full bg-slate-200 w-28" style={{ filter: 'blur(1.5px)' }} />
-              <span className="ml-auto text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                <MapPin size={10} /> Google Maps
-              </span>
-            </div>
-            <div className="p-5">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center text-white font-semibold text-[15px] shrink-0"
-                  style={{ filter: 'blur(2px)' }}
-                >
-                  M
-                </div>
-                <div className="text-left flex-1">
-                  <div className="h-2.5 rounded-full bg-slate-200 w-24 mb-1.5" style={{ filter: 'blur(1.5px)' }} />
-                  <div className="flex items-center gap-0.5">
-                    {[0, 1, 2, 3, 4].map(i => (
-                      <motion.span
-                        key={i}
-                        initial={{ scale: 0, opacity: 0 }}
-                        whileInView={{ scale: 1, opacity: 1 }}
-                        viewport={{ once: true, amount: 0.5 }}
-                        transition={{ delay: 0.12 * i, duration: 0.3, type: 'spring', stiffness: 300 }}
-                      >
-                        <Star size={13} className="text-amber-400 fill-amber-400" />
-                      </motion.span>
-                    ))}
-                  </div>
-                </div>
-                <span className="text-[11px] text-slate-400 font-medium shrink-0">Anonymisé</span>
-              </div>
-              <div className="mt-3.5 space-y-1.5">
-                <div className="h-2 rounded-full bg-slate-100 w-full" />
-                <div className="h-2 rounded-full bg-slate-100 w-[85%]" />
-                <div className="h-2 rounded-full bg-slate-100 w-[60%]" />
-              </div>
-              <p className="text-[12px] text-slate-400 italic mt-3 text-left">
-                Capture anonymisée — exemple d'avis Google Maps publié pour un de nos clients.
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Stat concrète — bénéfice chiffré plutôt qu'abstrait */}
-        <div className="relative max-w-md mx-auto px-4 pb-2">
-          <div className="rounded-2xl bg-gradient-to-r from-emerald-50 to-sky-50 border border-emerald-100 px-5 py-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/25">
-              <TrendingUp size={18} className="text-white" />
-            </div>
-            <p className="text-[13.5px] sm:text-[14.5px] text-slate-700 leading-snug text-left">
-              <span className="font-semibold text-emerald-600">+40% de visibilité</span> sur Google Maps en moyenne pour une fiche qui passe de 5 à 15 avis*
-            </p>
-          </div>
-          <p className="text-[11px] text-slate-400 mt-1.5 text-center">
-            *Le classement local Google Maps favorise les fiches avec un volume d'avis plus élevé.
-          </p>
-        </div>
-
-        {/* Stats — cartes avec icônes */}
-        <div className="relative max-w-2xl mx-auto px-4 pb-16 pt-8">
-          <div className="grid grid-cols-3 gap-3 sm:gap-4">
-            {[
-              { icon: Users, label: 'Membres actifs', value: formatStat(stats.membres_actifs) },
-              { icon: Star,  label: 'Avis publiés',   value: formatStat(stats.avis_publies) },
-              { icon: Zap,   label: 'Livraison',      value: '24-48h' },
-            ].map((s, i) => (
-              <div key={i} className="rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 text-center">
-                <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center mx-auto mb-2">
-                  <s.icon size={15} className="text-sky-500" />
-                </div>
-                <p className="text-[20px] sm:text-[24px] font-semibold tracking-tight text-slate-900">{s.value}</p>
-                <p className="text-[12px] text-slate-500 mt-0.5">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Garantie — bande accent */}
-      <section className="w-full bg-slate-50 border-y border-slate-100">
-        <div className="max-w-2xl mx-auto px-4 py-10 flex items-start gap-4">
-          <div className="w-11 h-11 rounded-2xl bg-sky-500 flex items-center justify-center shrink-0 shadow-lg shadow-sky-500/25">
-            <Shield size={20} className="text-white" />
-          </div>
           <div>
-            <p className="font-semibold text-[17px] text-slate-900">Garantie 30 jours</p>
-            <p className="text-[15px] text-slate-500 mt-1 leading-relaxed">
-              Si un avis est supprimé par Google dans les 30 jours suivant la livraison,
-              on le refait gratuitement. Vous ne payez qu'une seule fois.
+            <h1 className="font-display text-[34px] sm:text-[52px] leading-[1.06] font-bold tracking-tight">
+              Des avis Google Maps pour votre établissement
+            </h1>
+            <p className="mt-3 sm:mt-4 text-[17px] sm:text-[18px] leading-relaxed text-slate-600 max-w-md">
+              Vous choisissez le nombre d'avis et vous payez. Un membre les publie en 24 à 48 h.
             </p>
+            <ul className="mt-5 sm:mt-6 space-y-2.5 sm:space-y-3 text-[16px]">
+              {[
+                'Pas de compte à créer',
+                'Garantie 30 jours',
+                'Paiement sécurisé par Stripe',
+              ].map(t => (
+                <li key={t} className="flex items-start gap-3">
+                  <span className="mt-0.5 w-5 h-5 rounded-full bg-[#0369A1] flex items-center justify-center shrink-0">
+                    <Check size={12} className="text-white" strokeWidth={3} />
+                  </span>
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
-      </section>
 
-      {/* Pourquoi SwimUp — tuile sombre, cartes avec icônes colorées */}
-      <section className="w-full bg-[#1d1d1f] text-white">
-        <div className="max-w-2xl mx-auto px-4 py-16">
-          <h2 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-center">
-            Pourquoi acheter des avis Google Maps ?
-          </h2>
-          <p className="mt-4 text-[17px] text-slate-300 leading-relaxed text-center max-w-xl mx-auto font-light">
-            Les avis Google sont aujourd'hui le premier critère de choix des consommateurs.
-            Un établissement avec plus d'avis positifs apparaît plus haut dans les résultats Google Maps.
-          </p>
-          <div className="mt-10 grid sm:grid-cols-2 gap-4">
-            {POURQUOI.map((item, i) => (
-              <div key={i} className="rounded-2xl bg-white/5 border border-white/10 p-5 flex items-start gap-3.5">
-                <div className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center shrink-0`}>
-                  <item.icon size={17} className="text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold text-[15px] text-white">{item.t}</p>
-                  <p className="text-[13.5px] text-slate-400 mt-1 leading-relaxed">{item.d}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Formulaire — tuile claire, réduit au strict minimum avant paiement */}
-      <section id="commander" ref={formRef} className="w-full bg-white">
-        <div className="max-w-2xl mx-auto px-4 py-16">
-          <h2 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-center mb-3">
-            Commander des avis Google Maps
-          </h2>
-          <p className="text-[15px] text-slate-500 text-center mb-10 max-w-md mx-auto">
-            Choisissez juste le nombre d'avis — vous détaillerez votre établissement juste après le paiement.
-          </p>
-
-          {wasCancelled && (
-            <div className="rounded-xl bg-red-50 p-4 flex items-start gap-3 mb-6">
-              <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
-              <p className="text-sm text-red-600 font-medium">
-                Paiement annulé — aucun débit effectué. Tu peux recommencer.
+          {/* Commande : 1 clic pour le nombre, 1 clic pour payer */}
+          <form id="commander" onSubmit={payer} className="rounded-3xl bg-white border border-slate-200 shadow-[0_20px_50px_-20px_rgba(3,105,161,0.35)] p-6 sm:p-7">
+            {wasCancelled && (
+              <p className="mb-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[14px] px-4 py-3">
+                Paiement annulé, rien n'a été débité. Vous pouvez recommencer.
               </p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6 max-w-md mx-auto">
-
-            <div className="relative rounded-[28px] p-[1.5px] bg-gradient-to-br from-sky-400 via-sky-200 to-violet-300">
-              <div className="rounded-[26px] bg-white p-8 space-y-6">
-                <div className="space-y-3 text-center">
-                  <label className="block text-[13px] font-semibold text-slate-700">
-                    Nombre d'avis à commander
-                  </label>
-                  <div className="flex items-center justify-center gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setQuantite(Math.max(1, quantite - 1))}
-                      className="w-11 h-11 rounded-full border border-slate-200 bg-white text-lg font-medium hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center"
-                    >−</button>
-                    <input
-                      type="number"
-                      min="1"
-                      value={quantite}
-                      onChange={e => setQuantite(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="w-20 rounded-lg border border-slate-200 bg-white px-2 py-2.5 text-center text-[20px] font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setQuantite(quantite + 1)}
-                      className="w-11 h-11 rounded-full border border-slate-200 bg-white text-lg font-medium hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center"
-                    >+</button>
-                  </div>
-                  <div className="flex items-center justify-center gap-2 pt-1">
-                    {[1, 5, 10, 25].map(n => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => setQuantite(n)}
-                        aria-label={`${n} avis`}
-                        className={`min-w-[52px] px-3 py-1.5 rounded-full text-[14px] font-medium border transition-all active:scale-95 ${
-                          quantite === n
-                            ? 'bg-sky-50 border-sky-300 text-sky-700'
-                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-[13px] text-slate-400">
-                    Chaque avis est publié par un membre différent avec un profil Google distinct.
-                  </p>
-                </div>
-
-                <div className="rounded-2xl bg-slate-50 border border-slate-100 p-5 flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-[16px] text-slate-900">
-                      {quantite} avis Google Maps
-                    </p>
-                    <p className="text-[13px] text-slate-500 mt-0.5">
-                      {quantite} × {PRIX_UNITAIRE}€ · Livraison 24-48h
-                    </p>
-                  </div>
-                  <p className="text-[30px] font-semibold tracking-tight text-slate-900">{total}€</p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-full bg-sky-500 hover:bg-sky-600 text-white py-4 font-medium text-[16px] flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-sky-500/25"
-                >
-                  {loading ? (
-                    <><Loader2 size={18} className="animate-spin" /> Redirection vers le paiement...</>
-                  ) : (
-                    <>Payer {total}€ et commander {quantite > 1 ? `${quantite} avis` : '1 avis'} <ChevronRight size={18} /></>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div className="rounded-xl bg-red-50 p-4 flex items-start gap-3">
-                <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-600 font-medium">{error}</p>
-              </div>
             )}
 
-            <div className="flex items-center justify-center gap-2 rounded-full bg-slate-50 border border-slate-200 px-4 py-2.5 w-fit mx-auto">
-              <Lock size={14} className="text-slate-500" />
-              <span className="text-[13px] font-medium text-slate-600">Paiement 100% sécurisé par Stripe</span>
+            <fieldset>
+              <legend className="font-display text-[20px] font-bold">Combien d'avis ?</legend>
+              <div className="mt-4 grid grid-cols-4 gap-2.5">
+                {PACKS.map(n => (
+                  <label key={n} className="cursor-pointer">
+                    <input
+                      type="radio"
+                      name="pack"
+                      value={n}
+                      checked={!autre && quantite === n}
+                      onChange={() => { setQuantite(n); setAutre(false) }}
+                      className="peer sr-only"
+                    />
+                    <span className="flex flex-col items-center justify-center rounded-2xl border-2 border-slate-200 bg-white py-3.5 transition-colors
+                                     peer-checked:border-[#0369A1] peer-checked:bg-[#EEF6FB] peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-[#0369A1]
+                                     hover:border-slate-300">
+                      <span className="font-display text-[26px] font-bold leading-none">{n}</span>
+                      <span className="mt-1 text-[12px] text-slate-500">{eur(n * PRIX_UNITAIRE)}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+
+              {autre ? (
+                <div className="mt-3 flex items-center justify-center gap-3">
+                  <button type="button" aria-label="Un avis de moins" onClick={() => setQuantite(q => Math.max(1, q - 1))}
+                    className="w-11 h-11 rounded-full border border-slate-200 text-lg active:scale-95">−</button>
+                  <input
+                    type="number" min="1" inputMode="numeric" aria-label="Nombre d'avis" value={quantite}
+                    onChange={e => setQuantite(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-20 text-center rounded-xl border border-slate-200 py-2.5 text-[20px] font-bold focus:outline-none focus:ring-2 focus:ring-[#0369A1]"
+                  />
+                  <button type="button" aria-label="Un avis de plus" onClick={() => setQuantite(q => q + 1)}
+                    className="w-11 h-11 rounded-full border border-slate-200 text-lg active:scale-95">+</button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => setAutre(true)} className="mt-3 text-[13px] text-slate-500 hover:text-[#0369A1] underline underline-offset-4">
+                  Un autre nombre
+                </button>
+              )}
+            </fieldset>
+
+            <div className="mt-6 flex items-end justify-between border-t border-slate-100 pt-5">
+              <div>
+                <p className="text-[14px] text-slate-500">Total</p>
+                <p className="text-[12px] text-slate-400">{quantite} × {eur(PRIX_UNITAIRE)}</p>
+              </div>
+              <p className="font-display text-[44px] leading-none font-bold tracking-tight">{eur(total)}</p>
             </div>
-            <p className="text-center text-[13px] text-slate-400">
-              Sans abonnement · Garantie 30 jours · Avis authentiques
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-5 w-full rounded-full bg-[#0369A1] hover:bg-[#075985] text-white py-4 font-semibold text-[17px] flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-60"
+            >
+              {loading
+                ? <><Loader2 size={18} className="animate-spin" /> Ouverture du paiement…</>
+                : <>Payer {eur(total)} <ArrowRight size={18} /></>}
+            </button>
+
+            <div aria-live="polite">
+              {error && (
+                <p className="mt-3 flex items-start gap-2 rounded-xl bg-red-50 text-red-700 text-[14px] px-4 py-3">
+                  <AlertCircle size={16} className="mt-0.5 shrink-0" /> {error}
+                </p>
+              )}
+            </div>
+
+            <p className="mt-4 flex items-center justify-center gap-1.5 text-[12.5px] text-slate-500 text-center">
+              <Lock size={12} className="shrink-0" />
+              Paiement par carte sur Stripe. Le lien de votre fiche se donne après.
             </p>
           </form>
         </div>
+
+        <p className="max-w-5xl mx-auto px-5 pb-6 text-[13.5px] text-slate-500">
+          Vous voulez écrire des avis et être payé ?{' '}
+          <a href="/register" className="font-semibold text-[#0369A1] underline underline-offset-4">Créez un compte membre, c'est gratuit</a>.
+        </p>
       </section>
 
-      {/* Comment ça marche — timeline avec ligne de connexion */}
-      <section id="comment-ca-marche" className="w-full bg-slate-50">
-        <div className="max-w-2xl mx-auto px-4 py-16">
-          <h2 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-center mb-12">
-            Comment acheter des avis Google Maps ?
-          </h2>
-          <div className="relative space-y-8">
-            <div className="absolute left-[17px] top-3 bottom-3 w-px bg-slate-200" />
-            {ETAPES.map((s, i) => (
-              <div key={i} className="relative flex items-start gap-4">
-                <span className="relative z-10 w-9 h-9 rounded-full bg-sky-500 text-white font-semibold text-[14px] flex items-center justify-center shrink-0 ring-4 ring-slate-50">
-                  {i + 1}
-                </span>
-                <div className="pt-1">
-                  <p className="font-semibold text-[16px] text-slate-900">{s.t}</p>
-                  <p className="text-[14px] text-slate-500 mt-0.5 leading-relaxed">{s.d}</p>
-                </div>
+      {/* 3 étapes, une vraie séquence */}
+      <section className="max-w-5xl mx-auto px-5 py-14 sm:py-20">
+        <h2 className="font-display text-[28px] sm:text-[34px] font-bold tracking-tight">Comment ça marche</h2>
+        <ol className="mt-8 grid sm:grid-cols-3 gap-8 sm:gap-6">
+          {ETAPES.map((e, i) => (
+            <li key={e.t} className="flex sm:block gap-4">
+              <span className="font-display text-[34px] leading-none font-bold text-[#0369A1] shrink-0 w-9 sm:w-auto">{i + 1}</span>
+              <div className="sm:mt-3">
+                <p className="font-semibold text-[17px]">{e.t}</p>
+                <p className="mt-1.5 text-[15px] leading-relaxed text-slate-600">{e.d}</p>
               </div>
-            ))}
-          </div>
-        </div>
+            </li>
+          ))}
+        </ol>
       </section>
 
-      {/* Qui utilise SwimUp — cartes avec icônes */}
-      <section className="w-full bg-white">
-        <div className="max-w-2xl mx-auto px-4 py-16">
-          <h2 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-center mb-5">
-            Qui utilise SwimUp ?
-          </h2>
-          <p className="text-[16px] text-slate-500 leading-relaxed text-center max-w-xl mx-auto font-light">
-            SwimUp est utilisé par des propriétaires de restaurants, hôtels, commerces de proximité, artisans,
-            professionnels de santé et bien d'autres établissements qui souhaitent améliorer leur réputation
-            sur Google Maps.
-          </p>
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {SECTEURS.map((s, i) => (
-              <div key={i} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-5 flex flex-col items-center gap-2 text-center">
-                <div className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center">
-                  <s.icon size={16} className="text-sky-500" />
-                </div>
-                <span className="text-[13px] font-medium text-slate-700 leading-tight">{s.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ — accordéon */}
-      <section className="w-full bg-slate-50">
-        <div className="max-w-2xl mx-auto px-4 py-16">
-          <h2 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-center mb-10">
-            Questions fréquentes
-          </h2>
-          <div className="rounded-2xl bg-white border border-slate-200 px-6 divide-y divide-slate-100">
-            {FAQ.map((f, i) => (
-              <FaqItem key={i} item={f} open={faqOpen === i} onClick={() => setFaqOpen(faqOpen === i ? -1 : i)} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA final */}
-      <section className="w-full bg-white">
-        <div className="max-w-2xl mx-auto px-4 pb-16">
-          <div className="rounded-[28px] bg-gradient-to-br from-sky-500 to-violet-500 p-10 text-center text-white">
-            <ThumbsUp size={28} className="mx-auto mb-4 text-white/90" />
-            <h3 className="text-[24px] sm:text-[28px] font-semibold tracking-tight">Prêt à booster votre réputation ?</h3>
-            <p className="text-[15px] text-white/85 mt-2 max-w-sm mx-auto">
-              Premier avis livré en 24-48h, sans compte à créer.
+      {/* Garantie */}
+      <section className="bg-[#0B1F33] text-white">
+        <div className="max-w-5xl mx-auto px-5 py-12 sm:py-14 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div className="max-w-xl">
+            <h2 className="font-display text-[26px] sm:text-[30px] font-bold tracking-tight">Garantie 30 jours</h2>
+            <p className="mt-2 text-[16px] leading-relaxed text-slate-300">
+              Si Google supprime un avis dans les 30 jours, on le republie gratuitement. Vous ne payez qu'une fois.
             </p>
-            <a href="#commander" className="inline-flex mt-6 rounded-full bg-white text-slate-900 px-7 py-3.5 font-medium text-[15px] active:scale-95 transition-all">
-              Commander maintenant
-            </a>
           </div>
+          <a href="#commander" className="inline-flex items-center justify-center gap-2 rounded-full bg-white text-[#0B1F33] px-7 py-3.5 font-semibold text-[16px] shrink-0 active:scale-[0.98] transition">
+            Commander <ArrowRight size={17} />
+          </a>
         </div>
       </section>
 
-      {/* Footer — parchemin, fine print, comme apple.com */}
-      <footer className="w-full bg-slate-50 border-t border-slate-200">
-        <div className="max-w-2xl mx-auto px-4 py-8 space-y-2">
-          <div className="flex items-center justify-between text-[12px] text-slate-400 flex-wrap gap-2">
-            <span>© 2025 SwimUp — Acheter des avis Google Maps authentiques</span>
-            <span className="flex items-center gap-4">
-              <a href="/aide-commercants" className="text-sky-500 hover:underline">Aide aux commerçants</a>
-              <a href="/login" className="text-sky-500 hover:underline">Espace membres</a>
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-400">
-            SwimUp · Avis Google Maps · 4€ par avis · Livraison 24h · Garantie 30 jours · Paiement Stripe sécurisé
-          </p>
+      {/* Questions */}
+      <section className="max-w-3xl mx-auto px-5 py-14 sm:py-20">
+        <h2 className="font-display text-[28px] sm:text-[34px] font-bold tracking-tight">Questions fréquentes</h2>
+        <div className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
+          {FAQ.map(f => (
+            <details key={f.q} className="group py-1">
+              <summary className="flex items-center justify-between gap-4 py-4 cursor-pointer list-none font-semibold text-[16px] [&::-webkit-details-marker]:hidden">
+                {f.q}
+                <ChevronDown size={18} className="text-slate-400 shrink-0 transition-transform group-open:rotate-180" />
+              </summary>
+              <p className="pb-4 pr-8 text-[15px] leading-relaxed text-slate-600">{f.r}</p>
+            </details>
+          ))}
+        </div>
+        <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 text-[15px] text-[#0369A1] font-medium hover:underline underline-offset-4">
+          <MessageCircle size={16} /> Une autre question ? Écrivez-nous sur Discord
+        </a>
+      </section>
+
+      <footer className="border-t border-slate-200">
+        <div className="max-w-5xl mx-auto px-5 py-7 flex flex-wrap items-center justify-between gap-3 text-[13px] text-slate-500">
+          <span>© {new Date().getFullYear()} SwimUp</span>
+          <span className="flex items-center gap-5">
+            <a href="/aide-commercants" className="hover:text-[#0B1F33]">Aide aux commerçants</a>
+            <a href="/login" className="hover:text-[#0B1F33]">Espace membres</a>
+          </span>
         </div>
       </footer>
-
-      {/* Espace pour que la barre collante ne masque pas le bas du footer */}
-      <div className="h-20 sm:hidden" aria-hidden="true" />
-
-      <AnimatePresence>
-        {afficherBarre && (
-          <motion.div
-            key="barre-commander"
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            transition={springSheet}
-            className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white/90 backdrop-blur-md border-t border-slate-200 px-4 py-3"
-          >
-            <a
-              href="#commander"
-              className="w-full rounded-full bg-sky-500 text-white py-3 font-medium text-[15px] flex items-center justify-center gap-2 active:scale-95 transition-all"
-            >
-              Commander · {PRIX_UNITAIRE}€ l'avis <ChevronRight size={16} />
-            </a>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }
