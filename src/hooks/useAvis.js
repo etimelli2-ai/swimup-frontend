@@ -6,11 +6,28 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
 
+// Les avis classiques et les avis publics (clients sans compte) sont présentés
+// comme une seule liste : le membre n'a pas à connaître la différence. Chaque
+// avis garde sa `source` pour appeler la bonne route, et une `cle` unique car
+// les deux tables numérotent leurs avis chacune de leur côté.
+const baseUrl = (source) => (source === 'public' ? '/public/avis' : '/avis');
+const marquer = (source) => (a) => ({ ...a, source, cle: `${source}-${a.id}` });
+const pasDePublic = () => [];
+
 // ─── Queries ───
 export function useAvisDisponibles() {
   return useQuery({
     queryKey: ['avis', 'disponibles'],
-    queryFn: () => api.get('/avis').then(r => r.data),
+    queryFn: async () => {
+      const [classiques, publics] = await Promise.all([
+        api.get('/avis').then(r => r.data.map(marquer('classique'))),
+        api.get('/public/avis-disponibles').then(r => r.data.map(marquer('public'))).catch(pasDePublic),
+      ]);
+      // Prioritaires d'abord, puis les plus récents
+      return [...classiques, ...publics].sort((a, b) =>
+        (b.prioritaire ? 1 : 0) - (a.prioritaire ? 1 : 0) ||
+        new Date(String(b.created_at).replace(' ', 'T') + 'Z') - new Date(String(a.created_at).replace(' ', 'T') + 'Z'));
+    },
     staleTime: 2 * 60 * 1000,
     refetchInterval: 30 * 1000,
   });
@@ -19,7 +36,13 @@ export function useAvisDisponibles() {
 export function useMesAvis() {
   return useQuery({
     queryKey: ['avis', 'mes-avis'],
-    queryFn: () => api.get('/avis/mes-avis').then(r => r.data),
+    queryFn: async () => {
+      const [classiques, publics] = await Promise.all([
+        api.get('/avis/mes-avis').then(r => r.data.map(marquer('classique'))),
+        api.get('/public/mes-avis').then(r => r.data.map(marquer('public'))).catch(pasDePublic),
+      ]);
+      return [...classiques, ...publics];
+    },
     staleTime: 1 * 60 * 1000,
   });
 }
@@ -53,7 +76,7 @@ export function useReserverAvis() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => api.post(`/avis/${id}/reserver`),
+    mutationFn: ({ id, source }) => api.post(`${baseUrl(source)}/${id}/reserver`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avis'] });
       toast.success('Avis reserve ! Tu as 1h pour publier.', {
@@ -74,7 +97,7 @@ export function useSoumettreAvis() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, lien_avis }) => api.post(`/avis/${id}/soumettre`, { lien_avis }),
+    mutationFn: ({ id, source, lien_avis }) => api.post(`${baseUrl(source)}/${id}/soumettre`, { lien_avis }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avis'] });
       toast.success('Avis soumis et valide !', {
@@ -95,7 +118,7 @@ export function useAnnulerAvis() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => api.post(`/avis/${id}/annuler`),
+    mutationFn: ({ id, source }) => api.post(`${baseUrl(source)}/${id}/annuler`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avis'] });
       toast.success('Reservation annulee');

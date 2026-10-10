@@ -11,7 +11,6 @@ const Loterie = lazy(() => import('./pages/Loterie'))
 const Boutique = lazy(() => import('./pages/Boutique'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminAvis = lazy(() => import('./pages/admin/AdminAvis'))
-const AdminAvisPublics = lazy(() => import('./pages/admin/AdminAvisPublics'))
 const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminRetraits = lazy(() => import('./pages/admin/AdminRetraits'))
 const AdminLoterie = lazy(() => import('./pages/admin/AdminLoterie'))
@@ -118,7 +117,7 @@ export default function App() {
       <Route path="/admin" element={<PrivateRoute roles={['admin']}><Layout /></PrivateRoute>}>
         <Route index           element={<AdminDashboard />} />
         <Route path="avis"     element={<AdminAvis />} />
-        <Route path="avis-publics" element={<AdminAvisPublics />} />
+        <Route path="avis-publics" element={<Navigate to="/admin/avis" replace />} />
         <Route path="users"    element={<AdminUsers />} />
         <Route path="retraits" element={<AdminRetraits />} />
         <Route path="loterie"  element={<AdminLoterie />} />

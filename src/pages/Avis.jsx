@@ -28,6 +28,12 @@ function Etoiles({ n }) {
   )
 }
 
+// Certains avis n'ont pas de texte imposé : le membre l'écrit lui-même.
+function consigneSansTexte(a) {
+  const nb = parseInt(a.nb_etoiles) || 5
+  return `Pas de texte imposé : écris toi-même un avis ${nb} étoile${nb > 1 ? 's' : ''}${a.ton ? `, ton ${a.ton}` : ''}, sincère et en rapport avec l'établissement.`
+}
+
 // ─── Avis disponible à réserver ───
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
@@ -65,22 +71,30 @@ function CarteDisponible({ a, onReserver, reserving, bloque }) {
       </div>
 
       <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 relative">
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pr-8 line-clamp-3">{a.texte}</p>
-        <button
-          onClick={copierTexte}
-          title="Copier le texte"
-          className="absolute top-2.5 right-2.5 p-1.5 text-slate-400 hover:text-sky-500 transition-colors"
-        >
-          {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-        </button>
+        {a.texte ? (
+          <>
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pr-8 line-clamp-3">{a.texte}</p>
+            <button
+              onClick={copierTexte}
+              title="Copier le texte"
+              className="absolute top-2.5 right-2.5 p-1.5 text-slate-400 hover:text-sky-500 transition-colors"
+            >
+              {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+            </button>
+          </>
+        ) : (
+          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            {consigneSansTexte(a)}
+          </p>
+        )}
       </div>
 
       <button
         className="btn-primary w-full"
-        onClick={() => onReserver(a.id)}
+        onClick={() => onReserver(a)}
         disabled={reserving !== null}
       >
-        {reserving === a.id ? <><Spinner /> Réservation...</> : 'Réserver cet avis'}
+        {reserving === a.cle ? <><Spinner /> Réservation...</> : 'Réserver cet avis'}
       </button>
     </div>
   )
@@ -97,7 +111,10 @@ function AvisEnCours({ avis, onSoumettre, onAnnuler, soumettant, annulant }) {
   useEffect(() => {
     if (enAttenteVerif || !avis.reserve_at) return
     const interval = setInterval(() => {
-      const reserveAt = new Date(avis.reserve_at)
+      // SQLite renvoie "YYYY-MM-DD HH:MM:SS" en UTC, sans fuseau : sans le Z,
+      // le navigateur le lirait en heure locale et le décompte serait faux.
+      const brut = String(avis.reserve_at)
+      const reserveAt = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(brut) ? brut : brut.replace(' ', 'T') + 'Z')
       const remaining = 3600000 - (Date.now() - reserveAt.getTime())
       if (remaining <= 0) {
         setTimeLeft(0)
@@ -120,7 +137,7 @@ function AvisEnCours({ avis, onSoumettre, onAnnuler, soumettant, annulant }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!lienAvis.trim()) return
-    onSoumettre(avis.id, lienAvis.trim())
+    onSoumettre(avis, lienAvis.trim())
   }
 
   return (
@@ -150,10 +167,16 @@ function AvisEnCours({ avis, onSoumettre, onAnnuler, soumettant, annulant }) {
         </div>
 
         <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 relative">
-          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pr-8">{avis.texte}</p>
-          <button onClick={copierTexte} title="Copier le texte" className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-sky-500 transition-colors">
-            {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-          </button>
+          {avis.texte ? (
+            <>
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pr-8">{avis.texte}</p>
+              <button onClick={copierTexte} title="Copier le texte" className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-sky-500 transition-colors">
+                {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+              </button>
+            </>
+          ) : (
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{consigneSansTexte(avis)}</p>
+          )}
         </div>
 
         {!enAttenteVerif && (
@@ -163,7 +186,7 @@ function AvisEnCours({ avis, onSoumettre, onAnnuler, soumettant, annulant }) {
                 <ExternalLink size={16} />
                 Ouvrir Google Maps
               </a>
-              <button onClick={() => onAnnuler(avis.id)} disabled={annulant} className="btn-ghost px-4">
+              <button onClick={() => onAnnuler(avis)} disabled={annulant} className="btn-ghost px-4">
                 <RotateCcw size={16} />
                 Annuler
               </button>
@@ -279,9 +302,9 @@ export default function Avis() {
   const avisValides = mesAvis?.filter(a => a.statut === 'valide') || []
   const avisRefuses = mesAvis?.filter(a => a.statut === 'refuse') || []
 
-  const handleReserver = (id) => {
-    setReserving(id)
-    reserver.mutate(id, {
+  const handleReserver = (a) => {
+    setReserving(a.cle)
+    reserver.mutate({ id: a.id, source: a.source }, {
       onSettled: () => setReserving(null),
       onError: (err) => { if (err.response?.data?.code === 'AVIS_BLOQUE') updateUser({ avis_bloque: true }) },
     })
@@ -347,8 +370,8 @@ export default function Avis() {
       {currentAvis ? (
         <AvisEnCours
           avis={currentAvis}
-          onSoumettre={(id, lien) => soumettre.mutate({ id, lien_avis: lien })}
-          onAnnuler={(id) => annuler.mutate(id)}
+          onSoumettre={(a, lien) => soumettre.mutate({ id: a.id, source: a.source, lien_avis: lien })}
+          onAnnuler={(a) => annuler.mutate({ id: a.id, source: a.source })}
           soumettant={soumettre.isPending}
           annulant={annuler.isPending}
         />
@@ -370,7 +393,7 @@ export default function Avis() {
                 Prioritaires — à faire en premier
               </h2>
               {avisPrioritaires.map(a => (
-                <CarteDisponible key={a.id} a={a} onReserver={handleReserver} reserving={reserving} />
+                <CarteDisponible key={a.cle} a={a} onReserver={handleReserver} reserving={reserving} />
               ))}
             </div>
           )}
@@ -380,7 +403,7 @@ export default function Avis() {
                 <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide">Autres avis</h2>
               )}
               {avisNormaux.map(a => (
-                <CarteDisponible key={a.id} a={a} onReserver={handleReserver} reserving={reserving} />
+                <CarteDisponible key={a.cle} a={a} onReserver={handleReserver} reserving={reserving} />
               ))}
             </div>
           )}
@@ -394,7 +417,7 @@ export default function Avis() {
           </h2>
           <div className="divide-y divide-slate-100 dark:divide-slate-800 border-y border-slate-100 dark:border-slate-800">
             {avisValides.map(a => (
-              <div key={a.id} className="flex items-center gap-3 py-3">
+              <div key={a.cle} className="flex items-center gap-3 py-3">
                 <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{a.nom_societe}</p>
@@ -414,7 +437,7 @@ export default function Avis() {
           <div className="space-y-2">
             {avisRefuses.map(a => (
               <AvisRefuse
-                key={a.id}
+                key={a.cle}
                 a={a}
                 onContester={(id, message) => contester.mutate({ id, message })}
                 contestant={contester.isPending}

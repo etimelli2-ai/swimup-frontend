@@ -39,6 +39,8 @@ function parseSqlDate(d) {
 // soumission -> checkpoints tous les 4 jours -> checkpoint final au délai
 // choisi par l'acheteur, qui déclenche (ou non) le crédit du solde.
 function checkpointInfo(a) {
+  // Les avis publics n'ont pas de checkpoints : l'admin les valide une fois, à la soumission.
+  if (a.source === 'public') return null
   const soumisAt = parseSqlDate(a.soumis_at)
   if (!soumisAt || !['en_verification', 'valide'].includes(a.statut)) return null
 
@@ -74,6 +76,7 @@ function cleanText(text) {
 
 export default function AdminAvis() {
   const [avis, setAvis]               = useState([])
+  const [publics, setPublics]         = useState([])
   const [clients, setClients]         = useState([])
   const [form, setForm]               = useState({ client_id: '', lien_maps: '', texte: '', delai_paiement: '30', nom_etablissement: '', nb_etoiles: '5' })
   const [show, setShow]               = useState(false)
@@ -91,9 +94,22 @@ export default function AdminAvis() {
   const [gainNouveau, setGainNouveau]  = useState('')
 
   const load = async () => {
-    const [a, c] = await Promise.all([api.get('/admin/avis'), api.get('/admin/clients')])
-    setAvis(a.data)
+    const [a, c, p] = await Promise.all([
+      api.get('/admin/avis'),
+      api.get('/admin/clients'),
+      api.get('/admin/avis-publics').catch(() => ({ data: [] })),
+    ])
+    setAvis(a.data.map(x => ({ ...x, source: 'classique', cle: `classique-${x.id}` })))
     setClients(c.data)
+    // Avis publics (clients sans compte) : même liste, mêmes filtres, seule la
+    // couleur change. "soumis" s'appelle "en vérification" côté classique.
+    setPublics(p.data.map(x => ({
+      ...x,
+      source: 'public',
+      cle: `public-${x.id}`,
+      statut: x.statut === 'soumis' ? 'en_verification' : x.statut,
+      nom_societe: x.nom_etablissement,
+    })))
   }
 
   useEffect(() => { load() }, [])
@@ -326,15 +342,39 @@ export default function AdminAvis() {
     return 'Établissement inconnu'
   }
 
+  const validerPublic = async (id) => {
+    setLA(`pub_${id}`)
+    try {
+      const r = await api.put(`/admin/avis-publics/${id}/valider`)
+      showMsg('success', r.data?.message || 'Avis public validé.')
+      load()
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
+  const refuserPublic = async (id) => {
+    if (!confirm('Refuser cet avis public ? Aucun crédit ne sera versé, il repart dans le pool disponible.')) return
+    setLA(`pub_${id}`)
+    try {
+      const r = await api.put(`/admin/avis-publics/${id}/refuser`)
+      showMsg('success', r.data?.message || 'Avis public refusé.')
+      load()
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLA(null)
+  }
+
   const formatDate = d => d ? new Date(d).toLocaleString('fr-FR') : '—'
   const closeDetail = () => { setDetail(null); setEditForm(null); setNewLien(''); setVerifResult(null) }
 
   const nbMenuage = avis.filter(a => a.statut === 'paye').length
 
-  const nbAVerifier = avis.filter(a => checkpointInfo(a)?.aVerifierMaintenant).length
+  // Classiques et publics regroupés ; un avis public soumis attend toujours une action de l'admin.
+  const toutes = [...avis, ...publics]
+  const aVerifier = a => !!checkpointInfo(a)?.aVerifierMaintenant || (a.source === 'public' && a.statut === 'en_verification')
+  const nbAVerifier = toutes.filter(aVerifier).length
 
-  let avisFiltres = [...avis]
-  if (filtre === 'a_verifier') avisFiltres = avisFiltres.filter(a => checkpointInfo(a)?.aVerifierMaintenant)
+  let avisFiltres = [...toutes]
+  if (filtre === 'a_verifier') avisFiltres = avisFiltres.filter(aVerifier)
   // "Tous" masque les refusés par défaut — ils ne sont pas supprimés (le
   // membre doit toujours les voir marqués "refusé" dans son historique),
   // juste rangés hors de la vue principale. Toujours accessibles via
@@ -353,7 +393,7 @@ export default function AdminAvis() {
   if (tri === 'urgence') avisFiltres.sort((a, b) => (checkpointInfo(a)?.joursRestants ?? 999) - (checkpointInfo(b)?.joursRestants ?? 999))
   if (tri === 'id')     avisFiltres.sort((a, b) => b.id - a.id)
   // Les avis à vérifier maintenant remontent toujours en premier, puis les prioritaires
-  avisFiltres.sort((a, b) => (checkpointInfo(b)?.aVerifierMaintenant ? 1 : 0) - (checkpointInfo(a)?.aVerifierMaintenant ? 1 : 0))
+  avisFiltres.sort((a, b) => (aVerifier(b) ? 1 : 0) - (aVerifier(a) ? 1 : 0))
   avisFiltres.sort((a, b) => (b.prioritaire || 0) - (a.prioritaire || 0))
 
   return (
@@ -361,7 +401,7 @@ export default function AdminAvis() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="page-title">Avis</h1>
-          <p className="text-muted mt-0.5">{avis.length} au total</p>
+          <p className="text-muted mt-0.5">{toutes.length} au total</p>
         </div>
         <div className="flex gap-2 shrink-0">
           {nbMenuage > 0 && (
@@ -418,7 +458,7 @@ export default function AdminAvis() {
                   : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
             }`}>
             {v === 'a_verifier' && <Clock size={12} />}
-            {v === 'tous' ? `Tous (${avis.filter(a => a.statut !== 'refuse').length})` : v === 'a_verifier' ? `À vérifier (${nbAVerifier})` : l}
+            {v === 'tous' ? `Tous (${toutes.filter(a => a.statut !== 'refuse').length})` : v === 'a_verifier' ? `À vérifier (${nbAVerifier})` : l}
           </button>
         ))}
       </div>
@@ -740,13 +780,56 @@ export default function AdminAvis() {
         </div>
       )}
 
-      <p className="text-xs text-slate-400 flex items-center gap-1.5">
-        <ListFilter size={12} /> {avisFiltres.length} avis
+      <p className="text-xs text-slate-400 flex items-center gap-3 flex-wrap">
+        <span className="flex items-center gap-1.5"><ListFilter size={12} /> {avisFiltres.length} avis</span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-2.5 h-2.5 rounded-sm bg-violet-400" /> Avis public (client sans compte)
+        </span>
       </p>
 
       <div className="space-y-2">
-        {avisFiltres.map(a => (
-          <div key={a.id}
+        {avisFiltres.map(a => a.source === 'public' ? (
+          <div key={a.cle}
+            className="card space-y-2 border-violet-300 bg-violet-50/70 dark:border-violet-800 dark:bg-violet-900/15">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-violet-500 font-mono shrink-0">P{a.id}</span>
+                  <p className="font-semibold text-sm truncate">{a.nom_etablissement || 'Établissement non précisé'}</p>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                  Client : {a.commande_email || '—'}
+                </p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">
+                  {a.membre_email ? a.membre_email : 'Non réservé'}<BadgePause actif={a.membre_avis_bloque} size={12} className="ml-1" />
+                  {a.soumis_at ? ` · ${new Date(String(a.soumis_at).replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR')}` : ''}
+                  {' · +1.50€'}
+                </p>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">Public</span>
+                {statutBadge(a.statut)}
+              </div>
+            </div>
+            {a.lien_avis_poste && (
+              <a href={a.lien_avis_poste} target="_blank" rel="noreferrer"
+                className="text-xs text-violet-600 dark:text-violet-300 underline truncate flex items-center gap-1">
+                Voir l'avis publié <ExternalLink size={11} className="shrink-0" />
+              </a>
+            )}
+            {a.statut === 'en_verification' && (
+              <div className="flex gap-2 pt-1">
+                <button onClick={() => validerPublic(a.id)} disabled={loadingAction === `pub_${a.id}`} className="btn-primary flex-1 justify-center">
+                  {loadingAction === `pub_${a.id}` ? <Spinner /> : <><CheckCircle2 size={16} /> Valider et créditer</>}
+                </button>
+                <button onClick={() => refuserPublic(a.id)} disabled={loadingAction === `pub_${a.id}`} className="btn-danger flex-1 justify-center">
+                  <XCircle size={16} /> Refuser
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div key={a.cle}
             className={`card space-y-1.5 cursor-pointer active:bg-slate-50 dark:active:bg-slate-700/50 transition-colors ${a.prioritaire ? 'border-amber-300 dark:border-amber-700' : ''}`}
             onClick={() => { setDetail(a); setEditForm(null); setNewLien(''); setVerifResult(null) }}>
             <div className="flex items-start justify-between gap-2">

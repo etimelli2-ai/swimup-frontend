@@ -16,7 +16,6 @@ import {
   CreditCard,
   ShoppingBag,
   ClipboardCheck,
-  Globe,
   Crown,
   QrCode,
   Search,
@@ -82,7 +81,6 @@ export default function Layout() {
   const navItems = isAdmin ? [
     { path: '/admin',          label: 'Dashboard',   icon: LayoutDashboard },
     { path: '/admin/avis',     label: 'Avis',         icon: Star },
-    { path: '/admin/avis-publics', label: 'Avis publics', icon: Globe },
     { path: '/admin/users',    label: 'Membres',      icon: User },
     { path: '/admin/retraits', label: 'Retraits',     icon: Wallet },
     { path: '/admin/loterie',  label: 'Loterie',      icon: Ticket },
