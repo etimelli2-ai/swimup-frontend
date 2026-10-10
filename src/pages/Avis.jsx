@@ -362,6 +362,7 @@ export default function Avis() {
                 ? `Encore ${palier.prochain.reste} avis pour passer à ${palier.prochain.gain.toFixed(2)} € par avis`
                 : 'Tu es au palier maximum'}
               {' · '}{palier.nb_faits} avis réalisé{palier.nb_faits > 1 ? 's' : ''}
+              {palier.reduction_parrainage > 0 && ` · dont −${palier.reduction_parrainage.toFixed(2)} € (parrainage)`}
             </p>
           </div>
         </div>

@@ -158,7 +158,7 @@ export default function Dashboard() {
         </div>
         <div className="flex-1">
           <p className="text-[14px] font-semibold">Parraine tes amis</p>
-          <p className="text-[13px] text-violet-100">Touche un bonus dès leur premier avis publié</p>
+          <p className="text-[13px] text-violet-100">Touche 0,20 € sur chaque avis qu'ils font</p>
         </div>
         <ChevronRight size={18} className="shrink-0" />
       </Link>

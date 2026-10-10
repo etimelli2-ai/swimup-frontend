@@ -9,7 +9,7 @@ const ETAPES = [
   { icon: Star,   color: 'bg-amber-50 dark:bg-amber-900/20 text-amber-500', t: 'Publie-le sur Google Maps', d: 'Mets le nombre d\'étoiles demandé et publie l\'avis depuis ton propre compte Google.' },
   { icon: Send,   color: 'bg-violet-50 dark:bg-violet-900/20 text-violet-500', t: 'Soumets le lien', d: 'Copie le lien direct de ton avis publié et colle-le dans l\'app — c\'est ce qui déclenche la vérification.' },
   { icon: Coins,  color: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500', t: 'Reçois ton argent', d: 'Une fois l\'avis vérifié et le délai passé, ton solde est crédité automatiquement. Tu peux le retirer vers PayPal.' },
-  { icon: Gift,   color: 'bg-rose-50 dark:bg-rose-900/20 text-rose-500', t: 'Bonus : parraine tes amis', d: 'Partage ton code depuis l\'onglet "Parrainage" — dès que ton filleul publie son premier avis, tu touches un bonus.' },
+  { icon: Gift,   color: 'bg-rose-50 dark:bg-rose-900/20 text-rose-500', t: 'Bonus : parraine tes amis', d: 'Partage ton code depuis l\'onglet "Parrainage" — tu touches 0,20 € à chaque avis payé de ton filleul.' },
 ]
 
 export default function OnboardingTour() {

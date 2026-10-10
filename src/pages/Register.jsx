@@ -268,6 +268,11 @@ export default function Register() {
                 className="input"
                 placeholder="Ex: AB12CD"
               />
+              {parrainageCode.trim() && (
+                <p className="text-xs text-slate-500 mt-1.5">
+                  Avec un code de parrainage, tu es payé 0,20 € de moins par avis : cette somme revient à la personne qui t'a invité.
+                </p>
+              )}
             </div>
 
             <button

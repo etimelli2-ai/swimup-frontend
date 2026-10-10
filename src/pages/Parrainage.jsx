@@ -38,7 +38,7 @@ export default function Parrainage() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="page-title">🎁 Parrainage</h1>
-        <p className="text-muted mt-1">Invite tes amis et touche un bonus quand ils publient leur premier avis</p>
+        <p className="text-muted mt-1">Invite tes amis et touche 0,20 € sur chaque avis qu'ils font</p>
       </div>
 
       {/* Lien à partager */}
@@ -68,7 +68,7 @@ export default function Parrainage() {
           </button>
         </div>
         <p className="text-xs text-violet-100 mt-3">
-          Dès que ton filleul publie son premier avis validé, tu touches un bonus — sans rien faire de plus.
+          Chaque fois qu'un avis de ton filleul est payé, tu touches 0,20 € — pour tous ses avis, sans limite. Lui est payé 0,20 € de moins par avis.
         </p>
       </motion.div>
 
@@ -98,8 +98,8 @@ export default function Parrainage() {
           {[
             { n: '1', t: 'Partage ton lien', d: 'Envoie ton code ou ton lien à des amis qui ne sont pas encore sur SwimUp' },
             { n: '2', t: 'Ton ami s\'inscrit', d: 'Il crée son compte en passant par ton lien (le code se remplit tout seul)' },
-            { n: '3', t: 'Il publie son premier avis', d: 'Dès que son premier avis est validé par l\'admin...' },
-            { n: '4', t: 'Tu touches ton bonus', d: 'Crédité automatiquement sur ton solde, sans rien faire de plus' },
+            { n: '3', t: 'Il fait des avis', d: 'Son gain par avis est celui du barème moins 0,20 €' },
+            { n: '4', t: 'Tu touches 0,20 € par avis', d: 'Crédité sur ton solde quand son avis est payé (à la fin de la vérification), sans rien faire de plus' },
           ].map((s) => (
             <div key={s.n} className="flex items-start gap-3">
               <span className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400">
@@ -119,7 +119,7 @@ export default function Parrainage() {
         <div className="card p-5">
           <h2 className="section-title mb-3">Tes filleuls</h2>
           <p className="text-xs text-slate-400">
-            {data.nb_filleuls_actifs} sur {data.nb_filleuls} ont déjà publié leur premier avis.
+            {data.nb_filleuls_actifs} sur {data.nb_filleuls} t'ont déjà rapporté au moins un bonus.
           </p>
         </div>
       )}
