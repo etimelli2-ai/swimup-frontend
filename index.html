@@ -2,6 +2,12 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
+  <!-- L'ancienne adresse Railway ne doit plus servir le site : tout part vers swimup.net -->
+  <script>
+    if (/\.up\.railway\.app$/.test(location.hostname)) {
+      location.replace('https://swimup.net' + location.pathname + location.search + location.hash);
+    }
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 
   <!-- SEO Principal -->
