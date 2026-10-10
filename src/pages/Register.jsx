@@ -12,6 +12,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { springSmooth, springSnappy, springSheet } from '../lib/motion'
 
+const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
+
 export default function Register() {
   usePageTitle('Inscription')
 
@@ -55,9 +57,18 @@ export default function Register() {
       .finally(() => setCommandeLoading(false))
   }, [commandeToken])
 
+  // Les comptes membres exigent un ID Discord ; un compte client (commande payée
+  // ou code d'invitation) peut s'en passer.
+  const discordRequis = !commande && !invitationCode.trim()
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (discordRequis && !/^\d{17,20}$/.test(discordId.trim())) {
+      setError("L'ID Discord est obligatoire : 17 à 20 chiffres. Tu ne le trouves pas ? Utilise le lien sous la case.")
+      return
+    }
 
     if (password !== confirmPassword) {
       setError('Les mots de passe ne correspondent pas')
@@ -70,7 +81,7 @@ export default function Register() {
 
     setLoading(true)
     try {
-      await register(email, password, discordId || null, invitationCode || null, commandeToken && commande ? commandeToken : null, parrainageCode || null)
+      await register(email, password, discordId.trim() || null, invitationCode || null, commandeToken && commande ? commandeToken : null, parrainageCode || null)
       toast.success('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.', { duration: 6000 })
       navigate('/dashboard')
     } catch (err) {
@@ -200,15 +211,35 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                ID Discord <span className="text-slate-400 font-normal">(optionnel)</span>
+                ID Discord {!discordRequis && <span className="text-slate-400 font-normal">(optionnel)</span>}
               </label>
               <input
                 type="text"
+                inputMode="numeric"
                 value={discordId}
-                onChange={e => setDiscordId(e.target.value)}
+                onChange={e => setDiscordId(e.target.value.replace(/\D/g, ''))}
+                required={discordRequis}
                 className="input"
                 placeholder="123456789012345678"
               />
+              {discordRequis && (
+                <details className="mt-2 text-sm text-slate-600">
+                  <summary className="cursor-pointer text-sky-600 font-medium">Je ne trouve pas mon ID Discord</summary>
+                  <div className="mt-2 space-y-3 bg-slate-50 rounded-xl p-3">
+                    <p>
+                      Le plus simple : rejoins notre Discord, ouvre un ticket et choisis la catégorie
+                      « Mon ID Discord ». Le bot t'envoie ton ID à copier, avec la marche à suivre pour t'inscrire.
+                    </p>
+                    <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="btn-primary w-full justify-center">
+                      Ouvrir un ticket sur Discord
+                    </a>
+                    <p className="text-xs text-slate-500">
+                      Tu préfères le trouver seul ? Discord → Paramètres → Avancés → active le Mode développeur,
+                      puis clic droit sur ton profil → Copier l'identifiant.
+                    </p>
+                  </div>
+                </details>
+              )}
             </div>
 
             {!commandeToken && (
