@@ -54,8 +54,10 @@ function checkpointInfo(a) {
     : joursEcoules
 
   const aVerifierMaintenant = estFinal || !lastCheck || joursDepuisDernierCheck >= CHECKPOINT_JOURS
+  // Jours avant que le prochain checkpoint redevienne dû (0 s'il l'est déjà)
+  const joursAvantProchain = aVerifierMaintenant ? 0 : Math.max(0, CHECKPOINT_JOURS - joursDepuisDernierCheck)
 
-  return { joursEcoules, joursRestants, estFinal, nbChecks, aVerifierMaintenant, delai }
+  return { joursEcoules, joursRestants, estFinal, nbChecks, aVerifierMaintenant, joursAvantProchain, delai }
 }
 
 function cleanText(text) {
@@ -331,7 +333,7 @@ export default function AdminAvis() {
     }
     return (
       <span className="text-xs text-sky-600 dark:text-sky-400">
-        Vérifié {info.nbChecks}x · {info.joursRestants}j avant paiement
+        Vérifié {info.nbChecks}x · prochaine vérif. dans {info.joursAvantProchain}j · {info.joursRestants}j avant paiement
       </span>
     )
   }
@@ -684,7 +686,13 @@ export default function AdminAvis() {
                 )}
               </div>
 
-              {['en_verification', 'valide'].includes(detail.statut) && (() => {
+              {['en_verification', 'valide'].includes(detail.statut) && checkpointInfo(detail) && !checkpointInfo(detail).aVerifierMaintenant && (
+                <p className="text-xs text-center text-slate-500 dark:text-slate-400">
+                  Vérifié — prochaine vérification dans {checkpointInfo(detail).joursAvantProchain}j
+                </p>
+              )}
+
+              {['en_verification', 'valide'].includes(detail.statut) && (!checkpointInfo(detail) || checkpointInfo(detail).aVerifierMaintenant) && (() => {
                 const info = checkpointInfo(detail)
                 const label = info?.estFinal
                   ? 'Valider et créditer le solde'
@@ -821,9 +829,13 @@ export default function AdminAvis() {
             {['en_verification', 'valide', 'paye'].includes(a.statut) && <div>{verifBadge(a)}</div>}
             {['en_verification', 'valide'].includes(a.statut) && (
               <div className="flex gap-2 pt-1">
-                <button onClick={() => validerPublic(a.id, checkpointInfo(a)?.estFinal)} disabled={loadingAction === `pub_${a.id}`} className="btn-primary flex-1 justify-center">
-                  {loadingAction === `pub_${a.id}` ? <Spinner /> : <><CheckCircle2 size={16} /> {checkpointInfo(a)?.estFinal ? 'Valider et payer' : 'Valider le checkpoint'}</>}
-                </button>
+                {/* Le bouton n'apparaît que quand une vérification est due : il disparaît une fois
+                    validée et revient à la prochaine échéance (« Valider et créditer » à la fin). */}
+                {checkpointInfo(a)?.aVerifierMaintenant && (
+                  <button onClick={() => validerPublic(a.id, checkpointInfo(a)?.estFinal)} disabled={loadingAction === `pub_${a.id}`} className="btn-primary flex-1 justify-center">
+                    {loadingAction === `pub_${a.id}` ? <Spinner /> : <><CheckCircle2 size={16} /> {checkpointInfo(a)?.estFinal ? 'Valider et créditer' : 'Valider le checkpoint'}</>}
+                  </button>
+                )}
                 <button onClick={() => refuserPublic(a.id)} disabled={loadingAction === `pub_${a.id}`} className="btn-danger flex-1 justify-center">
                   <XCircle size={16} /> Refuser
                 </button>
