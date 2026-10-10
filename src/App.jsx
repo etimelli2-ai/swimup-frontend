@@ -18,6 +18,7 @@ const AdminLoterie = lazy(() => import('./pages/admin/AdminLoterie'))
 const AdminBoutique = lazy(() => import('./pages/admin/AdminBoutique'))
 const AdminCommandes = lazy(() => import('./pages/admin/AdminCommandes'))
 const AdminProspection = lazy(() => import('./pages/admin/AdminProspection'))
+const AdminEmails = lazy(() => import('./pages/admin/AdminEmails'))
 const ClientDashboard = lazy(() => import('./pages/client/ClientDashboard'))
 const ClientPaiement = lazy(() => import('./pages/client/ClientPaiement'))
 const ClientCommandes = lazy(() => import('./pages/client/ClientCommandes'))
@@ -125,6 +126,7 @@ export default function App() {
         <Route path="commandes-clients" element={<AdminCommandes />} />
         <Route path="boutique" element={<AdminBoutique />} />
         <Route path="prospection" element={<AdminProspection />} />
+        <Route path="emails" element={<AdminEmails />} />
       </Route>
 
       {/* Routes client */}

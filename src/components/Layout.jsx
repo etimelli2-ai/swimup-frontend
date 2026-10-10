@@ -22,6 +22,7 @@ import {
   Search,
   TrendingUp,
   Gift,
+  Mail,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import React from 'react'
@@ -89,6 +90,7 @@ export default function Layout() {
     { path: '/admin/commandes-clients', label: 'Commandes clients', icon: ClipboardCheck },
     { path: '/admin/boutique', label: 'Boutique',     icon: ShoppingBag },
     { path: '/admin/prospection', label: 'Prospection', icon: Search },
+    { path: '/admin/emails', label: 'Emails', icon: Mail },
     { path: '/profil',         label: 'Profil',       icon: User },
   ] : isClient ? [
     { path: '/client',           label: 'Dashboard',    icon: LayoutDashboard },
