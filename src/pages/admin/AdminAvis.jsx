@@ -39,8 +39,6 @@ function parseSqlDate(d) {
 // soumission -> checkpoints tous les 4 jours -> checkpoint final au délai
 // choisi par l'acheteur, qui déclenche (ou non) le crédit du solde.
 function checkpointInfo(a) {
-  // Les avis publics n'ont pas de checkpoints : l'admin les valide une fois, à la soumission.
-  if (a.source === 'public') return null
   const soumisAt = parseSqlDate(a.soumis_at)
   if (!soumisAt || !['en_verification', 'valide'].includes(a.statut)) return null
 
@@ -109,6 +107,8 @@ export default function AdminAvis() {
       cle: `public-${x.id}`,
       statut: x.statut === 'soumis' ? 'en_verification' : x.statut,
       nom_societe: x.nom_etablissement,
+      delai_paiement: 30,
+      nb_checks: x.nb_checks || 0,
     })))
   }
 
@@ -318,7 +318,7 @@ export default function AdminAvis() {
 
   const verifBadge = (a) => {
     const info = checkpointInfo(a)
-    if (a.verif_statut === 'paye') return <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Payé</span>
+    if (a.verif_statut === 'paye' || a.statut === 'paye') return <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Payé</span>
     if (!info) {
       if (!a.last_check) return <span className="text-xs text-slate-400">Jamais vérifié</span>
       return <span className="text-xs text-slate-400">—</span>
@@ -342,7 +342,8 @@ export default function AdminAvis() {
     return 'Établissement inconnu'
   }
 
-  const validerPublic = async (id) => {
+  const validerPublic = async (id, final) => {
+    if (!confirm(final ? 'Checkpoint final : valider et créditer le membre ?' : 'Confirmer ce checkpoint de vérification ?')) return
     setLA(`pub_${id}`)
     try {
       const r = await api.put(`/admin/avis-publics/${id}/valider`)
@@ -368,9 +369,9 @@ export default function AdminAvis() {
 
   const nbMenuage = avis.filter(a => a.statut === 'paye').length
 
-  // Classiques et publics regroupés ; un avis public soumis attend toujours une action de l'admin.
+  // Classiques et publics regroupés, mêmes checkpoints (tous les 4 jours, paiement à 30 jours).
   const toutes = [...avis, ...publics]
-  const aVerifier = a => !!checkpointInfo(a)?.aVerifierMaintenant || (a.source === 'public' && a.statut === 'en_verification')
+  const aVerifier = a => !!checkpointInfo(a)?.aVerifierMaintenant
   const nbAVerifier = toutes.filter(aVerifier).length
 
   let avisFiltres = [...toutes]
@@ -817,10 +818,11 @@ export default function AdminAvis() {
                 Voir l'avis publié <ExternalLink size={11} className="shrink-0" />
               </a>
             )}
-            {a.statut === 'en_verification' && (
+            {['en_verification', 'valide', 'paye'].includes(a.statut) && <div>{verifBadge(a)}</div>}
+            {['en_verification', 'valide'].includes(a.statut) && (
               <div className="flex gap-2 pt-1">
-                <button onClick={() => validerPublic(a.id)} disabled={loadingAction === `pub_${a.id}`} className="btn-primary flex-1 justify-center">
-                  {loadingAction === `pub_${a.id}` ? <Spinner /> : <><CheckCircle2 size={16} /> Valider et créditer</>}
+                <button onClick={() => validerPublic(a.id, checkpointInfo(a)?.estFinal)} disabled={loadingAction === `pub_${a.id}`} className="btn-primary flex-1 justify-center">
+                  {loadingAction === `pub_${a.id}` ? <Spinner /> : <><CheckCircle2 size={16} /> {checkpointInfo(a)?.estFinal ? 'Valider et payer' : 'Valider le checkpoint'}</>}
                 </button>
                 <button onClick={() => refuserPublic(a.id)} disabled={loadingAction === `pub_${a.id}`} className="btn-danger flex-1 justify-center">
                   <XCircle size={16} /> Refuser
