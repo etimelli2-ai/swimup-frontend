@@ -31,6 +31,7 @@ export default function Register() {
   const [parrainageCode, setParrainageCode] = useState(searchParams.get('parrain') || '')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [emailExiste, setEmailExiste] = useState(false)
   const [loading, setLoading] = useState(false)
 
   // Compte client via une commande publique déjà payée — on récupère la
@@ -64,6 +65,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setEmailExiste(false)
 
     if (discordRequis && !/^\d{17,20}$/.test(discordId.trim())) {
       setError("L'ID Discord est obligatoire : 17 à 20 chiffres. Tu ne le trouves pas ? Utilise le lien sous la case.")
@@ -85,6 +87,7 @@ export default function Register() {
       toast.success('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.', { duration: 6000 })
       navigate('/dashboard')
     } catch (err) {
+      setEmailExiste(err.response?.data?.code === 'EMAIL_DEJA_UTILISE')
       setError(err.response?.data?.error || "Erreur lors de l'inscription")
     } finally {
       setLoading(false)
@@ -156,7 +159,17 @@ export default function Register() {
                 className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg overflow-hidden"
               >
                 <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
-                <p className="text-sm text-red-700">{error}</p>
+                <div className="text-sm text-red-700">
+                  <p>{error}</p>
+                  {emailExiste && (
+                    <p className="mt-1">
+                      Tu as déjà un compte avec cette adresse :{' '}
+                      <Link to="/login" className="font-semibold underline">connecte-toi</Link>
+                      {' '}ou{' '}
+                      <Link to="/mot-de-passe-oublie" className="font-semibold underline">réinitialise ton mot de passe</Link>.
+                    </p>
+                  )}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

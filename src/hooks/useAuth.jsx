@@ -28,10 +28,25 @@ export function AuthProvider({ children }) {
   }, [])
 
   // Les réponses de login/inscription ne contiennent pas le statut premium ni
-  // les réglages d'interface : on recharge le profil complet juste après,
-  // sinon ils n'apparaissent qu'au prochain rechargement de la page.
-  const hydraterProfil = useCallback(() => {
-    api.get('/auth/me').then(r => setUser(r.data)).catch(() => {})
+  // les réglages d'interface : on recharge le profil complet juste après.
+  // On attend aussi la réponse : si le navigateur n'a pas gardé le cookie de
+  // session (navigation privée, blocage du suivi intersite sur iPhone...),
+  // /auth/me répond 401 et l'utilisateur serait renvoyé sur la page de
+  // connexion sans la moindre explication. On le lui dit.
+  const ouvrirSession = useCallback(async (utilisateur) => {
+    setUser(utilisateur)
+    try {
+      const r = await api.get('/auth/me')
+      setUser(r.data)
+    } catch (e) {
+      if (e.response?.status === 401) {
+        setUser(null)
+        const err = new Error('session non conservée')
+        err.response = { data: { error: "Connexion réussie, mais ton navigateur n'a pas gardé la session (cookies bloqués ou navigation privée). Essaie avec un autre navigateur, ou autorise les cookies pour swimup.net." } }
+        throw err
+      }
+      // autre erreur (réseau...) : la connexion est valable, le profil se rechargera plus tard
+    }
   }, [])
 
   const login = useCallback(async (email, password) => {
@@ -40,24 +55,21 @@ export function AuthProvider({ children }) {
     // valider le code (voir loginAvec2fa). On renvoie tel quel pour que
     // l'écran de login sache afficher l'étape suivante.
     if (r.data?.requires2fa) return r.data
-    setUser(r.data.user)
-    hydraterProfil()
+    await ouvrirSession(r.data.user)
     return r.data
-  }, [hydraterProfil])
+  }, [ouvrirSession])
 
   const loginAvec2fa = useCallback(async (tempToken, code) => {
     const r = await api.post('/auth/2fa/verify-login', { tempToken, code })
-    setUser(r.data.user)
-    hydraterProfil()
+    await ouvrirSession(r.data.user)
     return r.data.user
-  }, [hydraterProfil])
+  }, [ouvrirSession])
 
   const register = useCallback(async (email, password, discord_id, invitation_code, commande_token, parrainage_code) => {
     const r = await api.post('/auth/register', { email, password, discord_id, invitation_code, commande_token, parrainage_code })
-    setUser(r.data.user)
-    hydraterProfil()
+    await ouvrirSession(r.data.user)
     return r.data.user
-  }, [hydraterProfil])
+  }, [ouvrirSession])
 
   const logout = useCallback(() => {
     // Le cookie httpOnly ne peut pas être supprimé en JS : il faut demander
