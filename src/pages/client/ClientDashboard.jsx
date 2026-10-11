@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
-import { CreditCard, ShoppingBag, Bell, CheckCircle2, Clock, AlertTriangle, Star, TrendingUp, Crown, BarChart3 } from 'lucide-react'
+import { CreditCard, ShoppingBag, Bell, CheckCircle2, Clock, Star, Crown, BarChart3, Wallet, PenLine } from 'lucide-react'
+import { lienPaypal } from '../../lib/paypal'
 import { motion, AnimatePresence } from 'framer-motion'
 import { springSmooth, springSheet } from '../../lib/motion'
 
@@ -43,11 +44,17 @@ export default function ClientDashboard() {
 
   const notifsNonLues = notifs.filter(n => !n.lu).length
 
+  // Commandes payées dont il reste des textes à écrire / commandes à régler
   const commandesIncompletes = commandes.filter(c => {
-    const nb = parseInt(c.nb_avis) || 0
-    const remplis = parseInt(c.nb_avis_remplis) || 0
-    return remplis < nb
+    if (c.statut === 'en_attente') return false
+    const total = parseInt(c.nb_avis_total) || parseInt(c.nb_avis) || 0
+    return (parseInt(c.nb_avis_remplis) || 0) < total
   })
+  const commandesAPayer = commandes.filter(c => c.statut === 'en_attente')
+  const textesARemplir = commandesIncompletes.reduce((n, c) => {
+    const total = parseInt(c.nb_avis_total) || parseInt(c.nb_avis) || 0
+    return n + total - (parseInt(c.nb_avis_remplis) || 0)
+  }, 0)
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
@@ -60,7 +67,7 @@ export default function ClientDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">Tableau de bord</h1>
-          <p className="text-muted mt-1">Gérez vos commandes d'avis Google</p>
+          <p className="text-muted mt-1">Ce qu'il y a à faire, et où en sont tes avis</p>
         </div>
         <button
           onClick={() => { setShowNotifs(!showNotifs); if (!showNotifs) marquerLues() }}
@@ -103,65 +110,83 @@ export default function ClientDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Alerte commandes incomplètes */}
-      {commandesIncompletes.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={springSmooth}
-          className="card p-4 border-l-4 border-l-amber-400 flex items-start gap-3"
-        >
-          <AlertTriangle size={18} className="text-amber-500 mt-0.5 shrink-0" />
+      {/* Prochaine étape : une seule chose à faire à la fois */}
+      {commandesAPayer.length > 0 ? (
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={springSmooth}
+          className="card p-5 border-l-4 border-l-amber-400 space-y-3">
+          <div className="flex items-start gap-3">
+            <Wallet size={20} className="text-amber-500 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-slate-900 dark:text-white">
+                {commandesAPayer.length > 1 ? `${commandesAPayer.length} commandes attendent ton paiement` : 'Ta commande attend ton paiement'}
+              </p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                Dès qu'on voit le paiement PayPal, on active ta commande (en général sous 24 h).
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <a href={lienPaypal(commandesAPayer[0].montant)} target="_blank" rel="noreferrer" className="btn-primary text-sm py-2.5 px-4 flex-1 text-center">
+              Payer {parseFloat(commandesAPayer[0].montant).toFixed(2)}€ avec PayPal
+            </a>
+            <Link to="/client/commandes" className="btn-secondary text-sm py-2.5 px-4 text-center">Voir ma commande</Link>
+          </div>
+        </motion.div>
+      ) : textesARemplir > 0 ? (
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={springSmooth}
+          className="card p-5 border-l-4 border-l-sky-500 flex items-start gap-3">
+          <PenLine size={20} className="text-sky-500 mt-0.5 shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-semibold text-slate-800 dark:text-white">
-              {commandesIncompletes.length} commande{commandesIncompletes.length > 1 ? 's' : ''} à compléter
+            <p className="font-semibold text-slate-900 dark:text-white">
+              {textesARemplir} texte{textesARemplir > 1 ? 's' : ''} d'avis à écrire
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Des avis attendent leurs textes — remplis-les pour qu'ils soient disponibles pour les membres.
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              Tes avis ne partent chez les membres qu'une fois leur texte rempli.
             </p>
           </div>
-          <Link to="/client/commandes" className="btn-primary text-xs py-2 px-3 shrink-0">
-            Compléter
-          </Link>
+          <Link to="/client/commandes" className="btn-primary text-sm py-2.5 px-4 shrink-0">Écrire</Link>
+        </motion.div>
+      ) : commandes.length === 0 ? (
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={springSmooth}
+          className="card p-5 flex items-center gap-4">
+          <div className="flex-1">
+            <p className="font-semibold text-slate-900 dark:text-white">Lance ta première commande</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              3 € par avis, 1 avis offert tous les 10. Tu colles ton lien Google Maps et c'est parti.
+            </p>
+          </div>
+          <Link to="/client/payer" className="btn-primary text-sm py-2.5 px-4 shrink-0">Commander</Link>
+        </motion.div>
+      ) : (
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={springSmooth}
+          className="card p-5 border-l-4 border-l-emerald-500 flex items-center gap-4">
+          <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
+          <div className="flex-1">
+            <p className="font-semibold text-slate-900 dark:text-white">Tout est en ordre</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              Les membres publient tes avis. Tu peux en commander d'autres quand tu veux.
+            </p>
+          </div>
+          <Link to="/client/payer" className="btn-secondary text-sm py-2.5 px-4 shrink-0">Commander</Link>
         </motion.div>
       )}
 
       {/* Stats */}
       {stats && (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="stat-card">
-            <div className="w-10 h-10 bg-sky-50 dark:bg-sky-900/30 rounded-lg flex items-center justify-center mb-3">
-              <Star size={20} className="text-sky-500" />
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { v: stats.valides || 0, l: 'Publiés sur Google', Icon: CheckCircle2, bg: 'bg-emerald-50 dark:bg-emerald-900/30', fg: 'text-emerald-500' },
+            { v: stats.enCours || 0, l: 'En cours de publication', Icon: Clock, bg: 'bg-amber-50 dark:bg-amber-900/30', fg: 'text-amber-500' },
+            { v: commandes.filter(c => c.statut !== 'en_attente').length, l: 'Commandes actives', Icon: Star, bg: 'bg-sky-50 dark:bg-sky-900/30', fg: 'text-sky-500' },
+          ].map(({ v, l, Icon, bg, fg }) => (
+            <div key={l} className="stat-card">
+              <div className={`w-9 h-9 ${bg} rounded-lg flex items-center justify-center mb-2.5`}>
+                <Icon size={18} className={fg} />
+              </div>
+              <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{v}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-snug">{l}</p>
             </div>
-            <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{stats.total || 0}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Total avis</p>
-          </div>
-
-          <div className="stat-card">
-            <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center mb-3">
-              <CheckCircle2 size={20} className="text-emerald-500" />
-            </div>
-            <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{stats.valides || 0}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Validés</p>
-          </div>
-
-          <div className="stat-card">
-            <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/30 rounded-lg flex items-center justify-center mb-3">
-              <Clock size={20} className="text-amber-500" />
-            </div>
-            <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{stats.enCours || 0}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">En cours</p>
-          </div>
-
-          <div className="stat-card">
-            <div className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-3">
-              <TrendingUp size={20} className="text-purple-500" />
-            </div>
-            <p className="text-2xl font-extrabold text-slate-900 dark:text-white">
-              {commandes.length || 0}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Commandes</p>
-          </div>
+          ))}
         </div>
       )}
 
@@ -173,10 +198,10 @@ export default function ClientDashboard() {
           </div>
           <h3 className="font-bold text-slate-900 dark:text-white">Commander des avis</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Paye en ligne et reçois tes avis Google rapidement
+            Choisis le nombre d'avis, paie par PayPal, c'est lancé
           </p>
           <div className="mt-3 flex items-center gap-1 text-sky-600 dark:text-sky-400 text-sm font-medium">
-            Commander → 3€/avis
+            3 € par avis · 1 offert tous les 10
           </div>
         </Link>
 
@@ -228,10 +253,10 @@ export default function ClientDashboard() {
         <h2 className="section-title mb-4">Comment ça marche ?</h2>
         <div className="space-y-3">
           {[
-            { n: '1', t: 'Commander', d: 'Choisis ton établissement, le nombre d\'avis et paie en ligne via Stripe', color: 'bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' },
-            { n: '2', t: 'Remplir les textes', d: 'Après paiement, remplis ou génère avec l\'IA les textes de chaque avis', color: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
+            { n: '1', t: 'Commander', d: 'Colle ton lien Google Maps, choisis le nombre d\'avis et paie par PayPal', color: 'bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' },
+            { n: '2', t: 'Remplir les textes', d: 'Dès que ton paiement est confirmé, tu écris le texte de chaque avis', color: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
             { n: '3', t: 'Publication', d: 'Les membres de SwimUp publient tes avis sur Google Maps', color: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
-            { n: '4', t: 'Vérification', d: 'Nos systèmes vérifient que les avis sont bien publiés et maintenus', color: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
+            { n: '4', t: 'Vérification', d: 'On vérifie que chaque avis reste en ligne pendant toute la durée de garantie', color: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
           ].map((s) => (
             <div key={s.n} className="flex items-start gap-3">
               <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 ${s.color}`}>

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
-import { Star, ChevronDown, ChevronUp, Save, Loader2, AlertTriangle, Trash2, CalendarClock, Clock3 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Star, ChevronDown, ChevronUp, Save, Loader2, Trash2, CalendarClock, Clock3, ShoppingBag, Wallet } from 'lucide-react'
+import { lienPaypal } from '../../lib/paypal'
 import { motion, AnimatePresence } from 'framer-motion'
 import { springSheet } from '../../lib/motion'
 import toast from 'react-hot-toast'
-
-const PRIX_AVIS = 3
 
 // Convertit une date UTC "YYYY-MM-DD HH:MM:SS" (format renvoyé par le
 // backend) en valeur locale pour un <input type="datetime-local">.
@@ -144,9 +144,12 @@ function CommandeCard({ commande, onAvisDeleted }) {
   const [loadingAvis, setLoadingAvis] = useState(false)
 
   const nbRemplis = commande.nb_avis_remplis || 0
-  const nbTotal = commande.nb_avis || 0
+  const nbTotal = commande.nb_avis_total || commande.nb_avis || 0
+  const nbPublies = commande.nb_publies || 0
+  const nbEnCours = commande.nb_en_cours || 0
   const progress = nbTotal > 0 ? (nbRemplis / nbTotal) * 100 : 0
   const isComplete = nbRemplis >= nbTotal && nbTotal > 0
+  const titre = commande.nom_etablissement || 'Commande'
 
   const loadAvis = async () => {
     if (avis.length > 0) return
@@ -180,19 +183,26 @@ function CommandeCard({ commande, onAvisDeleted }) {
   }
 
   if (commande.statut === 'en_attente') {
+    const montant = parseFloat(commande.montant)
     return (
-      <div className="card p-4 opacity-80">
-        <div className="flex items-center gap-2 flex-wrap">
-          <p className="font-semibold text-slate-900 dark:text-white text-sm">
-            {commande.nb_avis} avis — {parseFloat(commande.montant).toFixed(2)}€
-          </p>
-          <span className="badge-gray text-xs">En attente de validation</span>
+      <div className="card p-5 border-l-4 border-l-amber-400 space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-semibold text-slate-900 dark:text-white truncate">{titre}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {commande.nb_avis} avis{commande.nb_avis_bonus > 0 && ` (+${commande.nb_avis_bonus} offert${commande.nb_avis_bonus > 1 ? 's' : ''})`} · commandé le {new Date(commande.created_at).toLocaleDateString('fr-FR')}
+            </p>
+          </div>
+          <span className="badge-amber text-xs shrink-0">Paiement attendu</span>
         </div>
-        <p className="text-xs text-slate-400 mt-2">
-          Réglée par PayPal, cette commande sera activée dès que l'admin aura confirmé la réception du paiement.
-        </p>
-        <p className="text-xs text-slate-400 mt-1">
-          {new Date(commande.created_at).toLocaleDateString('fr-FR')}
+
+        <a href={lienPaypal(montant)} target="_blank" rel="noreferrer" className="btn-primary w-full py-3 text-sm flex items-center justify-center gap-2">
+          <Wallet size={16} /> Payer {montant.toFixed(2)}€ avec PayPal
+        </a>
+
+        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+          Déjà payé ? Rien à faire de ton côté : on active ta commande dès qu'on voit le paiement, en général sous 24 h.
+          Tu pourras ensuite écrire les textes de tes avis ici.
         </p>
       </div>
     )
@@ -206,22 +216,22 @@ function CommandeCard({ commande, onAvisDeleted }) {
       >
         <div className="flex-1 text-left">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold text-slate-900 dark:text-white text-sm">
-              {commande.nb_avis} avis — {parseFloat(commande.montant).toFixed(2)}€
-            </p>
+            <p className="font-semibold text-slate-900 dark:text-white text-sm truncate">{titre}</p>
             {isComplete
-              ? <span className="badge-green text-xs">Complet</span>
-              : <span className="badge-amber text-xs">{nbRemplis}/{nbTotal} remplis</span>
+              ? <span className="badge-green text-xs">Textes complets</span>
+              : <span className="badge-amber text-xs">{nbTotal - nbRemplis} texte{nbTotal - nbRemplis > 1 ? 's' : ''} à écrire</span>
             }
           </div>
-          <div className="mt-2 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden w-48">
+          <div className="mt-2 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden w-full max-w-xs">
             <div
               className={`h-full rounded-full transition-all ${isComplete ? 'bg-emerald-500' : 'bg-sky-500'}`}
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            {new Date(commande.created_at).toLocaleDateString('fr-FR')}
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+            <span className="font-medium text-emerald-600 dark:text-emerald-400">{nbPublies} publié{nbPublies > 1 ? 's' : ''} sur Google</span>
+            {nbEnCours > 0 && <> · {nbEnCours} en cours</>}
+            {' '}sur {nbTotal} · {new Date(commande.created_at).toLocaleDateString('fr-FR')}
           </p>
         </div>
         {open ? <ChevronUp size={18} className="text-slate-400 shrink-0" /> : <ChevronDown size={18} className="text-slate-400 shrink-0" />}
@@ -278,6 +288,7 @@ export default function ClientCommandes() {
         ? {
             ...c,
             nb_avis: Math.max((c.nb_avis || 0) - 1, 0),
+            nb_avis_total: Math.max((c.nb_avis_total || 0) - 1, 0),
             nb_avis_remplis: Math.max((c.nb_avis_remplis || 0) - (wasRempli ? 1 : 0), 0),
           }
         : c
@@ -295,14 +306,14 @@ export default function ClientCommandes() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="page-title">Mes commandes</h1>
-        <p className="text-muted mt-1">Remplis les textes de tes avis pour qu'ils soient visibles par les membres</p>
+        <p className="text-muted mt-1">Suis tes avis et écris leurs textes pour que les membres puissent les publier</p>
       </div>
 
       {commandes.length === 0 ? (
-        <div className="card p-10 text-center">
-          <AlertTriangle size={32} className="text-slate-300 mx-auto mb-3" />
+        <div className="card p-10 text-center space-y-3">
+          <ShoppingBag size={32} className="text-slate-300 mx-auto" />
           <p className="font-medium text-slate-600 dark:text-slate-400">Aucune commande pour le moment</p>
-          <p className="text-sm text-slate-400 mt-1">Commande des avis pour commencer</p>
+          <Link to="/client/payer" className="btn-primary inline-flex px-5 py-2.5 text-sm">Commander des avis</Link>
         </div>
       ) : (
         <div className="space-y-3">

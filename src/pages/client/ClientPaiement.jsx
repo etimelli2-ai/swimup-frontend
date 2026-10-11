@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import api from '../../lib/api'
-import { CreditCard, Star, Building, Link, Clock, Loader2, CheckCircle2, ArrowRight, ShieldCheck, Gift, Crown } from 'lucide-react'
+import { CreditCard, Star, Building, Link, Clock, CheckCircle2, ArrowRight, ShieldCheck, Gift, Crown, ChevronDown } from 'lucide-react'
+import { lienPaypal } from '../../lib/paypal'
 import { motion } from 'framer-motion'
 import { springSmooth } from '../../lib/motion'
 import toast from 'react-hot-toast'
@@ -13,10 +14,17 @@ function Spinner() {
 
 const PRIX_AVIS = 3
 
-// Ton lien PayPal.me (ou bouton PayPal hébergé) — configure VITE_PAYPAL_ME
-// dans les variables d'environnement du frontend (Vercel/Railway) avec ton
-// vrai identifiant, ex: https://paypal.me/tonpseudo
-const PAYPAL_ME = import.meta.env.VITE_PAYPAL_ME || 'https://paypal.me/tonpseudo'
+const QUANTITES = [1, 5, 10, 20]
+
+// On retient l'établissement de la dernière commande (confort de
+// recommande). Le stockage navigateur peut être indisponible : on ignore.
+const cleMemoire = (id) => `swimup_derniere_commande_${id}`
+function lireMemoire(id) {
+  try { return JSON.parse(localStorage.getItem(cleMemoire(id)) || 'null') } catch { return null }
+}
+function ecrireMemoire(id, valeurs) {
+  try { localStorage.setItem(cleMemoire(id), JSON.stringify(valeurs)) } catch { /* ignoré */ }
+}
 
 export default function ClientPaiement() {
   const navigate = useNavigate()
@@ -33,6 +41,18 @@ export default function ClientPaiement() {
     delai_paiement:     '30',
     nb_avis:            '1',
   })
+
+  const [options, setOptions] = useState(false)
+  const [dejaRempli, setDejaRempli] = useState(false)
+
+  useEffect(() => {
+    if (!user?.id) return
+    const m = lireMemoire(user.id)
+    if (m?.lien_maps) {
+      setForm(p => ({ ...p, nom_etablissement: m.nom_etablissement || '', type_etablissement: m.type_etablissement || '', lien_maps: m.lien_maps }))
+      setDejaRempli(true)
+    }
+  }, [user?.id])
 
   const estPremium = !!user?.premium
 
@@ -62,6 +82,7 @@ export default function ClientPaiement() {
         navigate('/client/success?session_id=' + r.data.session_id)
       } else {
         // Client — commande envoyée à l'admin pour validation, paiement PayPal en direct
+        if (user?.id) ecrireMemoire(user.id, { nom_etablissement: form.nom_etablissement, type_etablissement: form.type_etablissement, lien_maps: form.lien_maps })
         setCommandeEnvoyee({ montant: r.data.montant })
         toast.success('Commande envoyée !')
       }
@@ -72,8 +93,7 @@ export default function ClientPaiement() {
   }
 
   if (commandeEnvoyee) {
-    const lienPaypal = `${PAYPAL_ME}/${commandeEnvoyee.montant.toFixed(2)}EUR`
-    return (
+        return (
       <div className="max-w-lg mx-auto space-y-6 animate-fade-in">
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
@@ -87,18 +107,25 @@ export default function ClientPaiement() {
           <div>
             <h1 className="text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight">Commande envoyée</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-              Règle {commandeEnvoyee.montant.toFixed(2)}€ via PayPal, ta commande sera validée dès réception du paiement.
+              Il reste une étape : le paiement de {commandeEnvoyee.montant.toFixed(2)}€ par PayPal.
             </p>
           </div>
 
           <a
-            href={lienPaypal}
+            href={lienPaypal(commandeEnvoyee.montant)}
             target="_blank"
             rel="noreferrer"
             className="btn-primary w-full text-base py-3.5"
           >
             Payer {commandeEnvoyee.montant.toFixed(2)}€ avec PayPal
           </a>
+
+          <ol className="text-left text-xs text-slate-500 dark:text-slate-400 space-y-1.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4">
+            <li><strong className="text-slate-700 dark:text-slate-200">1.</strong> Tu paies sur PayPal (le montant est déjà rempli).</li>
+            <li><strong className="text-slate-700 dark:text-slate-200">2.</strong> On active ta commande dès qu'on voit le paiement, en général sous 24 h.</li>
+            <li><strong className="text-slate-700 dark:text-slate-200">3.</strong> Tu écris le texte de chaque avis, les membres le publient.</li>
+            <li className="pt-1">Tu peux fermer cette page : le bouton de paiement reste dans « Mes commandes ».</li>
+          </ol>
 
           <div className="flex flex-col gap-3 pt-2">
             <button onClick={() => navigate('/client/commandes')} className="btn-secondary w-full">
@@ -128,7 +155,7 @@ export default function ClientPaiement() {
         <p className="text-muted mt-1">
           {isAdmin
             ? 'En tant qu\'admin, les avis sont créés gratuitement et immédiatement.'
-            : 'Remplis les informations, commande, puis règle par PayPal'
+            : 'Ton lien Google Maps, le nombre d\'avis, puis le paiement par PayPal'
           }
         </p>
       </div>
@@ -150,8 +177,14 @@ export default function ClientPaiement() {
       <div className="card p-5 space-y-4">
         <h2 className="section-title flex items-center gap-2">
           <Building size={18} className="text-sky-500" />
-          Informations établissement
+          Ton établissement
         </h2>
+
+        {dejaRempli && (
+          <p className="text-xs text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 rounded-xl px-3 py-2">
+            Repris de ta dernière commande. Change-le si c'est pour un autre établissement.
+          </p>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
@@ -163,52 +196,53 @@ export default function ClientPaiement() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-            Type d'établissement
-          </label>
-          <input className="input" placeholder="Ex: restaurant, hôtel, couvreur..."
-            value={form.type_etablissement}
-            onChange={e => setForm(p => ({ ...p, type_etablissement: e.target.value }))} />
-        </div>
-
-        <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
             <Link size={14} className="text-slate-400" />
             Lien Google Maps <span className="text-red-500">*</span>
           </label>
-          <input className="input" placeholder="https://maps.google.com/..."
+          <input className="input" placeholder="https://maps.app.goo.gl/..."
             value={form.lien_maps}
             onChange={e => setForm(p => ({ ...p, lien_maps: e.target.value }))} />
+          <p className="text-xs text-slate-400 mt-1">Sur Google Maps : ta fiche → Partager → Copier le lien.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-              <Star size={14} className="text-slate-400" />
-              Étoiles
-            </label>
-            <select className="input" value={form.nb_etoiles}
-              onChange={e => setForm(p => ({ ...p, nb_etoiles: e.target.value }))}>
-              <option value="1">1 étoile</option>
-              <option value="2">2 étoiles</option>
-              <option value="3">3 étoiles</option>
-              <option value="4">4 étoiles</option>
-              <option value="5">5 étoiles</option>
-            </select>
-            <p className="text-xs text-slate-400 mt-1">{etoilesLabel(form.nb_etoiles)}</p>
-          </div>
+        <button type="button" onClick={() => setOptions(o => !o)}
+          className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+          <ChevronDown size={14} className={`transition-transform ${options ? 'rotate-180' : ''}`} />
+          Options (type d'établissement, étoiles, garantie)
+        </button>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-              <Clock size={14} className="text-slate-400" />
-              Délai paiement
-            </label>
-            <input className="input" type="number" min="7" max="90" placeholder="30"
-              value={form.delai_paiement}
-              onChange={e => setForm(p => ({ ...p, delai_paiement: e.target.value }))} />
-            <p className="text-xs text-slate-400 mt-1">jours</p>
+        {options && (
+          <div className="space-y-4 border-t border-slate-100 dark:border-slate-700 pt-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Type d'établissement</label>
+              <input className="input" placeholder="Ex: restaurant, hôtel, couvreur..."
+                value={form.type_etablissement}
+                onChange={e => setForm(p => ({ ...p, type_etablissement: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+                  <Star size={14} className="text-slate-400" /> Note des avis
+                </label>
+                <select className="input" value={form.nb_etoiles}
+                  onChange={e => setForm(p => ({ ...p, nb_etoiles: e.target.value }))}>
+                  {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} étoile{n > 1 ? 's' : ''}</option>)}
+                </select>
+                <p className="text-xs text-slate-400 mt-1">{etoilesLabel(form.nb_etoiles)}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+                  <Clock size={14} className="text-slate-400" /> Garantie (jours)
+                </label>
+                <input className="input" type="number" min="7" max="90" placeholder="30"
+                  value={form.delai_paiement}
+                  onChange={e => setForm(p => ({ ...p, delai_paiement: e.target.value }))} />
+                <p className="text-xs text-slate-400 mt-1">On vérifie que l'avis reste en ligne</p>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="card p-5 space-y-4">
@@ -221,6 +255,14 @@ export default function ClientPaiement() {
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
             Nombre d'avis
           </label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {QUANTITES.map(q => (
+              <button key={q} type="button" onClick={() => setForm(p => ({ ...p, nb_avis: String(q) }))}
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-all active:scale-95 ${nb === q ? 'bg-sky-500 border-sky-500 text-white' : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-sky-300'}`}>
+                {q}{q === 10 && ' · 1 offert'}{q === 20 && ' · 2 offerts'}
+              </button>
+            ))}
+          </div>
           <input className="input" type="number" min="1" max="50"
             value={form.nb_avis}
             onChange={e => setForm(p => ({ ...p, nb_avis: e.target.value }))} />
@@ -266,9 +308,9 @@ export default function ClientPaiement() {
 
         {!isAdmin && (
           <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
-            <p>Paiement par PayPal, en direct</p>
-            <p>L'admin valide ta commande dès réception du paiement</p>
-            <p>Une fois validée, tu pourras remplir les textes de tes avis</p>
+            <p>Tu paies par PayPal juste après avoir validé.</p>
+            <p>On active ta commande dès réception, en général sous 24 h.</p>
+            <p>Ensuite tu écris le texte de chaque avis.</p>
           </div>
         )}
 
