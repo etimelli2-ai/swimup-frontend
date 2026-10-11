@@ -122,7 +122,7 @@ export default function ClientPaiement() {
 
           <ol className="text-left text-xs text-slate-500 dark:text-slate-400 space-y-1.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4">
             <li><strong className="text-slate-700 dark:text-slate-200">1.</strong> Tu paies sur PayPal (le montant est déjà rempli).</li>
-            <li><strong className="text-slate-700 dark:text-slate-200">2.</strong> On active ta commande dès qu'on voit le paiement, en général sous 24 h.</li>
+            <li><strong className="text-slate-700 dark:text-slate-200">2.</strong> On active ta commande dès qu'on voit le paiement, en général sous 12 h.</li>
             <li><strong className="text-slate-700 dark:text-slate-200">3.</strong> Tu écris le texte de chaque avis, les membres le publient.</li>
             <li className="pt-1">Tu peux fermer cette page : le bouton de paiement reste dans « Mes commandes ».</li>
           </ol>
@@ -309,7 +309,7 @@ export default function ClientPaiement() {
         {!isAdmin && (
           <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
             <p>Tu paies par PayPal juste après avoir validé.</p>
-            <p>On active ta commande dès réception, en général sous 24 h.</p>
+            <p>On active ta commande dès réception, en général sous 12 h.</p>
             <p>Ensuite tu écris le texte de chaque avis.</p>
           </div>
         )}

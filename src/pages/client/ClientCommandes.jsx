@@ -201,7 +201,7 @@ function CommandeCard({ commande, onAvisDeleted }) {
         </a>
 
         <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-          Déjà payé ? Rien à faire de ton côté : on active ta commande dès qu'on voit le paiement, en général sous 24 h.
+          Déjà payé ? Rien à faire de ton côté : on active ta commande dès qu'on voit le paiement, en général sous 12 h.
           Tu pourras ensuite écrire les textes de tes avis ici.
         </p>
       </div>

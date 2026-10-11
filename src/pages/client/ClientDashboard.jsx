@@ -121,7 +121,7 @@ export default function ClientDashboard() {
                 {commandesAPayer.length > 1 ? `${commandesAPayer.length} commandes attendent ton paiement` : 'Ta commande attend ton paiement'}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                Dès qu'on voit le paiement PayPal, on active ta commande (en général sous 24 h).
+                Dès qu'on voit le paiement PayPal, on active ta commande (en général sous 12 h).
               </p>
             </div>
           </div>
