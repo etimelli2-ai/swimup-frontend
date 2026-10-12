@@ -28,6 +28,7 @@ const ClientPremium = lazy(() => import('./pages/client/ClientPremium'))
 const ClientStats = lazy(() => import('./pages/client/ClientStats'))
 const ClientOutils = lazy(() => import('./pages/client/ClientOutils'))
 const ClientReputation = lazy(() => import('./pages/client/ClientReputation'))
+const ClientCampagnes = lazy(() => import('./pages/client/ClientCampagnes'))
 const Parrainage = lazy(() => import('./pages/Parrainage'))
 import PublicCommander from './pages/PublicCommander'
 const PublicSuivi = lazy(() => import('./pages/PublicSuivi'))
@@ -142,6 +143,7 @@ export default function App() {
         <Route path="stats"     element={<ClientStats />} />
         <Route path="outils"    element={<ClientOutils />} />
         <Route path="reputation" element={<ClientReputation />} />
+        <Route path="campagnes" element={<ClientCampagnes />} />
       </Route>
 
       <Route path="/client/success" element={
