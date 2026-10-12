@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Star, Crown, RefreshCw, Check, Copy, FileDown, Search, Trash2, TrendingDown, TrendingUp } from 'lucide-react'
 import toast from 'react-hot-toast'
-import api from '../../lib/api'
+import api, { compteActif } from '../../lib/api'
 import MiniLineChart from '../../components/MiniLineChart'
 
-const ONGLETS = [['avis', 'Avis Google'], ['evolution', 'Évolution'], ['visibilite', 'Visibilité'], ['analyse', 'Analyse'], ['pistes', 'À améliorer'], ['rapport', 'Rapport']]
+const ONGLETS = [['avis', 'Avis Google'], ['evolution', 'Évolution'], ['visibilite', 'Visibilité'], ['analyse', 'Analyse'], ['pistes', 'À améliorer'], ['rapport', 'Rapport'], ['reglages', 'Réglages']]
 
 const dateFr = (s) => s ? new Date(s.includes('T') || s.includes('Z') ? s : String(s).replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR') : '—'
 const note1 = (n) => (n === null || n === undefined ? '—' : Number(n).toFixed(1).replace('.', ','))
@@ -36,7 +36,13 @@ function Segments({ options, valeur, onChoisir }) {
 }
 
 export default function ClientReputation() {
-  const [onglet, setOnglet] = useState('avis')
+  const [params] = useSearchParams()
+  // Les réglages (rappels, export, effacement) sont toujours ceux de son propre compte :
+  // on les masque quand on travaille sur l'établissement de quelqu'un d'autre.
+  const delegue = !!compteActif()
+  const onglets = delegue ? ONGLETS.filter(([v]) => v !== 'reglages') : ONGLETS
+  const demande = params.get('onglet')
+  const [onglet, setOnglet] = useState(onglets.some(([v]) => v === demande) ? demande : 'avis')
   const [apercu, setApercu] = useState(null)
   const [erreur, setErreur] = useState(false)
 
@@ -53,7 +59,7 @@ export default function ClientReputation() {
       </div>
 
       <div className="flex gap-1 overflow-x-auto -mx-1 px-1 pb-1" role="tablist">
-        {ONGLETS.map(([v, l]) => (
+        {onglets.map(([v, l]) => (
           <button key={v} role="tab" aria-selected={onglet === v} onClick={() => setOnglet(v)}
             className={`px-3.5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${onglet === v ? 'bg-sky-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}
             style={onglet === v ? { backgroundColor: 'var(--accent)' } : undefined}>
@@ -69,6 +75,7 @@ export default function ClientReputation() {
       {apercu && onglet === 'analyse' && <Analyse apercu={apercu} rafraichir={chargerApercu} />}
       {apercu && onglet === 'pistes' && <Pistes />}
       {apercu && onglet === 'rapport' && <Rapport apercu={apercu} />}
+      {onglet === 'reglages' && !delegue && <Reglages />}
     </div>
   )
 }
@@ -531,6 +538,102 @@ function Visibilite() {
         })}
         {d.mots_cles.length === 0 && <li className="card text-center text-sm text-muted py-8">Aucun mot-clé suivi. Ajoute par exemple ton métier et ta ville.</li>}
       </ul>
+    </div>
+  )
+}
+
+
+// ---------- Réglages : rappels, données ----------
+
+function Interrupteur({ id, label, aide, actif, verrou, onChange, occupe }) {
+  return (
+    <div className="flex items-start justify-between gap-3 py-3">
+      <div className="min-w-0">
+        <label htmlFor={id} className="text-sm font-medium flex items-center gap-1">{label}{verrou && <Crown size={12} className="text-amber-500" />}</label>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{aide}</p>
+      </div>
+      <input id={id} type="checkbox" role="switch" className="mt-1 h-5 w-5 shrink-0" checked={actif} disabled={occupe || verrou} onChange={e => onChange(e.target.checked)} />
+    </div>
+  )
+}
+
+function Reglages() {
+  const [d, setD] = useState(null)
+  const [occupe, setOccupe] = useState(false)
+  const [confirmation, setConfirmation] = useState('')
+
+  useEffect(() => { api.get('/client/donnees/reglages').then(r => setD(r.data)).catch(() => toast.error('Chargement impossible')) }, [])
+
+  const changer = async (cle, valeur) => {
+    setOccupe(true)
+    try { const r = await api.put('/client/donnees/reglages', { [cle]: valeur }); setD(x => ({ ...x, preferences: r.data.preferences })) }
+    catch (e) { toast.error(erreurApi(e)) }
+    setOccupe(false)
+  }
+
+  const exporter = async () => {
+    setOccupe(true)
+    try {
+      const r = await api.get('/client/donnees/export', { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([r.data], { type: 'application/json' }))
+      const a = document.createElement('a'); a.href = url; a.download = 'mes-donnees-swimup.json'
+      document.body.appendChild(a); a.click(); a.remove(); window.URL.revokeObjectURL(url)
+    } catch { toast.error("L'export a échoué, réessaie.") }
+    setOccupe(false)
+  }
+
+  const effacer = async () => {
+    setOccupe(true)
+    try {
+      await api.delete('/client/donnees/outils', { data: { confirmation } })
+      toast.success("Données d'outils effacées")
+      setConfirmation('')
+    } catch (e) { toast.error(erreurApi(e)) }
+    setOccupe(false)
+  }
+
+  if (!d) return <div className="card animate-pulse h-32" />
+  const p = d.preferences
+
+  return (
+    <div className="space-y-5">
+      <div className="card">
+        <h2 className="section-title">Rappels par email</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Tout est désactivé tant que tu ne l'actives pas. Tu peux couper un rappel à tout moment.</p>
+        <div className="divide-y divide-slate-100 dark:divide-slate-700 mt-2">
+          <Interrupteur id="r-resume" label="Résumé de fin de mois" verrou={!d.premium} actif={p.resume_mensuel} occupe={occupe}
+            aide="Le 1er du mois : ta note, tes nouveaux avis et tes passages sur le lien pour le mois écoulé." onChange={v => changer('resume_mensuel', v)} />
+          <Interrupteur id="r-visi" label="Alerte si ta visibilité baisse" verrou={!d.premium} actif={p.alerte_visibilite} occupe={occupe}
+            aide="Un email quand ta fiche perd au moins 3 places ou sort des 20 premiers résultats (un par jour au plus)." onChange={v => changer('alerte_visibilite', v)} />
+          <Interrupteur id="r-demandes" label="Rappel de demander des avis" actif={p.rappel_demandes} occupe={occupe}
+            aide="Si tu n'as envoyé aucune demande d'avis depuis 30 jours (au plus un rappel par mois)." onChange={v => changer('rappel_demandes', v)} />
+        </div>
+        {!d.premium && <p className="text-xs text-slate-500 mt-2 flex items-center gap-1"><Crown size={12} className="text-amber-500" /> Le résumé et l'alerte sont inclus avec <Link to="/client/premium" className="underline">Premium</Link>.</p>}
+      </div>
+
+      <div className="card space-y-3">
+        <h2 className="section-title">Mes données</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Voici combien de temps SwimUp garde chaque donnée de tes outils d'avis.</p>
+        <ul className="divide-y divide-slate-100 dark:divide-slate-700 text-sm">
+          {d.conservation.map(c => (
+            <li key={c.donnee} className="py-2">
+              <p className="font-medium">{c.donnee}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">{c.duree}{c.note ? ` · ${c.note}` : ''}</p>
+            </li>
+          ))}
+        </ul>
+        <button className="btn-secondary w-full" onClick={exporter} disabled={occupe}><FileDown size={16} /> Télécharger mes données (JSON)</button>
+      </div>
+
+      <div className="card space-y-3 border border-red-200 dark:border-red-900/60">
+        <h2 className="section-title">Effacer les données de mes outils</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-300">Supprime tes campagnes, tes mots-clés et relevés de visibilité, tes analyses, tes pistes, l'historique de ta note, l'équipe et tes rappels. Tes commandes d'avis, tes paiements et le lien de ton QR code ne sont pas touchés. Cette action est définitive.</p>
+        <label className="text-sm font-medium" htmlFor="eff-conf">Écris SUPPRIMER pour confirmer</label>
+        <div className="flex gap-2">
+          <input id="eff-conf" className="input flex-1" value={confirmation} onChange={e => setConfirmation(e.target.value)} autoComplete="off" />
+          <button className="btn-danger" onClick={effacer} disabled={occupe || confirmation !== 'SUPPRIMER'}><Trash2 size={15} /> Effacer</button>
+        </div>
+      </div>
     </div>
   )
 }
