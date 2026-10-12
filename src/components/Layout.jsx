@@ -24,8 +24,10 @@ import {
   Mail,
   Building2,
   BarChart3,
+  Users,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import SelecteurCompte from './SelecteurCompte'
 import React from 'react'
 import { springSheet, springSmooth } from '../lib/motion'
 import { ACCENT_DEFAUT, couleurHover, ARRONDIS, TAILLES, ICONES } from '../lib/themePremium'
@@ -101,6 +103,7 @@ export default function Layout() {
     { path: '/client/stats',     label: 'Statistiques', icon: TrendingUp },
     { path: '/client/outils',    label: 'Outils avis',  icon: QrCode },
     { path: '/client/campagnes',  label: 'Campagnes',   icon: Mail },
+    { path: '/client/equipe',     label: 'Équipe',      icon: Users },
     { path: '/client/reputation', label: 'Réputation',  icon: Star },
     { path: '/client/premium',   label: 'Premium',      icon: Crown },
     { path: '/profil',           label: 'Profil',       icon: User },
@@ -268,6 +271,7 @@ export default function Layout() {
       {/* Main Content */}
       <main className="flex-1 lg:ml-64 pt-14 lg:pt-0">
         <div className="max-w-5xl mx-auto p-4 lg:p-8">
+          {isClient && <SelecteurCompte />}
           <Outlet />
         </div>
       </main>
