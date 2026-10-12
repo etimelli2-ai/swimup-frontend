@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Star, Crown, RefreshCw, Check, Copy, FileDown, Search } from 'lucide-react'
+import { Star, Crown, RefreshCw, Check, Copy, FileDown, Search, Trash2, TrendingDown, TrendingUp } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../lib/api'
 import MiniLineChart from '../../components/MiniLineChart'
 
-const ONGLETS = [['avis', 'Avis Google'], ['evolution', 'Évolution'], ['analyse', 'Analyse'], ['pistes', 'À améliorer'], ['rapport', 'Rapport']]
+const ONGLETS = [['avis', 'Avis Google'], ['evolution', 'Évolution'], ['visibilite', 'Visibilité'], ['analyse', 'Analyse'], ['pistes', 'À améliorer'], ['rapport', 'Rapport']]
 
 const dateFr = (s) => s ? new Date(s.includes('T') || s.includes('Z') ? s : String(s).replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR') : '—'
 const note1 = (n) => (n === null || n === undefined ? '—' : Number(n).toFixed(1).replace('.', ','))
@@ -65,6 +65,7 @@ export default function ClientReputation() {
       {erreur && <div className="card text-center text-sm text-red-500 py-8">Impossible de charger cette page. Recharge-la dans un instant.</div>}
       {apercu && onglet === 'avis' && <AvisGoogle apercu={apercu} rafraichir={chargerApercu} />}
       {apercu && onglet === 'evolution' && <Evolution apercu={apercu} />}
+      {apercu && onglet === 'visibilite' && <Visibilite />}
       {apercu && onglet === 'analyse' && <Analyse apercu={apercu} rafraichir={chargerApercu} />}
       {apercu && onglet === 'pistes' && <Pistes />}
       {apercu && onglet === 'rapport' && <Rapport apercu={apercu} />}
@@ -429,6 +430,107 @@ function Rapport({ apercu }) {
         {mois.map(m => <option key={m.valeur} value={m.valeur}>{m.label}</option>)}
       </select>
       <button className="btn-primary w-full" onClick={telecharger} disabled={occupe}><FileDown size={16} /> {occupe ? 'Génération…' : 'Télécharger le PDF'}</button>
+    </div>
+  )
+}
+
+
+// ---------- Visibilité locale ----------
+
+const rang = (p) => (p ? `${p}${p === 1 ? 'ᵉʳ' : 'ᵉ'}` : 'hors top 20')
+
+function Visibilite() {
+  const [d, setD] = useState(null)
+  const [motCle, setMotCle] = useState('')
+  const [zone, setZone] = useState('')
+  const [occupe, setOccupe] = useState(null)
+  const [ouvert, setOuvert] = useState(null)
+  const [histo, setHisto] = useState(null)
+
+  const charger = useCallback(() => { api.get('/client/visibilite').then(r => setD(r.data)).catch(() => setD(false)) }, [])
+  useEffect(() => { charger() }, [charger])
+
+  const ajouter = async () => {
+    setOccupe('ajout')
+    try { await api.post('/client/visibilite/mots-cles', { mot_cle: motCle, zone }); setMotCle(''); charger() }
+    catch (e) { toast.error(erreurApi(e)) }
+    setOccupe(null)
+  }
+  const verifier = async (m) => {
+    setOccupe(m.id)
+    try { await api.post(`/client/visibilite/mots-cles/${m.id}/verifier`); toast.success('Position relevée'); charger(); if (ouvert === m.id) voir(m.id, true) }
+    catch (e) { toast.error(erreurApi(e)) }
+    setOccupe(null)
+  }
+  const supprimer = async (m) => {
+    if (!confirm(`Ne plus suivre « ${m.mot_cle} » à ${m.zone} ? L'historique sera supprimé.`)) return
+    try { await api.delete(`/client/visibilite/mots-cles/${m.id}`); setOuvert(null); charger() }
+    catch (e) { toast.error(erreurApi(e)) }
+  }
+  const voir = async (id, force = false) => {
+    if (ouvert === id && !force) { setOuvert(null); return }
+    setOuvert(id); setHisto(null)
+    try { const r = await api.get(`/client/visibilite/mots-cles/${id}/historique`); setHisto(r.data) } catch { setHisto(false) }
+  }
+
+  if (d === null) return null
+  if (d === false) return <div className="card text-center text-sm text-red-500 py-8">Chargement impossible, recharge la page.</div>
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl bg-sky-50 dark:bg-sky-900/20 text-sky-900 dark:text-sky-200 text-[13px] p-3 leading-relaxed">{d.note}</div>
+
+      {!d.etablissement_configure && (
+        <div className="card text-sm">Pour relever ta position, indique d'abord ton établissement dans l'onglet « Avis Google ».</div>
+      )}
+
+      <div className="card space-y-3">
+        <h2 className="section-title">Suivre un mot-clé</h2>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input className="input flex-1" placeholder="Ex : coiffeur" value={motCle} onChange={e => setMotCle(e.target.value)} maxLength={60} />
+          <input className="input sm:w-44" placeholder="Ex : Ajaccio" value={zone} onChange={e => setZone(e.target.value)} maxLength={60} />
+          <button className="btn-primary" onClick={ajouter} disabled={occupe === 'ajout' || motCle.trim().length < 2 || zone.trim().length < 2 || d.mots_cles.length >= d.max_mots_cles}>Ajouter</button>
+        </div>
+        <p className="text-xs text-muted">
+          {d.mots_cles.length} / {d.max_mots_cles} mots-clés · {d.quota.restant} relevé{d.quota.restant > 1 ? 's' : ''} possible{d.quota.restant > 1 ? 's' : ''} aujourd'hui
+          {d.releve_auto ? ' · relevé automatique chaque lundi' : ' · relevé automatique avec Premium'}
+        </p>
+      </div>
+
+      <ul className="space-y-3">
+        {d.mots_cles.map(m => {
+          const t = m.tendance
+          return (
+            <li key={m.id} className="card space-y-2">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">« {m.mot_cle} » à {m.zone}</p>
+                  <p className="text-xs text-muted">{m.dernier ? `Relevé le ${dateFr(m.dernier.date)}` : 'Pas encore de relevé'}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-xl font-bold">{m.dernier ? rang(m.dernier.position) : '—'}</p>
+                  {t.statut === 'chute' && <p className="text-xs text-red-500 flex items-center gap-1 justify-end"><TrendingDown size={12} /> en baisse{t.precedente ? ` (était ${rang(t.precedente)})` : ''}</p>}
+                  {t.statut === 'progres' && <p className="text-xs text-emerald-600 flex items-center gap-1 justify-end"><TrendingUp size={12} /> en hausse{t.precedente ? ` (était ${rang(t.precedente)})` : ''}</p>}
+                  {t.statut === 'stable' && <p className="text-xs text-muted">stable</p>}
+                </div>
+              </div>
+              {m.dernier?.concurrents?.length > 0 && <p className="text-xs text-muted">En tête sur cette recherche : {m.dernier.concurrents.join(', ')}</p>}
+              <div className="flex flex-wrap gap-2">
+                <button className="btn-secondary text-xs px-3 py-1.5" onClick={() => verifier(m)} disabled={occupe === m.id || !d.etablissement_configure}>
+                  <RefreshCw size={13} className={occupe === m.id ? 'animate-spin' : ''} /> Relever maintenant
+                </button>
+                <button className="btn-secondary text-xs px-3 py-1.5" onClick={() => voir(m.id)}>{ouvert === m.id ? 'Masquer l\'historique' : 'Historique'}</button>
+                <button className="text-xs px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-red-500" onClick={() => supprimer(m)} aria-label="Supprimer"><Trash2 size={13} /></button>
+              </div>
+              {ouvert === m.id && histo && (histo.releves.length > 1
+                ? <div className="pt-2"><MiniLineChart points={histo.releves.map(r => ({ label: dateFr(r.date), value: 21 - (r.position ?? 21) }))} formatValue={v => (v === 0 ? 'hors top 20' : `${21 - v}ᵉ`)} />
+                    <p className="text-xs text-muted">Plus la courbe est haute, mieux ta fiche est placée.</p></div>
+                : <p className="text-xs text-muted pt-1">Il faut au moins deux relevés pour tracer une courbe.</p>)}
+            </li>
+          )
+        })}
+        {d.mots_cles.length === 0 && <li className="card text-center text-sm text-muted py-8">Aucun mot-clé suivi. Ajoute par exemple ton métier et ta ville.</li>}
+      </ul>
     </div>
   )
 }
