@@ -79,7 +79,7 @@ export function useReserverAvis() {
     mutationFn: ({ id, source }) => api.post(`${baseUrl(source)}/${id}/reserver`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avis'] });
-      toast.success('Avis reserve ! Tu as 1h pour publier.', {
+      toast.success('Avis reserve ! Tu as 3h pour publier.', {
         icon: '✓',
         style: { borderRadius: '10px', background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }
       });

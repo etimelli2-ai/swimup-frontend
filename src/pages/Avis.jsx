@@ -13,6 +13,9 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { springSheet } from '../lib/motion'
 
+// Un membre a 3 heures pour publier son avis après l'avoir réservé
+const DELAI_RESERVATION_MS = 3 * 60 * 60 * 1000
+
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
 }
@@ -115,14 +118,17 @@ function AvisEnCours({ avis, onSoumettre, onAnnuler, soumettant, annulant }) {
       // le navigateur le lirait en heure locale et le décompte serait faux.
       const brut = String(avis.reserve_at)
       const reserveAt = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(brut) ? brut : brut.replace(' ', 'T') + 'Z')
-      const remaining = 3600000 - (Date.now() - reserveAt.getTime())
+      const remaining = DELAI_RESERVATION_MS - (Date.now() - reserveAt.getTime())
       if (remaining <= 0) {
         setTimeLeft(0)
         clearInterval(interval)
       } else {
-        const mins = Math.floor(remaining / 60000)
+        const heures = Math.floor(remaining / 3600000)
+        const mins = Math.floor((remaining % 3600000) / 60000)
         const secs = Math.floor((remaining % 60000) / 1000)
-        setTimeLeft(`${mins}m ${secs.toString().padStart(2, '0')}s`)
+        setTimeLeft(heures > 0
+          ? `${heures}h ${mins.toString().padStart(2, '0')}m`
+          : `${mins}m ${secs.toString().padStart(2, '0')}s`)
       }
     }, 1000)
     return () => clearInterval(interval)
