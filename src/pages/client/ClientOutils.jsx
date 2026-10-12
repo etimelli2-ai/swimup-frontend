@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../../lib/api'
 import usePageTitle from '../../hooks/usePageTitle'
 import toast from 'react-hot-toast'
-import { Download, Send, Sparkles, Copy, Star, BookOpen, Crown } from 'lucide-react'
+import { Download, Send, Sparkles, Copy, Star, BookOpen, Crown, Check, Circle, QrCode, MousePointerClick, Mail, RefreshCw, AlertTriangle, SlidersHorizontal, Link2 } from 'lucide-react'
 
 const MAX_DEST = 20
 const TONS = [
@@ -29,6 +29,20 @@ function lireDestinataires(texte) {
   return liste
 }
 
+const LONGUEURS = [
+  { v: 'court', l: 'Courte (2 phrases)' },
+  { v: 'moyen', l: 'Moyenne' },
+  { v: 'long', l: 'Détaillée' },
+]
+const LANGUES = [
+  { v: 'fr', l: 'Français' },
+  { v: 'auto', l: "Même langue que l'avis" },
+  { v: 'en', l: 'Anglais' },
+  { v: 'es', l: 'Espagnol' },
+  { v: 'de', l: 'Allemand' },
+  { v: 'it', l: 'Italien' },
+]
+
 function Quota({ q }) {
   if (!q) return null
   return <span className="text-xs text-slate-500 dark:text-slate-400">{q.restant}/{q.limite} restants aujourd'hui</span>
@@ -52,6 +66,11 @@ export default function ClientOutils() {
   const [ton, setTon] = useState('professionnel')
   const [reponse, setReponse] = useState('')
   const [genEnCours, setGenEnCours] = useState(false)
+  const [sensible, setSensible] = useState(null)
+
+  const [periode, setPeriode] = useState('7')
+  const [prefs, setPrefs] = useState({ secteur: '', longueur: 'moyen', langue: 'fr', infos: '', eviter: '' })
+  const [prefsEnCours, setPrefsEnCours] = useState(false)
 
   const charger = () => api.get('/client/commercant').then(r => {
     setData(r.data)
@@ -60,6 +79,7 @@ export default function ClientOutils() {
       nom_commerce: r.data.config.nom_commerce || r.data.nom_societe || '',
       message_perso: r.data.config.message_perso || '',
     })
+    setPrefs(p => ({ ...p, ...r.data.ia_preferences }))
   }).catch(() => setErreur(true))
   useEffect(() => { charger() }, [])
 
@@ -121,12 +141,36 @@ export default function ClientOutils() {
     }
   }
 
-  async function genererReponse(e) {
+  async function copierLien() {
+    try {
+      await navigator.clipboard.writeText(data.lien_partage)
+      toast.success('Lien copié')
+    } catch {
+      toast.error('Copie impossible, sélectionne le lien à la main.')
+    }
+  }
+
+  async function enregistrerPrefs(e) {
     e.preventDefault()
+    setPrefsEnCours(true)
+    try {
+      const r = await api.put('/client/commercant/ia-preferences', prefs)
+      setPrefs(r.data.ia_preferences)
+      toast.success("Préférences enregistrées")
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur')
+    } finally {
+      setPrefsEnCours(false)
+    }
+  }
+
+  async function genererReponse(e, autre = false) {
+    e?.preventDefault?.()
     setGenEnCours(true)
     try {
-      const r = await api.post('/client/commercant/reponse-avis', { avis, note, ton })
+      const r = await api.post('/client/commercant/reponse-avis', { avis, note, ton, ...(autre ? { autre: true } : {}) })
       setReponse(r.data.texte)
+      setSensible(r.data.sensible ? r.data.raison : null)
       charger()
     } catch (err) {
       toast.error(err.response?.data?.error || 'Erreur')
@@ -157,6 +201,40 @@ export default function ClientOutils() {
         </div>
         <Link to="/aide-commercants" className="btn-secondary text-sm"><BookOpen size={16} /> Guides</Link>
       </div>
+
+      {/* Démarrage : étapes cochées seulement quand elles sont réellement faites */}
+      {(() => {
+        const requises = data.etapes.filter(x => !x.optionnelle)
+        const faites = requises.filter(x => x.fait).length
+        if (faites === requises.length) return null
+        return (
+          <section className="card p-5" aria-labelledby="t-demarrage">
+            <div className="flex items-center justify-between gap-3">
+              <h2 id="t-demarrage" className="font-semibold text-slate-900 dark:text-slate-100">Pour bien démarrer</h2>
+              <span className="text-sm text-slate-500 dark:text-slate-400 tabular-nums">{faites}/{requises.length}</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 mt-3 overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={requises.length} aria-valuenow={faites} aria-label="Étapes de démarrage terminées">
+              <div className="h-full bg-brand-500 transition-all" style={{ width: `${(faites / requises.length) * 100}%` }} />
+            </div>
+            <ul className="mt-3 space-y-1.5">
+              {data.etapes.map(x => (
+                <li key={x.cle} className="flex items-center gap-2 text-sm">
+                  {x.fait
+                    ? <Check size={16} className="text-emerald-600 shrink-0" aria-label="Fait" />
+                    : <Circle size={16} className="text-slate-300 dark:text-slate-600 shrink-0" aria-label="À faire" />}
+                  {x.fait ? (
+                    <span className="text-slate-500 dark:text-slate-400">{x.titre}</span>
+                  ) : x.lien ? (
+                    <Link to={x.lien} className="text-slate-800 dark:text-slate-100 underline decoration-slate-300 hover:decoration-slate-500">{x.titre}{x.optionnelle ? ' (facultatif)' : ''}</Link>
+                  ) : (
+                    <a href={`#${x.ancre}`} className="text-slate-800 dark:text-slate-100 underline decoration-slate-300 hover:decoration-slate-500">{x.titre}</a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      })()}
 
       {/* 1. Lien, QR, affiche */}
       <section className="card p-5 space-y-4" aria-labelledby="t-lien">
@@ -189,6 +267,18 @@ export default function ClientOutils() {
               </p>
             )}
             <button className="btn-primary text-sm" disabled={sauvegarde}>{sauvegarde ? 'Enregistrement…' : 'Enregistrer'}</button>
+            {data.lien_partage && (
+              <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 space-y-2">
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100 flex items-center gap-1.5"><Link2 size={15} /> Lien à partager</p>
+                <div className="flex gap-2">
+                  <input readOnly className="input flex-1 min-w-0 text-xs font-mono" value={data.lien_partage} aria-label="Lien à partager" onFocus={e => e.target.select()} />
+                  <button type="button" className="btn-secondary text-sm shrink-0" onClick={copierLien}><Copy size={15} /> Copier</button>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Ce lien mène à ta page d'avis Google. Il compte les passages dans « Résultats » plus bas, et il reste valable si tu changes ton lien Google : ton affiche imprimée ne sera jamais à refaire.
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex flex-col items-center gap-3 md:w-52">
             {data.qr ? (
@@ -209,6 +299,39 @@ export default function ClientOutils() {
           </div>
         </form>
       </section>
+
+      {/* Résultats : passages comptés, jamais présentés comme des avis */}
+      {data.lien_partage && (
+        <section className="card p-5 space-y-3" aria-labelledby="t-suivi">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="t-suivi" className="font-semibold text-slate-900 dark:text-slate-100">Résultats</h2>
+            <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 p-0.5" role="group" aria-label="Période">
+              {[['7', '7 jours'], ['30', '30 jours']].map(([v, l]) => (
+                <button key={v} type="button" aria-pressed={periode === v} onClick={() => setPeriode(v)}
+                  className={`px-3 py-1 text-xs rounded-md ${periode === v ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-600 dark:text-slate-300'}`}>{l}</button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { cle: 'qr', label: 'Scans du QR code', icone: QrCode, val: data.suivi.qr },
+              { cle: 'lien', label: 'Clics sur ton lien', icone: MousePointerClick, val: data.suivi.lien },
+              { cle: 'email', label: 'Clics depuis tes emails', icone: Mail, val: data.suivi.email },
+              { cle: 'envoyes', label: 'Emails envoyés', icone: Send, val: data.suivi.emails_envoyes },
+            ].map(({ cle, label, icone: Icone, val }) => (
+              <div key={cle} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3">
+                <Icone size={16} className="text-slate-400" aria-hidden="true" />
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums mt-1">{val[periode === '7' ? 'j7' : 'j30']}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Un scan ou un clic veut dire que quelqu'un a ouvert ta page d'avis, pas qu'un avis a été publié. Aucune donnée personnelle n'est enregistrée, et les robots sont écartés.
+            Pour suivre ta note et ton nombre d'avis Google, va dans <Link to="/client/stats" className="underline">Statistiques</Link>. Les comptages démarrent à l'enregistrement de ton lien : une ancienne affiche (QR direct vers Google) n'est pas comptée.
+          </p>
+        </section>
+      )}
 
       {/* 2. Demandes par email */}
       <section className="card p-5 space-y-3" aria-labelledby="t-mail">
@@ -256,6 +379,43 @@ export default function ClientOutils() {
           <h2 id="t-ia" className="font-semibold text-slate-900 dark:text-slate-100">Répondre à un avis reçu</h2>
           <Quota q={data.quotas.reponse_ia} />
         </div>
+        <details className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 text-sm">
+          <summary className="cursor-pointer font-medium text-slate-800 dark:text-slate-100 flex items-center gap-1.5 list-none">
+            <SlidersHorizontal size={15} /> Personnaliser l'assistant pour ton commerce
+          </summary>
+          <form onSubmit={enregistrerPrefs} className="mt-3 grid gap-3 md:grid-cols-2">
+            <label className="block">
+              <span className="text-slate-600 dark:text-slate-300">Activité</span>
+              <input className="input mt-1 w-full" maxLength={60} placeholder="ex : restaurant, garage, coiffeur" value={prefs.secteur}
+                onChange={e => setPrefs(p => ({ ...p, secteur: e.target.value }))} />
+            </label>
+            <label className="block">
+              <span className="text-slate-600 dark:text-slate-300">Langue de la réponse</span>
+              <select className="input mt-1 w-full" value={prefs.langue} onChange={e => setPrefs(p => ({ ...p, langue: e.target.value }))}>
+                {LANGUES.map(l => <option key={l.v} value={l.v}>{l.l}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-slate-600 dark:text-slate-300">Longueur</span>
+              <select className="input mt-1 w-full" value={prefs.longueur} onChange={e => setPrefs(p => ({ ...p, longueur: e.target.value }))}>
+                {LONGUEURS.map(l => <option key={l.v} value={l.v}>{l.l}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-slate-600 dark:text-slate-300">Mots ou formulations à éviter</span>
+              <input className="input mt-1 w-full" maxLength={200} placeholder="ex : navré, cordialement" value={prefs.eviter}
+                onChange={e => setPrefs(p => ({ ...p, eviter: e.target.value }))} />
+            </label>
+            <label className="block md:col-span-2">
+              <span className="text-slate-600 dark:text-slate-300">Infos utiles sur ton commerce (l'assistant ne s'en sert que si c'est pertinent)</span>
+              <textarea className="input mt-1 w-full" rows={2} maxLength={300} placeholder="ex : fermé le lundi, terrasse ouverte l'été, réservation au 01 23 45 67 89" value={prefs.infos}
+                onChange={e => setPrefs(p => ({ ...p, infos: e.target.value }))} />
+            </label>
+            <div className="md:col-span-2">
+              <button className="btn-secondary text-sm" disabled={prefsEnCours}>{prefsEnCours ? 'Enregistrement…' : 'Enregistrer mes préférences'}</button>
+            </div>
+          </form>
+        </details>
         <form onSubmit={genererReponse} className="space-y-3">
           <label className="block text-sm">
             <span className="text-slate-600 dark:text-slate-300">Colle l'avis du client</span>
@@ -280,10 +440,19 @@ export default function ClientOutils() {
         </form>
         {reponse && (
           <div className="space-y-2">
+            {sensible && (
+              <div className="flex items-start gap-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-900 dark:text-amber-200 p-3 text-sm" role="alert">
+                <AlertTriangle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+                <p>{sensible} Ce brouillon n'est qu'un point de départ : relis-le, ne promets rien que tu ne peux pas tenir, et pense à proposer d'échanger en privé.</p>
+              </div>
+            )}
             <textarea className="input w-full" rows={6} value={reponse} onChange={e => setReponse(e.target.value)} aria-label="Réponse proposée" />
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs text-slate-500 dark:text-slate-400">Brouillon : relis-le et adapte-le avant de le publier sur Google.</p>
-              <button type="button" className="btn-secondary text-sm" onClick={copier}><Copy size={16} /> Copier</button>
+              <div className="flex gap-2">
+                <button type="button" className="btn-secondary text-sm" disabled={genEnCours} onClick={() => genererReponse(null, true)}><RefreshCw size={16} /> {genEnCours ? '…' : 'Autre version'}</button>
+                <button type="button" className="btn-secondary text-sm" onClick={copier}><Copy size={16} /> Copier</button>
+              </div>
             </div>
           </div>
         )}
