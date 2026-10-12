@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom'
 import api from '../../lib/api'
 import usePageTitle from '../../hooks/usePageTitle'
 import toast from 'react-hot-toast'
-import { Download, Send, Sparkles, Copy, Star, BookOpen, Crown, Check, Circle, QrCode, MousePointerClick, Mail, RefreshCw, AlertTriangle, SlidersHorizontal, Link2 } from 'lucide-react'
+import { Download, Trash2, ImageDown, History, Send, Sparkles, Copy, Star, BookOpen, Crown, Check, Circle, QrCode, MousePointerClick, Mail, RefreshCw, AlertTriangle, SlidersHorizontal, Link2 } from 'lucide-react'
 
 const MAX_DEST = 20
+const NOMS_SUPPORT = { affiche: 'Affiche', cartes: 'Cartes de visite', qr_png: 'QR code PNG' }
 const TONS = [
   { v: 'professionnel', l: 'Professionnel' },
   { v: 'chaleureux', l: 'Chaleureux' },
   { v: 'concis', l: 'Concis' },
+  { v: 'premium', l: 'Soigné (haut de gamme)' },
 ]
 
 // Extrait les adresses d'un texte collé (une par ligne, ou séparées par
@@ -67,6 +69,7 @@ export default function ClientOutils() {
   const [reponse, setReponse] = useState('')
   const [genEnCours, setGenEnCours] = useState(false)
   const [sensible, setSensible] = useState(null)
+  const [historique, setHistorique] = useState([])
 
   const [periode, setPeriode] = useState('7')
   const [prefs, setPrefs] = useState({ secteur: '', longueur: 'moyen', langue: 'fr', infos: '', eviter: '' })
@@ -81,7 +84,8 @@ export default function ClientOutils() {
     })
     setPrefs(p => ({ ...p, ...r.data.ia_preferences }))
   }).catch(() => setErreur(true))
-  useEffect(() => { charger() }, [])
+  const chargerHistorique = () => api.get('/client/commercant/reponses-historique').then(r => setHistorique(r.data)).catch(() => {})
+  useEffect(() => { charger(); chargerHistorique() }, [])
 
   async function enregistrer(e) {
     e.preventDefault()
@@ -99,24 +103,28 @@ export default function ClientOutils() {
     }
   }
 
-  async function telechargerAffiche(format) {
-    setPdfEnCours(format)
+  async function telecharger(cle, chemin, params, nomFichier, mime) {
+    setPdfEnCours(cle)
     try {
-      const r = await api.get('/client/commercant/affiche', { params: { format }, responseType: 'blob' })
-      const url = window.URL.createObjectURL(new Blob([r.data], { type: 'application/pdf' }))
+      const r = await api.get(chemin, { params, responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([r.data], { type: mime }))
       const a = document.createElement('a')
       a.href = url
-      a.download = `affiche-avis-${format}.pdf`
+      a.download = nomFichier
       document.body.appendChild(a)
       a.click()
       a.remove()
       window.URL.revokeObjectURL(url)
+      charger()
     } catch {
-      toast.error("Impossible de générer l'affiche, vérifie que ton lien est bien enregistré.")
+      toast.error('Impossible de générer ce fichier, vérifie que ton lien est bien enregistré.')
     } finally {
       setPdfEnCours(null)
     }
   }
+  const telechargerAffiche = (format) => telecharger(format, '/client/commercant/affiche', { format }, `affiche-avis-${format}.pdf`, 'application/pdf')
+  const telechargerCartes = () => telecharger('cartes', '/client/commercant/cartes', {}, 'cartes-avis.pdf', 'application/pdf')
+  const telechargerQr = () => telecharger('qr', '/client/commercant/qr.png', {}, 'qr-avis.png', 'image/png')
 
   const destinataires = lireDestinataires(texteMails)
   const configPrete = !!(data?.config.lien_avis && data?.config.nom_commerce)
@@ -172,11 +180,19 @@ export default function ClientOutils() {
       setReponse(r.data.texte)
       setSensible(r.data.sensible ? r.data.raison : null)
       charger()
+      chargerHistorique()
     } catch (err) {
       toast.error(err.response?.data?.error || 'Erreur')
     } finally {
       setGenEnCours(false)
     }
+  }
+
+  async function copierTexte(t) {
+    try { await navigator.clipboard.writeText(t); toast.success('Copié') } catch { toast.error('Copie impossible, sélectionne le texte à la main.') }
+  }
+  async function supprimerHistorique(id) {
+    try { await api.delete(`/client/commercant/reponses-historique/${id}`); setHistorique(h => h.filter(x => x.id !== id)) } catch { toast.error('Suppression impossible, réessaie.') }
   }
 
   async function copier() {
@@ -291,13 +307,32 @@ export default function ClientOutils() {
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 text-center">Affiche à imprimer pour ton comptoir</p>
+                <div className="flex gap-2">
+                  <button type="button" className="btn-secondary text-xs" disabled={!!pdfEnCours} onClick={telechargerCartes}>
+                    <Download size={14} /> {pdfEnCours === 'cartes' ? '…' : 'Cartes'}
+                  </button>
+                  <button type="button" className="btn-secondary text-xs" disabled={!!pdfEnCours} onClick={telechargerQr}>
+                    <ImageDown size={14} /> {pdfEnCours === 'qr' ? '…' : 'QR PNG'}
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 text-center">Affiche pour ton comptoir, planche de 10 cartes 85 × 55 mm, ou le QR code seul pour un autocollant ou un menu.</p>
               </>
             ) : (
               <p className="text-xs text-slate-500 dark:text-slate-400 text-center">Enregistre ton lien pour obtenir ton QR code et ton affiche.</p>
             )}
           </div>
         </form>
+        {data.supports?.length > 0 && (
+          <details className="mt-4 text-sm">
+            <summary className="cursor-pointer text-slate-600 dark:text-slate-300 flex items-center gap-1.5 list-none"><History size={15} /> Supports déjà générés ({data.supports.length})</summary>
+            <ul className="mt-2 space-y-1 text-slate-600 dark:text-slate-300">
+              {data.supports.map(x => (
+                <li key={x.id}>{NOMS_SUPPORT[x.type] || x.type}{x.format ? ` (${x.format.toUpperCase()})` : ''} · {new Date(String(x.created_at).replace(' ', 'T') + 'Z').toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}</li>
+              ))}
+            </ul>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Ton QR code reste le même à chaque fois : un support imprimé il y a longtemps fonctionne toujours.</p>
+          </details>
+        )}
       </section>
 
       {/* Résultats : passages comptés, jamais présentés comme des avis */}
@@ -455,6 +490,28 @@ export default function ClientOutils() {
               </div>
             </div>
           </div>
+        )}
+        {historique.length > 0 && (
+          <details className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 text-sm">
+            <summary className="cursor-pointer font-medium text-slate-800 dark:text-slate-100 flex items-center gap-1.5 list-none">
+              <History size={15} /> Réponses déjà proposées ({historique.length})
+            </summary>
+            <ul className="mt-3 space-y-3">
+              {historique.map(h => (
+                <li key={h.id} className="space-y-1">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {h.note ? `${h.note}★ · ` : ''}{new Date(String(h.created_at).replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR')}{h.extrait ? ` · « ${h.extrait}${h.extrait.length >= 160 ? '…' : ''} »` : ''}
+                  </p>
+                  <p className="whitespace-pre-wrap text-slate-700 dark:text-slate-200">{h.reponse}</p>
+                  <div className="flex gap-2">
+                    <button type="button" className="btn-secondary text-xs" onClick={() => copierTexte(h.reponse)}><Copy size={14} /> Copier</button>
+                    <button type="button" className="btn-secondary text-xs" onClick={() => supprimerHistorique(h.id)} aria-label="Supprimer cette réponse de l'historique"><Trash2 size={14} /> Supprimer</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">Gardées 90 jours, 50 au maximum. Seul un court extrait de l'avis est conservé, pas l'avis en entier.</p>
+          </details>
         )}
       </section>
     </div>

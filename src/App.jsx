@@ -34,6 +34,7 @@ const Parrainage = lazy(() => import('./pages/Parrainage'))
 import PublicCommander from './pages/PublicCommander'
 const PublicSuivi = lazy(() => import('./pages/PublicSuivi'))
 const AideCommercantsIndex = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideCommercantsIndex })))
+const Confidentialite = lazy(() => import('./pages/Confidentialite'))
 const AideCommercantsGuide = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideCommercantsGuide })))
 const VerifierEmail = lazy(() => import('./pages/VerifierEmail'))
 const MotDePasseOublie = lazy(() => import('./pages/MotDePasseOublie'))
@@ -93,6 +94,7 @@ export default function App() {
       <Route path="/commander" element={<PublicCommander />} />
       <Route path="/suivi"     element={<PublicSuivi />} />
       <Route path="/aide-commercants" element={<AideCommercantsIndex />} />
+      <Route path="/confidentialite" element={<Confidentialite />} />
       <Route path="/aide-commercants/:slug" element={<AideCommercantsGuide />} />
       <Route path="/verifier-email" element={<VerifierEmail />} />
       <Route path="/verification-requise" element={

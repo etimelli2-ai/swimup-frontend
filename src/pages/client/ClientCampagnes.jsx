@@ -194,6 +194,9 @@ function Formulaire({ infos, annuler, fait }) {
           {infos.modeles.map(m => <option key={m.cle} value={m.cle}>{m.nom}</option>)}
           {premium && <option value="perso">Mon propre texte</option>}
         </select>
+        {infos.modeles.find(x => x.cle === modele)?.remarque && (
+          <p className="text-xs text-slate-500 mt-1">{infos.modeles.find(x => x.cle === modele).remarque}</p>
+        )}
         {!premium && (
           <p className="text-xs text-slate-500 mt-1 flex items-center gap-1"><Crown size={12} className="text-amber-500" /> Avec Premium, tu peux modifier le texte, planifier l'envoi et programmer une relance.</p>
         )}

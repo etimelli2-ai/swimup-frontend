@@ -240,6 +240,7 @@ export default function PublicCommander() {
           <span>© {new Date().getFullYear()} SwimUp</span>
           <span className="flex items-center gap-5">
             <a href="/aide-commercants" className="hover:text-[#0B1F33]">Aide aux commerçants</a>
+            <a href="/confidentialite" className="hover:text-[#0B1F33]">Confidentialité</a>
             <a href="/login" className="hover:text-[#0B1F33]">Espace membres</a>
           </span>
         </div>

@@ -241,6 +241,37 @@ function AvisGoogle({ apercu, rafraichir }) {
 
 // ---------- Évolution ----------
 
+const passages = (s) => s.qr + s.lien + s.email
+
+function Comparaison({ actuel, avant }) {
+  if (avant == null) return null
+  if (avant === 0 && actuel === 0) return <p className="text-xs text-muted mt-1">Rien non plus sur la période d'avant</p>
+  const ecart = actuel - avant
+  const c = ecart > 0 ? 'text-emerald-600' : ecart < 0 ? 'text-red-500' : 'text-slate-500'
+  return <p className={`text-xs mt-1 ${c}`}>{ecart === 0 ? 'Comme la période d\'avant' : `${ecart > 0 ? '+' : ''}${ecart} par rapport à la période d'avant (${avant})`}</p>
+}
+
+function Repartition({ r }) {
+  const max = Math.max(1, ...Object.values(r.par_note))
+  return (
+    <div className="card space-y-2">
+      <h2 className="section-title">Répartition des notes</h2>
+      <div className="space-y-1">
+        {[5, 4, 3, 2, 1].map(n => (
+          <div key={n} className="flex items-center gap-2 text-sm">
+            <span className="w-8 text-right tabular-nums">{n} ★</span>
+            <div className="flex-1 h-3 rounded bg-slate-100 dark:bg-slate-700 overflow-hidden">
+              <div className="h-full bg-amber-400" style={{ width: `${(r.par_note[n] / max) * 100}%` }} />
+            </div>
+            <span className="w-6 tabular-nums text-muted text-xs">{r.par_note[n]}</span>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-muted">Calculée sur les {r.total} derniers avis seulement (copie du {dateFr(r.recupere_at)}) : Google ne donne pas la répartition de tous tes avis.</p>
+    </div>
+  )
+}
+
 function Evolution({ apercu }) {
   const [jours, setJours] = useState(30)
   const [d, setD] = useState(null)
@@ -274,16 +305,41 @@ function Evolution({ apercu }) {
               <p className="text-2xl font-bold">{d.suffisant ? d.nouveaux_avis : '—'}</p>
               {d.nb_avis_fin != null && <p className="text-xs text-muted mt-1">{d.nb_avis_fin} au total</p>}</div>
             <div className="card"><p className="text-xs text-muted">Passages sur ton lien</p>
-              <p className="text-2xl font-bold">{d.suivi.qr + d.suivi.lien + d.suivi.email}</p>
-              <p className="text-xs text-muted mt-1">QR {d.suivi.qr} · lien {d.suivi.lien} · email {d.suivi.email}</p></div>
+              <p className="text-2xl font-bold">{passages(d.suivi)}</p>
+              <p className="text-xs text-muted mt-1">QR {d.suivi.qr} · lien {d.suivi.lien} · email {d.suivi.email}</p>
+              <Comparaison actuel={passages(d.suivi)} avant={d.suivi_precedent && passages(d.suivi_precedent)} /></div>
             <div className="card"><p className="text-xs text-muted">Demandes envoyées</p>
               <p className="text-2xl font-bold">{d.suivi.emails_envoyes}</p>
-              <p className="text-xs text-muted mt-1">par email</p></div>
+              <p className="text-xs text-muted mt-1">par email</p>
+              <Comparaison actuel={d.suivi.emails_envoyes} avant={d.suivi_precedent?.emails_envoyes} /></div>
           </div>
           {d.points.length > 1 && (
             <div className="card space-y-2">
               <h2 className="section-title">Note Google</h2>
               <MiniLineChart points={d.points.map(p => ({ label: dateFr(p.date), value: p.note }))} formatValue={note1} />
+            </div>
+          )}
+          {d.repartition && <Repartition r={d.repartition} />}
+          {d.avis_recents && (
+            <div className="card space-y-1">
+              <h2 className="section-title">Avis à traiter</h2>
+              <p className="text-sm">
+                {d.avis_recents.negatifs_a_traiter > 0
+                  ? <><strong>{d.avis_recents.negatifs_a_traiter}</strong> avis de 3 étoiles ou moins pas encore marqué{d.avis_recents.negatifs_a_traiter > 1 ? 's' : ''} comme traité{d.avis_recents.negatifs_a_traiter > 1 ? 's' : ''}.</>
+                  : 'Tous les avis récents difficiles sont marqués comme traités.'}
+              </p>
+              <p className="text-xs text-muted">{d.avis_recents.traites} avis marqué{d.avis_recents.traites > 1 ? 's' : ''} traité{d.avis_recents.traites > 1 ? 's' : ''} sur les {d.avis_recents.total} derniers. Google ne dit pas si tu as répondu : c'est toi qui marques un avis comme traité.</p>
+            </div>
+          )}
+          {d.campagnes && d.campagnes.envoyes > 0 && (
+            <div className="card space-y-2">
+              <h2 className="section-title">Campagnes sur la période</h2>
+              <div className="grid grid-cols-4 gap-2 text-center">
+                {[['Lancées', d.campagnes.lancees], ['Envoyés', d.campagnes.envoyes], ['Livrés', d.campagnes.livres], ['Clics', d.campagnes.clics]].map(([l, v]) => (
+                  <div key={l}><p className="text-xl font-bold">{v}</p><p className="text-xs text-muted">{l}</p></div>
+                ))}
+              </div>
+              <p className="text-xs text-muted">Un clic montre que la personne a ouvert ton lien d'avis, pas qu'elle a publié un avis.</p>
             </div>
           )}
           <p className="text-xs text-muted">Un passage sur ton lien n'est pas un avis publié. {d.avis_swimup_publies > 0 && `Avis commandés publiés sur la période : ${d.avis_swimup_publies}.`} La note vient de relevés de ta fiche Google : s'il y en a peu, la courbe l'est aussi.</p>
@@ -294,6 +350,35 @@ function Evolution({ apercu }) {
 }
 
 // ---------- Analyse ----------
+
+const TENDANCES = {
+  mieux: ['En progrès', 'text-emerald-600'], moins_bien: ['En recul', 'text-red-500'], stable: ['Stable', 'text-slate-500'],
+  nouveau: ['Nouveau sujet', 'text-sky-600'], disparu: ['Plus cité', 'text-slate-500'], insuffisant: ['Pas assez de notes pour comparer', 'text-slate-400'],
+}
+
+function EvolutionThemes({ e }) {
+  return (
+    <div className="card space-y-2">
+      <h2 className="section-title">Par rapport à l'analyse d'avant{e.avant_le ? ` (${dateFr(e.avant_le)})` : ''}</h2>
+      <ul className="space-y-1.5">
+        {e.themes.map(t => {
+          const [libelle, couleur] = TENDANCES[t.tendance]
+          return (
+            <li key={t.cle} className="text-sm flex justify-between gap-3">
+              <span>{t.libelle}</span>
+              <span className={`${couleur} text-right`}>
+                {libelle}
+                {t.delta !== null && t.tendance !== 'stable' && ` (${note1(t.note_avant)} → ${note1(t.note_apres)})`}
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+      {!e.memes_sources && <p className="text-xs text-muted">Les deux analyses ne viennent pas de la même source (avis Google / avis collés) : la comparaison est encore moins fiable.</p>}
+      <p className="text-xs text-muted">{e.avertissement}</p>
+    </div>
+  )
+}
 
 function Analyse({ apercu, rafraichir }) {
   const [source, setSource] = useState('google')
@@ -350,6 +435,7 @@ function Analyse({ apercu, rafraichir }) {
               </ul>
             )}
           </div>
+          {resultat.evolution_themes && <EvolutionThemes e={resultat.evolution_themes} />}
           {resultat.points_faibles.length > 0 && <p className="text-sm">À surveiller : {resultat.points_faibles.map(t => t.libelle).join(', ')}. Les pistes sont dans l'onglet « À améliorer ».</p>}
         </div>
       )}
@@ -446,6 +532,41 @@ function Rapport({ apercu }) {
 
 const rang = (p) => (p ? `${p}${p === 1 ? 'ᵉʳ' : 'ᵉ'}` : 'hors top 20')
 
+const FREQUENCES = [['hebdo', 'Chaque semaine'], ['mensuel', 'Chaque mois'], ['manuel', 'Seulement quand je le demande']]
+
+function ReglagesMotCle({ m, d, recharger }) {
+  const [noms, setNoms] = useState(() => [0, 1, 2].map(i => m.concurrents_suivis[i] || ''))
+  const [occupe, setOccupe] = useState(false)
+  const enregistrer = async (corps) => {
+    setOccupe(true)
+    try { await api.put(`/client/visibilite/mots-cles/${m.id}`, corps); toast.success('Enregistré'); recharger() }
+    catch (e) { toast.error(erreurApi(e)) }
+    setOccupe(false)
+  }
+  return (
+    <details className="text-sm">
+      <summary className="cursor-pointer text-xs text-slate-600 dark:text-slate-300 list-none">Comparer avec des concurrents · fréquence du relevé</summary>
+      <div className="mt-2 space-y-3">
+        <div className="space-y-1.5">
+          <p className="text-xs text-muted">Jusqu'à {d.max_concurrents} noms d'établissements, tels qu'ils apparaissent sur Google Maps. On cherche leur place dans les 20 premiers résultats de la même recherche.</p>
+          {noms.map((n, i) => (
+            <input key={i} className="input w-full" maxLength={60} placeholder={`Concurrent ${i + 1} (facultatif)`} aria-label={`Concurrent ${i + 1}`}
+              value={n} onChange={e => setNoms(l => l.map((x, j) => (j === i ? e.target.value : x)))} />
+          ))}
+          <button className="btn-secondary text-xs" disabled={occupe} onClick={() => enregistrer({ concurrents: noms.map(x => x.trim()).filter(Boolean) })}>Enregistrer les concurrents</button>
+        </div>
+        <label className="block text-xs">
+          <span className="text-muted flex items-center gap-1">Relevé automatique{!d.premium && <Crown size={12} className="text-amber-500" />}</span>
+          <select className="input mt-1 w-full" value={m.frequence} disabled={occupe || !d.premium} onChange={e => enregistrer({ frequence: e.target.value })}>
+            {FREQUENCES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+          {!d.premium && <span className="text-muted block mt-1">Réservé à Premium. Sans Premium, tu relèves à la main.</span>}
+        </label>
+      </div>
+    </details>
+  )
+}
+
 function Visibilite() {
   const [d, setD] = useState(null)
   const [motCle, setMotCle] = useState('')
@@ -500,7 +621,7 @@ function Visibilite() {
         </div>
         <p className="text-xs text-muted">
           {d.mots_cles.length} / {d.max_mots_cles} mots-clés · {d.quota.restant} relevé{d.quota.restant > 1 ? 's' : ''} possible{d.quota.restant > 1 ? 's' : ''} aujourd'hui
-          {d.releve_auto ? ' · relevé automatique chaque lundi' : ' · relevé automatique avec Premium'}
+          {d.releve_auto ? ' · relevé automatique selon la fréquence choisie pour chaque mot-clé' : ' · relevé automatique avec Premium'}
         </p>
       </div>
 
@@ -522,6 +643,15 @@ function Visibilite() {
                 </div>
               </div>
               {m.dernier?.concurrents?.length > 0 && <p className="text-xs text-muted">En tête sur cette recherche : {m.dernier.concurrents.join(', ')}</p>}
+              {m.dernier?.suivis?.length > 0 && (
+                <ul className="text-xs space-y-0.5">
+                  {m.dernier.suivis.map(c => (
+                    <li key={c.nom} className="flex justify-between gap-2"><span className="truncate">{c.nom}</span>
+                      <span className="text-slate-500 dark:text-slate-400 shrink-0">{c.position ? `${rang(c.position)} (toi : ${rang(m.dernier.position)})` : 'hors des 20 premiers'}</span></li>
+                  ))}
+                </ul>
+              )}
+              <ReglagesMotCle m={m} d={d} recharger={charger} />
               <div className="flex flex-wrap gap-2">
                 <button className="btn-secondary text-xs px-3 py-1.5" onClick={() => verifier(m)} disabled={occupe === m.id || !d.etablissement_configure}>
                   <RefreshCw size={13} className={occupe === m.id ? 'animate-spin' : ''} /> Relever maintenant
@@ -622,12 +752,13 @@ function Reglages() {
             </li>
           ))}
         </ul>
+        <p className="text-xs text-slate-500 dark:text-slate-400">Le détail de ce que SwimUp utilise et des services concernés est sur la <a href="/confidentialite" target="_blank" rel="noopener noreferrer" className="underline">page confidentialité</a>.</p>
         <button className="btn-secondary w-full" onClick={exporter} disabled={occupe}><FileDown size={16} /> Télécharger mes données (JSON)</button>
       </div>
 
       <div className="card space-y-3 border border-red-200 dark:border-red-900/60">
         <h2 className="section-title">Effacer les données de mes outils</h2>
-        <p className="text-sm text-slate-600 dark:text-slate-300">Supprime tes campagnes, tes mots-clés et relevés de visibilité, tes analyses, tes pistes, l'historique de ta note, l'équipe et tes rappels. Tes commandes d'avis, tes paiements et le lien de ton QR code ne sont pas touchés. Cette action est définitive.</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300">Supprime tes campagnes, tes mots-clés et relevés de visibilité, tes analyses, tes pistes, l'historique de ta note, l'équipe, tes rappels, l'historique de tes supports et de tes brouillons de réponse. Tes commandes d'avis, tes paiements et le lien de ton QR code ne sont pas touchés. Cette action est définitive.</p>
         <label className="text-sm font-medium" htmlFor="eff-conf">Écris SUPPRIMER pour confirmer</label>
         <div className="flex gap-2">
           <input id="eff-conf" className="input flex-1" value={confirmation} onChange={e => setConfirmation(e.target.value)} autoComplete="off" />
