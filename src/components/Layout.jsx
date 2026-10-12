@@ -100,6 +100,7 @@ export default function Layout() {
     { path: '/client/commandes', label: 'Mes commandes', icon: ShoppingBag },
     { path: '/client/stats',     label: 'Statistiques', icon: TrendingUp },
     { path: '/client/outils',    label: 'Outils avis',  icon: QrCode },
+    { path: '/client/reputation', label: 'Réputation',  icon: Star },
     { path: '/client/premium',   label: 'Premium',      icon: Crown },
     { path: '/profil',           label: 'Profil',       icon: User },
   ] : [
