@@ -18,6 +18,8 @@ const AdminBoutique = lazy(() => import('./pages/admin/AdminBoutique'))
 const AdminCommandes = lazy(() => import('./pages/admin/AdminCommandes'))
 const AdminProspection = lazy(() => import('./pages/admin/AdminProspection'))
 const AdminEmails = lazy(() => import('./pages/admin/AdminEmails'))
+const AdminEntreprises = lazy(() => import('./pages/admin/AdminEntreprises'))
+const AdminBusiness = lazy(() => import('./pages/admin/AdminBusiness'))
 const ClientDashboard = lazy(() => import('./pages/client/ClientDashboard'))
 const ClientPaiement = lazy(() => import('./pages/client/ClientPaiement'))
 const ClientCommandes = lazy(() => import('./pages/client/ClientCommandes'))
@@ -126,6 +128,8 @@ export default function App() {
         <Route path="boutique" element={<AdminBoutique />} />
         <Route path="prospection" element={<AdminProspection />} />
         <Route path="emails" element={<AdminEmails />} />
+        <Route path="entreprises" element={<AdminEntreprises />} />
+        <Route path="business" element={<AdminBusiness />} />
       </Route>
 
       {/* Routes client */}

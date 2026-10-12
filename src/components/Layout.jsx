@@ -22,6 +22,8 @@ import {
   TrendingUp,
   Gift,
   Mail,
+  Building2,
+  BarChart3,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import React from 'react'
@@ -89,6 +91,8 @@ export default function Layout() {
     { path: '/admin/boutique', label: 'Boutique',     icon: ShoppingBag },
     { path: '/admin/prospection', label: 'Prospection', icon: Search },
     { path: '/admin/emails', label: 'Emails', icon: Mail },
+    { path: '/admin/entreprises', label: 'Entreprises', icon: Building2 },
+    { path: '/admin/business', label: 'Business', icon: BarChart3 },
     { path: '/profil',         label: 'Profil',       icon: User },
   ] : isClient ? [
     { path: '/client',           label: 'Dashboard',    icon: LayoutDashboard },

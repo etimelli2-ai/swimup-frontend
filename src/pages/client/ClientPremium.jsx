@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link as RouterLink } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
-import { Crown, CheckCircle2, ArrowRight, Percent, Sparkles, Zap, Check, MessageCircle, RotateCcw } from 'lucide-react'
+import { Crown, CheckCircle2, ArrowRight, Percent, Sparkles, Zap, Check, MessageCircle, RotateCcw, CreditCard, Minus, ExternalLink } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { springSmooth } from '../../lib/motion'
 import toast from 'react-hot-toast'
@@ -27,8 +27,43 @@ export default function ClientPremium() {
   const [ticketEnvoi, setTicketEnvoi] = useState(false)
   const [ticket, setTicket] = useState({ sujet: '', message: '' })
 
-  const load = () => api.get('/client/abonnement').then(r => setStatut(r.data)).finally(() => setLoading(false))
+  const [carteEnvoi, setCarteEnvoi] = useState(null) // 'payer' | 'resilier' | 'reprendre' | 'portail'
+  const [params, setParams] = useSearchParams()
+
+  const load = () => api.get('/client/abonnement').then(r => { setStatut(r.data); return r.data }).finally(() => setLoading(false))
   useEffect(() => { load() }, [])
+
+  // Retour de la page de paiement Stripe : c'est le webhook qui active le Premium,
+  // ça peut prendre quelques secondes, donc on revérifie un petit moment.
+  useEffect(() => {
+    const retour = params.get('paiement')
+    if (!retour) return
+    setParams({}, { replace: true })
+    if (retour === 'annule') { toast('Paiement annulé, rien n\'a été débité.'); return }
+    let essais = 0
+    const id = toast.loading('Paiement reçu, activation en cours…')
+    const timer = setInterval(async () => {
+      essais++
+      const d = await load().catch(() => null)
+      if (d?.premium) { toast.success('Premium activé !', { id }); clearInterval(timer) }
+      else if (essais >= 8) { toast.dismiss(id); toast('L\'activation prend un peu de temps, recharge la page dans une minute.'); clearInterval(timer) }
+    }, 2500)
+    return () => clearInterval(timer)
+  }, [])
+
+  const lancerAction = async (cle, chemin, { confirmation, succes } = {}) => {
+    if (confirmation && !confirm(confirmation)) return
+    setCarteEnvoi(cle)
+    try {
+      const r = await api.post(chemin)
+      if (r.data?.url) { window.location.href = r.data.url; return }
+      if (succes) toast.success(succes)
+      await load()
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Une erreur est survenue, réessaie.')
+    }
+    setCarteEnvoi(null)
+  }
 
   // Un seul appel pour tous les réglages d'interface : le serveur ne touche
   // qu'aux champs envoyés. La réponse met à jour l'utilisateur, donc le
@@ -88,7 +123,7 @@ export default function ClientPremium() {
   const lienPaypal = `${PAYPAL_ME}/${montant.toFixed(2)}EUR`
 
   return (
-    <div className="max-w-lg mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div>
         <h1 className="page-title flex items-center gap-2">
           <Crown size={22} className="text-amber-500" />
@@ -121,6 +156,8 @@ export default function ClientPremium() {
           </button>
         </motion.div>
       )}
+
+      {statut?.premium && <MonAbonnement statut={statut} occupe={carteEnvoi} lancer={lancerAction} />}
 
       {statut?.premium && (() => {
         const theme = user?.theme || {}
@@ -335,59 +372,128 @@ export default function ClientPremium() {
 
       {!statut?.premium && !statut?.demande_en_attente && (
         <>
-          <div className="card p-5 space-y-4">
-            <div className="flex items-start gap-3">
-              <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-500 shrink-0">
-                <Percent size={17} />
-              </span>
-              <div>
-                <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">-10% sur toutes tes commandes</p>
-                <p className="text-[13px] text-slate-400 mt-0.5">Appliqué automatiquement dès l'activation.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-900/20 text-violet-500 shrink-0">
-                <Zap size={17} />
-              </span>
-              <div>
-                <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">Avis traités en priorité</p>
-                <p className="text-[13px] text-slate-400 mt-0.5">Tes commandes sont marquées prioritaires pour les membres.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 shrink-0">
-                <MessageCircle size={17} />
-              </span>
-              <div>
-                <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">Support prioritaire sur Discord</p>
-                <p className="text-[13px] text-slate-400 mt-0.5">Ouvre un vrai ticket Discord directement depuis le site.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-900/20 text-sky-500 shrink-0">
-                <Sparkles size={17} />
-              </span>
-              <div>
-                <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">Personnalisation</p>
-                <p className="text-[13px] text-slate-400 mt-0.5">Couleur (préréglée ou libre), forme des boutons, taille du texte, nom et icône de ton menu.</p>
-              </div>
-            </div>
-          </div>
+          <Comparatif lignes={statut?.offres?.comparatif || []} prix={montant} />
 
-          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
-            <p>Paiement par PayPal, en direct</p>
-            <p>L'admin valide ta demande dès réception du paiement</p>
-            <p>Ton abonnement est valable 30 jours, renouvelable</p>
+          <div className="card p-5 space-y-3">
+            <button
+              onClick={() => lancerAction('payer', '/client/abonnement/carte')}
+              disabled={!!carteEnvoi || !statut?.carte_disponible}
+              className="btn-primary w-full text-base py-3.5"
+            >
+              {carteEnvoi === 'payer' ? <><Spinner /> Redirection…</> : <><CreditCard size={18} /> S'abonner par carte ({montant.toFixed(2)} €/mois)</>}
+            </button>
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+              Paiement sécurisé par Stripe, activation automatique. Tu peux résilier quand tu veux, l'abonnement va alors jusqu'à la fin du mois payé.
+            </p>
+            <div className="flex items-center gap-3 text-xs text-slate-400">
+              <span className="flex-1 h-px bg-slate-200 dark:bg-slate-700" /> ou <span className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            </div>
+            <button onClick={demander} disabled={envoi} className="btn-secondary w-full">
+              {envoi ? <><Spinner /> Envoi…</> : <>Payer par PayPal (30 jours, validé à la main)</>}
+            </button>
+            <p className="text-xs text-slate-400 text-center">
+              Avec PayPal tu règles {montant.toFixed(2)} € et l'admin active ton Premium dès qu'il voit le paiement. Pas de renouvellement automatique.
+            </p>
           </div>
-
-          <button
-            onClick={demander}
-            disabled={envoi}
-            className="btn-primary w-full text-base py-3.5"
-          >
-            {envoi ? <><Spinner /> Envoi...</> : <><Crown size={18} /> Demander l'abonnement ({montant.toFixed(2)}€/mois)</>}
-          </button>
         </>
+      )}
+    </div>
+  )
+}
+
+
+function formaterValeur(v) {
+  if (v === true) return <Check size={16} className="text-emerald-500 mx-auto" aria-label="Inclus" />
+  if (v === false) return <Minus size={16} className="text-slate-300 dark:text-slate-600 mx-auto" aria-label="Non inclus" />
+  return <span className="text-[13px] font-medium text-slate-700 dark:text-slate-200">{v}</span>
+}
+
+function Comparatif({ lignes, prix }) {
+  if (!lignes.length) return null
+  return (
+    <div className="card overflow-hidden">
+      <div className="grid grid-cols-[1fr_4rem_5rem] sm:grid-cols-[1fr_8rem_9rem] items-end px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700">
+        <span />
+        <span className="text-center text-sm font-semibold text-slate-600 dark:text-slate-300">Gratuit</span>
+        <span className="text-center text-sm font-semibold text-amber-600 dark:text-amber-400">Premium<br /><span className="text-xs font-normal text-slate-400">{prix.toFixed(2)} €/mois</span></span>
+      </div>
+      <ul>
+        {lignes.map(l => (
+          <li key={l.cle} className="grid grid-cols-[1fr_4rem_5rem] sm:grid-cols-[1fr_8rem_9rem] items-center px-4 py-2.5 gap-2 border-b last:border-b-0 border-slate-50 dark:border-slate-700/50">
+            <span className="text-[13px] text-slate-600 dark:text-slate-300 leading-snug">{l.libelle}</span>
+            <span className="text-center">{formaterValeur(l.gratuit)}</span>
+            <span className="text-center bg-amber-50/60 dark:bg-amber-900/10 -my-2.5 py-2.5">{formaterValeur(l.premium)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+const SOURCES = { stripe: 'Carte bancaire', paypal: 'PayPal', admin: 'Offert par SwimUp' }
+
+function MonAbonnement({ statut, occupe, lancer }) {
+  const fin = statut.premium_expire_at ? new Date(String(statut.premium_expire_at).replace(' ', 'T') + 'Z') : null
+  const carte = statut.carte
+  const parCarte = statut.premium_source === 'stripe' && carte && carte.statut !== 'termine'
+  const dateTxt = fin ? fin.toLocaleDateString('fr-FR') : '—'
+  return (
+    <div className="card p-5 space-y-4">
+      <h2 className="section-title">Mon abonnement</h2>
+      <dl className="text-sm grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
+        <dt className="text-slate-400">Paiement</dt>
+        <dd className="text-slate-700 dark:text-slate-200">{SOURCES[statut.premium_source] || 'Premium actif'}</dd>
+        <dt className="text-slate-400">{parCarte && !carte.resiliation_prevue ? 'Prochain renouvellement' : 'Actif jusqu\'au'}</dt>
+        <dd className="text-slate-700 dark:text-slate-200">{dateTxt}</dd>
+      </dl>
+
+      {parCarte && carte.statut === 'impaye' && (
+        <p className="text-sm rounded-xl p-3 bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          Le dernier prélèvement a été refusé. Mets ta carte à jour pour garder Premium après le {dateTxt}.
+        </p>
+      )}
+      {parCarte && carte.resiliation_prevue && (
+        <p className="text-sm rounded-xl p-3 bg-slate-50 text-slate-600 dark:bg-slate-700/50 dark:text-slate-300">
+          Abonnement résilié : Premium reste actif jusqu'au {dateTxt}, puis s'arrête sans autre prélèvement.
+        </p>
+      )}
+
+      {parCarte && (
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => lancer('portail', '/client/abonnement/portail')} disabled={!!occupe} className="btn-secondary text-xs px-4 py-2">
+            <ExternalLink size={14} /> {occupe === 'portail' ? 'Ouverture…' : 'Carte et factures'}
+          </button>
+          {carte.resiliation_prevue ? (
+            <button onClick={() => lancer('reprendre', '/client/abonnement/reprendre', { succes: 'Abonnement repris, il se renouvellera normalement.' })} disabled={!!occupe} className="btn-primary text-xs px-4 py-2">
+              Reprendre l'abonnement
+            </button>
+          ) : (
+            <button
+              onClick={() => lancer('resilier', '/client/abonnement/resilier', {
+                confirmation: `Résilier ? Premium reste actif jusqu'au ${dateTxt}, puis s'arrête.`,
+                succes: 'Résiliation enregistrée.',
+              })}
+              disabled={!!occupe}
+              className="text-xs px-4 py-2 rounded-full border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-red-500 hover:border-red-300 transition-colors"
+            >
+              Résilier
+            </button>
+          )}
+        </div>
+      )}
+
+      {statut.paiements?.length > 0 && (
+        <div>
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Paiements</p>
+          <ul className="text-[13px] divide-y divide-slate-100 dark:divide-slate-700">
+            {statut.paiements.map((p, i) => (
+              <li key={i} className="flex justify-between py-1.5 text-slate-600 dark:text-slate-300">
+                <span>{new Date(String(p.created_at).replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR')} · {SOURCES[p.source] || p.source}</span>
+                <span>{Number(p.montant) > 0 ? `${Number(p.montant).toFixed(2)} €` : 'Offert'}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   )
