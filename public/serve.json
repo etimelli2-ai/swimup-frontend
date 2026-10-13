@@ -1,0 +1,28 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "directoryListing": false,
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/commander", "destination": "/index.html" },
+    { "source": "/suivi", "destination": "/index.html" },
+    { "source": "/login", "destination": "/index.html" },
+    { "source": "/register", "destination": "/index.html" },
+    { "source": "/mot-de-passe-oublie", "destination": "/index.html" },
+    { "source": "/reinitialiser-mot-de-passe", "destination": "/index.html" },
+    { "source": "/verifier-email", "destination": "/index.html" },
+    { "source": "/verification-requise", "destination": "/index.html" },
+    { "source": "/dashboard", "destination": "/index.html" },
+    { "source": "/avis", "destination": "/index.html" },
+    { "source": "/mon-avis", "destination": "/index.html" },
+    { "source": "/portefeuille", "destination": "/index.html" },
+    { "source": "/profil", "destination": "/index.html" },
+    { "source": "/loterie", "destination": "/index.html" },
+    { "source": "/boutique", "destination": "/index.html" },
+    { "source": "/parrainage", "destination": "/index.html" },
+    { "source": "/admin", "destination": "/index.html" },
+    { "source": "/admin/**", "destination": "/index.html" },
+    { "source": "/client", "destination": "/index.html" },
+    { "source": "/client/**", "destination": "/index.html" }
+  ]
+}

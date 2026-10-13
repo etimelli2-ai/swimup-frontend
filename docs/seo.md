@@ -10,7 +10,7 @@
 ## Zones privées
 - `src/components/ZonesPrivees.jsx` (monté dans `App.jsx`) pose `noindex` sur : `/client`, `/admin`, `/dashboard`, `/avis`, `/profil`, `/portefeuille`, `/parrainage`, `/loterie`, `/boutique`, `/login`, `/register`, `/mot-de-passe-oublie`, `/reinitialiser-mot-de-passe`, `/verifier-email`, `/verification-requise`, `/suivi`. Il ne change que la balise robots.
 - `public/robots.txt` bloque les mêmes préfixes. `/commander` n'est plus dans le sitemap (doublon de `/`).
-- Adresse inconnue : `src/pages/NotFound.jsx` (noindex). Le serveur répond encore 200 (réécriture SPA de `serve.json`) ; les vrais 404 viennent avec le prérendu (lot 2).
+- Adresse inconnue : `src/pages/NotFound.jsx` (noindex). Vrai statut 404 côté serveur une fois la commande de démarrage changée (voir « Prérendu et 404 »).
 
 ## Outil gratuit `/outils/lien-avis-google`
 - `src/lib/lienAvis.mjs` : reconnaît identifiant de lieu (ChIJ…), lien « Demander des avis » (g.page/r/…), liens Google avec `placeid`. Refuse les liens de fiche Maps (ils n'ouvrent pas le formulaire). Testé dans `tests/lienAvis.test.mjs`.
@@ -24,3 +24,14 @@
 ## Réglages manuels
 - Search Console : propriété de domaine `swimup.net` (enregistrement TXT chez le registrar), envoyer `https://swimup.net/sitemap.xml`.
 - Après déploiement : inspection d'URL de `/aide-commercants/obtenir-des-avis-google` → le canonical retenu doit être la page elle-même.
+
+## Prérendu et 404 (lot 2)
+- `npm run build` = `vite build` puis `scripts/prerender.mjs`. Le script rend chaque page publique avec `react-dom/server` (via Vite SSR), pose son `<head>` avec `injecterHead` (`src/lib/seo.mjs`) et écrit `dist/<page>.html`. Pages : `PAGES` dans `src/prerender-entry.jsx` (guides, outil, `/inscription`, `/confidentialite`).
+- La commande (`/`, `/commander`), `/suivi`, l'espace client, l'admin, la connexion et les pages membres ne sont pas prérendus.
+- Les balises viennent des props de `<Seo />` de chaque page (récupérées pendant le rendu serveur) : une seule source, pas de doublon.
+- Au chargement, `main.jsx` « hydrate » le HTML prérendu (attribut `data-prerender`) ; `<Seo />` reprend les balises `data-seo-pre`, sans doublon, et remet les valeurs d'`index.html` en quittant la page.
+- Sécurité du build : tout est rendu et contrôlé en mémoire avant d'écrire. En cas d'erreur, rien n'est écrit, `dist/` reste celui de `vite build`, le script sort en code 0.
+- `dist/404.html` : coquille de l'appli en noindex, renvoyée avec le statut 404.
+- `public/serve.json` (copié dans `dist/`) : `cleanUrls`, pas de slash final, et des rewrites uniquement vers les routes de l'appli. Tout le reste : fichier, page prérendue ou 404.
+- **Commande de démarrage Railway** : avec `npx serve dist -p $PORT --single`, `serve` renvoie `index.html` pour tout (prérendu et 404 inactifs, site identique à avant). Pour les activer : `npx serve dist -p $PORT` (sans `--single`). Retour arrière : remettre `--single`.
+- Nouvelle route dans `App.jsx` : `npm test` échoue tant qu'elle n'est pas dans `public/serve.json` (ou prérendue). Nouvelle page publique à prérendre : l'ajouter à `PAGES` et à `public/sitemap.xml`.
