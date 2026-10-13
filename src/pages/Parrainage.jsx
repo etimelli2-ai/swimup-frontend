@@ -118,7 +118,7 @@ export default function Parrainage() {
       {data?.nb_filleuls > 0 && (
         <div className="card p-5">
           <h2 className="section-title mb-3">Tes filleuls</h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             {data.nb_filleuls_actifs} sur {data.nb_filleuls} t'ont déjà rapporté au moins un bonus.
           </p>
         </div>

@@ -98,7 +98,7 @@ export default function Portefeuille() {
           </h2>
           <div className="flex gap-3">
             <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">EUR</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-medium">EUR</span>
               <input
                 type="number"
                 min="1"
@@ -119,7 +119,7 @@ export default function Portefeuille() {
               {retrait.isPending ? 'Envoi...' : 'Retirer'}
             </button>
           </div>
-          <p className="text-xs text-slate-400 mt-2">
+          <p className="text-xs text-slate-500 mt-2">
             Paiement effectue sous 24 a 48h sur : {user.paypal_email}
           </p>
         </form>
@@ -137,7 +137,7 @@ export default function Portefeuille() {
         ) : !transactions?.length ? (
           <div className="text-center py-8">
             <Clock size={24} className="text-slate-300 mx-auto mb-2" />
-            <p className="text-sm text-slate-400">Aucune transaction pour le moment</p>
+            <p className="text-sm text-slate-500">Aucune transaction pour le moment</p>
           </div>
         ) : (
           <div className="space-y-1">
@@ -155,13 +155,13 @@ export default function Portefeuille() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-800">{config.label}</p>
-                    <p className="text-xs text-slate-400">{t.note || '-'}</p>
+                    <p className="text-xs text-slate-500">{t.note || '-'}</p>
                   </div>
                   <div className="text-right shrink-0">
                     <p className={`text-sm font-bold ${isPositive ? 'text-emerald-600' : 'text-slate-700'}`}>
                       {isPositive ? '+' : '-'}{parseFloat(t.montant).toFixed(2)} EUR
                     </p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-500">
                       {new Date(t.created_at).toLocaleDateString('fr-FR')}
                     </p>
                   </div>

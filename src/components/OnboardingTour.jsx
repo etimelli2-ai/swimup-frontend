@@ -41,7 +41,7 @@ export default function OnboardingTour() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 relative"
         >
-          <button onClick={terminer} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <button onClick={terminer} className="absolute top-4 right-4 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
             <X size={18} />
           </button>
 

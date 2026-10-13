@@ -50,7 +50,7 @@ function Affiche({ qr, nom, message }) {
         <div className="flex-1 flex items-center justify-center w-full">
           {qr
             ? <img src={qr} alt="QR code vers le formulaire d'avis Google" style={{ width: '62cqw', height: '62cqw' }} />
-            : <div style={{ width: '62cqw', height: '62cqw', border: '0.5cqw dashed #cbd5e1', borderRadius: '3cqw' }} className="flex items-center justify-center text-slate-400"><QrCode size={48} /></div>}
+            : <div style={{ width: '62cqw', height: '62cqw', border: '0.5cqw dashed #cbd5e1', borderRadius: '3cqw' }} className="flex items-center justify-center text-slate-500 dark:text-slate-400"><QrCode size={48} /></div>}
         </div>
         <p style={{ fontSize: '4.6cqw', fontWeight: 600, color: '#0B1F33' }}>Scannez pour laisser un avis sur Google</p>
         <p style={{ fontSize: '3cqw', marginTop: '2cqw', color: '#64748b' }}>Ouvrez l'appareil photo de votre téléphone et visez le code.</p>
@@ -97,7 +97,7 @@ export default function LienAvisGoogle() {
       `}</style>
 
       <section className="max-w-4xl mx-auto px-4 pt-10 pb-6 print:hidden">
-        <nav aria-label="Fil d'Ariane" className="text-[13px] text-slate-400 flex items-center gap-1">
+        <nav aria-label="Fil d'Ariane" className="text-[13px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
           <Link to="/" className="hover:text-slate-600">Accueil</Link><ChevronRight size={12} />
           <span className="text-slate-500">Outils</span>
         </nav>
@@ -109,7 +109,7 @@ export default function LienAvisGoogle() {
         </p>
       </section>
 
-      <main className="max-w-4xl mx-auto px-4 pb-16">
+      <main id="contenu" className="max-w-4xl mx-auto px-4 pb-16">
         <div className="grid lg:grid-cols-[1.1fr_1fr] gap-8 items-start">
           <div className="space-y-6 print:hidden">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xl shadow-slate-200/60">

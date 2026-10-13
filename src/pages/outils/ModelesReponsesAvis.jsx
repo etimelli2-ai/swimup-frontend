@@ -61,7 +61,7 @@ export default function ModelesReponsesAvis() {
         jsonLd={JSON_LD}
       />
       <section className="max-w-2xl mx-auto px-4 pt-10 pb-6">
-        <nav aria-label="Fil d'Ariane" className="text-[13px] text-slate-400 flex items-center gap-1">
+        <nav aria-label="Fil d'Ariane" className="text-[13px] text-slate-500 flex items-center gap-1">
           <Link to="/" className="hover:text-slate-600">Accueil</Link><ChevronRight size={12} />
           <span className="text-slate-500">Outils</span>
         </nav>
@@ -76,7 +76,7 @@ export default function ModelesReponsesAvis() {
         </nav>
       </section>
 
-      <main className="max-w-2xl mx-auto px-4 pb-16">
+      <main id="contenu" className="max-w-2xl mx-auto px-4 pb-16">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xl shadow-slate-200/60">
           <p className="text-[15px] font-semibold text-slate-900">Remplis les champs (facultatif)</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">

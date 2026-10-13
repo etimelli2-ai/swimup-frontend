@@ -52,7 +52,7 @@ function AvisEditor({ avis, onSave, onDelete }) {
     <div className={`border rounded-xl p-4 space-y-3 ${isDone ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-900/10' : 'border-slate-200 dark:border-slate-700'}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-slate-400">#{avis.id}</span>
+          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">#{avis.id}</span>
           {isDone
             ? <span className="badge-green text-xs">Rempli</span>
             : <span className="badge-amber text-xs">À remplir</span>
@@ -119,7 +119,7 @@ function AvisEditor({ avis, onSave, onDelete }) {
           />
         )}
         {avis.visible_a_partir_de && (
-          <p className="text-xs text-slate-400 flex items-center gap-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
             <Clock3 size={11} />
             Programmé pour le {new Date(avis.visible_a_partir_de.replace(' ', 'T') + 'Z').toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}
           </p>
@@ -234,7 +234,7 @@ function CommandeCard({ commande, onAvisDeleted }) {
             {' '}sur {nbTotal} · {new Date(commande.created_at).toLocaleDateString('fr-FR')}
           </p>
         </div>
-        {open ? <ChevronUp size={18} className="text-slate-400 shrink-0" /> : <ChevronDown size={18} className="text-slate-400 shrink-0" />}
+        {open ? <ChevronUp size={18} className="text-slate-500 dark:text-slate-400 shrink-0" /> : <ChevronDown size={18} className="text-slate-500 dark:text-slate-400 shrink-0" />}
       </button>
 
       <AnimatePresence>
@@ -252,7 +252,7 @@ function CommandeCard({ commande, onAvisDeleted }) {
                   <Loader2 size={20} className="animate-spin text-sky-500" />
                 </div>
               ) : avis.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-4">Aucun avis trouvé</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">Aucun avis trouvé</p>
               ) : (
                 avis.map(a => (
                   <AvisEditor key={a.id} avis={a} onSave={handleSave} onDelete={() => handleDeleteAvis(a)} />

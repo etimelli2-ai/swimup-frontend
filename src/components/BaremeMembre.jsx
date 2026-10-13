@@ -40,13 +40,13 @@ export default function BaremeMembre() {
         <span className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
           <Coins size={16} className="text-emerald-500" /> Gain des membres par avis
         </span>
-        <ChevronDown size={16} className={`text-slate-400 transition-transform ${ouvert ? 'rotate-180' : ''}`} />
+        <ChevronDown size={16} className={`text-slate-500 dark:text-slate-400 transition-transform ${ouvert ? 'rotate-180' : ''}`} />
       </button>
 
       {ouvert && (
         <div className="mt-3 space-y-3">
           {!lignes ? (
-            <p className="text-xs text-slate-400">Chargement…</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Chargement…</p>
           ) : (
             <>
               <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -65,7 +65,7 @@ export default function BaremeMembre() {
                       value={p.gain} onChange={e => maj(i, 'gain', e.target.value)} />
                     <span className="text-slate-500 dark:text-slate-400">€</span>
                     {i > 0 && (
-                      <button onClick={() => setLignes(l => l.filter((_, j) => j !== i))} className="p-1.5 text-slate-400 hover:text-red-500" aria-label="Supprimer ce palier">
+                      <button onClick={() => setLignes(l => l.filter((_, j) => j !== i))} className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-500" aria-label="Supprimer ce palier">
                         <Trash2 size={15} />
                       </button>
                     )}

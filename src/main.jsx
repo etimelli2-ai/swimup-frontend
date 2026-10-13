@@ -2,6 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import Racine from './Racine'
+import '@fontsource/bricolage-grotesque/latin-700.css'
+import '@fontsource/bricolage-grotesque/latin-800.css'
 import './index.css'
 
 const conteneur = document.getElementById('root')

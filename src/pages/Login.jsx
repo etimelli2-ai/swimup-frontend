@@ -9,7 +9,9 @@ import { useAuth } from '../hooks/useAuth'
 import { Eye, EyeOff, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LogoMarque } from '../components/Logo'
+import { LiensLegaux } from '../components/PageLegale'
 import { springSmooth, springSnappy, springSheet } from '../lib/motion'
+import { MentionDonnees } from '../components/PageLegale'
 
 export default function Login() {
   usePageTitle('Connexion')
@@ -66,7 +68,7 @@ export default function Login() {
         className="absolute inset-x-0 top-0 h-[520px] -z-0 pointer-events-none"
         style={{ background: 'radial-gradient(60% 50% at 50% 0%, rgba(14,165,233,0.14) 0%, rgba(14,165,233,0) 70%)' }}
       />
-      <motion.div
+      <motion.main id="contenu"
         initial={{ opacity: 0, y: 24, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={springSmooth}
@@ -133,7 +135,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => { setTempToken(null); setCode(''); setError('') }}
-                className="w-full text-center text-sm text-slate-400 hover:text-slate-600"
+                className="w-full text-center text-sm text-slate-500 hover:text-slate-600"
               >
                 Retour
               </button>
@@ -166,7 +168,8 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    aria-label={showPassword ? 'Cacher le mot de passe' : 'Voir le mot de passe'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -194,6 +197,7 @@ export default function Login() {
               </button>
             </form>
           )}
+          <MentionDonnees className="mt-4">SwimUp utilise ton email et ton mot de passe pour te connecter, et enregistre ton adresse IP pour protéger ton compte.</MentionDonnees>
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-6">
@@ -202,7 +206,8 @@ export default function Login() {
             Créer un compte gratuit
           </Link>
         </p>
-      </motion.div>
+        <LiensLegaux className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6 text-xs" classe="text-slate-600 hover:underline" />
+      </motion.main>
     </div>
   )
 }

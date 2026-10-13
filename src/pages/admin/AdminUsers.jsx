@@ -198,7 +198,7 @@ export default function AdminUsers() {
       )}
 
       <div className="relative">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
         <input className="input pl-10" placeholder="Rechercher email ou Discord..."
           value={search} onChange={e => setSearch(e.target.value)} />
       </div>
@@ -247,7 +247,7 @@ export default function AdminUsers() {
           <div className="bg-white dark:bg-slate-800 rounded-t-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between gap-3">
               <h3 className="section-title flex items-center gap-2 min-w-0"><span className="truncate">{detail.email}</span><BadgePause actif={detail.avis_bloque} size={18} /></h3>
-              <button onClick={closeDetail} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors shrink-0">
+              <button onClick={closeDetail} className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors shrink-0">
                 <X size={22} />
               </button>
             </div>
@@ -357,14 +357,14 @@ export default function AdminUsers() {
                 {tab === 'avis' && (
                   <div className="space-y-2">
                     {!detailData?.avis?.length ? (
-                      <p className="text-center text-slate-400 py-6 text-sm">Aucun avis</p>
+                      <p className="text-center text-slate-500 dark:text-slate-400 py-6 text-sm">Aucun avis</p>
                     ) : detailData.avis.map(a => (
                       <div key={a.id} className="card-flat">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{a.nom_societe}</p>
                           <span className={`shrink-0 ${AVIS_STATUT_BADGE[a.statut] || 'badge-amber'}`}>{a.statut}</span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-1">{parseFloat(a.prix).toFixed(2)}€ · {formatDate(a.created_at)}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{parseFloat(a.prix).toFixed(2)}€ · {formatDate(a.created_at)}</p>
                       </div>
                     ))}
                   </div>
@@ -373,12 +373,12 @@ export default function AdminUsers() {
                 {tab === 'transactions' && (
                   <div className="space-y-2">
                     {!detailData?.transactions?.length ? (
-                      <p className="text-center text-slate-400 py-6 text-sm">Aucune transaction</p>
+                      <p className="text-center text-slate-500 dark:text-slate-400 py-6 text-sm">Aucune transaction</p>
                     ) : detailData.transactions.map(t => (
                       <div key={t.id} className="card-flat flex items-center justify-between gap-2">
                         <div className="min-w-0">
                           <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{t.note || t.type}</p>
-                          <p className="text-xs text-slate-400">{formatDate(t.created_at)}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(t.created_at)}</p>
                         </div>
                         <span className={`text-sm font-semibold shrink-0 ${t.type === 'credit' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
                           {t.type === 'credit' ? '+' : '-'}{parseFloat(t.montant).toFixed(2)}€
@@ -505,7 +505,7 @@ export default function AdminUsers() {
                     <MailWarning size={13} className="text-amber-500 shrink-0" title="Email non vérifié" />
                   )}
                 </div>
-                <p className="text-xs text-slate-400 flex items-center gap-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                   <MessageCircle size={11} className="shrink-0" /> {u.discord_id || 'Aucun'} · <span className={solde(u) < 0 ? 'text-red-500 font-semibold' : solde(u) > 0 ? 'text-slate-600 dark:text-slate-300 font-medium' : ''}>{solde(u).toFixed(2)}€</span>
                   {u.nb_avis > 0 && ` · ${u.nb_avis} avis`}
                 </p>
@@ -518,7 +518,7 @@ export default function AdminUsers() {
           </div>
         ))}
         {filtered.length === 0 && (
-          <div className="card text-center py-10 text-slate-400 flex flex-col items-center gap-2">
+          <div className="card text-center py-10 text-slate-500 dark:text-slate-400 flex flex-col items-center gap-2">
             <User size={28} className="text-slate-300" />
             Aucun membre
           </div>

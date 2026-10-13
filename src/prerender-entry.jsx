@@ -16,6 +16,11 @@ export const PAGES = [
   '/outils/diagnostic-fiche-google',
   '/inscription',
   '/confidentialite',
+  '/mentions-legales',
+  '/cookies',
+  '/cgu',
+  '/cgv',
+  '/retractation',
 ]
 
 export function rendre(url) {

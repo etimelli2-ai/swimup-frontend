@@ -32,6 +32,11 @@ import PublicCommander from './pages/PublicCommander'
 const PublicSuivi = lazy(() => import('./pages/PublicSuivi'))
 const AideCommercantsIndex = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideCommercantsIndex })))
 const Confidentialite = lazy(() => import('./pages/Confidentialite'))
+const MentionsLegales = lazy(() => import('./pages/MentionsLegales'))
+const Cookies = lazy(() => import('./pages/Cookies'))
+const Cgu = lazy(() => import('./pages/Cgu'))
+const Cgv = lazy(() => import('./pages/Cgv'))
+const Retractation = lazy(() => import('./pages/Retractation'))
 const AideCommercantsGuide = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideCommercantsGuide })))
 const AideClientIndex = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideClientIndex })))
 const AideClientGuide = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideClientGuide })))
@@ -103,6 +108,7 @@ function RouteConnecteSeulement({ children }) {
 export default function App() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/></div>}>
+    <a href="#contenu" className="lien-evitement">Aller au contenu</a>
     <ZonesPrivees />
     <Mesure />
     <Routes>
@@ -111,6 +117,11 @@ export default function App() {
       <Route path="/suivi"     element={<PublicSuivi />} />
       <Route path="/aide-commercants" element={<AideCommercantsIndex />} />
       <Route path="/confidentialite" element={<Confidentialite />} />
+      <Route path="/mentions-legales" element={<MentionsLegales />} />
+      <Route path="/cookies" element={<Cookies />} />
+      <Route path="/cgu" element={<Cgu />} />
+      <Route path="/cgv" element={<Cgv />} />
+      <Route path="/retractation" element={<Retractation />} />
       <Route path="/offres" element={<Offres />} />
       <Route path="/outils/lien-avis-google" element={<LienAvisGoogle />} />
       <Route path="/outils/modeles-reponses-avis-google" element={<ModelesReponsesAvis />} />

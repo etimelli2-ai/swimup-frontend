@@ -4,6 +4,7 @@ import { Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react
 import api from '../lib/api'
 import usePageTitle from '../hooks/usePageTitle'
 import AuthShell from '../components/AuthShell'
+import { MentionDonnees } from '../components/PageLegale'
 
 export default function ReinitialiserMotDePasse() {
   usePageTitle('Nouveau mot de passe')
@@ -100,7 +101,7 @@ export default function ReinitialiserMotDePasse() {
             <button
               type="button"
               onClick={() => setShow(!show)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600"
             >
               {show ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -126,6 +127,7 @@ export default function ReinitialiserMotDePasse() {
           )}
         </button>
       </form>
+            <MentionDonnees className="mt-4">Ton nouveau mot de passe est enregistré sous forme hachée, illisible pour nous.</MentionDonnees>
     </AuthShell>
   )
 }

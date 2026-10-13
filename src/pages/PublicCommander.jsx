@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { ArrowRight, AlertCircle, Loader2, Check, Lock, ChevronDown, MessageCircle } from 'lucide-react'
 import axios from 'axios'
 import Logo from '../components/Logo'
+import { LiensLegaux, MentionDonnees, InfoAvantPaiement } from '../components/PageLegale'
 import { LIEN_INSTAGRAM, LIEN_TIKTOK } from '../lib/seo.mjs'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.swimup.net/api'
@@ -68,6 +69,8 @@ export default function PublicCommander() {
         </div>
       </header>
 
+      <main id="contenu">
+
       {/* Accueil : le message et la commande tiennent sur le même écran */}
       <section className="bg-[#EEF6FB]">
         <div className="max-w-5xl mx-auto px-5 py-8 sm:py-16 grid lg:grid-cols-[1.05fr_1fr] gap-10 lg:gap-14 items-center">
@@ -120,7 +123,7 @@ export default function PublicCommander() {
                                      peer-checked:border-[#0369A1] peer-checked:bg-[#EEF6FB] peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-[#0369A1]
                                      hover:border-slate-300">
                       <span className="font-display text-[26px] font-bold leading-none">{n}</span>
-                      <span className="mt-1 text-[12px] text-slate-500">{eur(n * PRIX_UNITAIRE)}</span>
+                      <span className="mt-1 text-[12px] text-slate-600">{eur(n * PRIX_UNITAIRE)}</span>
                     </span>
                   </label>
                 ))}
@@ -139,7 +142,7 @@ export default function PublicCommander() {
                     className="w-11 h-11 rounded-full border border-slate-200 text-lg active:scale-95">+</button>
                 </div>
               ) : (
-                <button type="button" onClick={() => setAutre(true)} className="mt-3 text-[13px] text-slate-500 hover:text-[#0369A1] underline underline-offset-4">
+                <button type="button" onClick={() => setAutre(true)} className="mt-3 text-[13px] text-slate-600 hover:text-[#0369A1] underline underline-offset-4">
                   Un autre nombre
                 </button>
               )}
@@ -147,16 +150,19 @@ export default function PublicCommander() {
 
             <div className="mt-6 flex items-end justify-between border-t border-slate-100 pt-5">
               <div>
-                <p className="text-[14px] text-slate-500">Total</p>
-                <p className="text-[12px] text-slate-400">{quantite} × {eur(PRIX_UNITAIRE)}</p>
+                <p className="text-[14px] text-slate-600">Total</p>
+                <p className="text-[12px] text-slate-600">{quantite} × {eur(PRIX_UNITAIRE)}</p>
               </div>
               <p className="font-display text-[44px] leading-none font-bold tracking-tight">{eur(total)}</p>
             </div>
 
+            <InfoAvantPaiement className="mt-5" />
+            <MentionDonnees className="mt-2">Ton email est demandé sur la page de paiement sécurisée de Stripe, pour te confirmer la commande et t'envoyer ton lien de suivi.</MentionDonnees>
+
             <button
               type="submit"
               disabled={loading}
-              className="mt-5 w-full rounded-full bg-[#0369A1] hover:bg-[#075985] text-white py-4 font-semibold text-[17px] flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-60"
+              className="mt-4 w-full rounded-full bg-[#0369A1] hover:bg-[#075985] text-white py-4 font-semibold text-[17px] flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-60"
             >
               {loading
                 ? <><Loader2 size={18} className="animate-spin" /> Ouverture du paiement…</>
@@ -171,14 +177,14 @@ export default function PublicCommander() {
               )}
             </div>
 
-            <p className="mt-4 flex items-center justify-center gap-1.5 text-[12.5px] text-slate-500 text-center">
+            <p className="mt-4 flex items-center justify-center gap-1.5 text-[12.5px] text-slate-600 text-center">
               <Lock size={12} className="shrink-0" />
               Paiement par carte sur Stripe. Le lien de votre fiche se donne après.
             </p>
           </form>
         </div>
 
-        <p className="max-w-5xl mx-auto px-5 pb-6 text-[13.5px] text-slate-500">
+        <p className="max-w-5xl mx-auto px-5 pb-6 text-[13.5px] text-slate-600">
           Votre propre fiche à soigner ?{' '}
           <a href="/inscription" className="font-semibold text-[#0369A1] underline underline-offset-4">Créez un compte gratuit</a>
           {' '}: QR code, affiche et réponses aux avis, sans carte bancaire.
@@ -224,7 +230,7 @@ export default function PublicCommander() {
             <details key={f.q} className="group py-1">
               <summary className="flex items-center justify-between gap-4 py-4 cursor-pointer list-none font-semibold text-[16px] [&::-webkit-details-marker]:hidden">
                 {f.q}
-                <ChevronDown size={18} className="text-slate-400 shrink-0 transition-transform group-open:rotate-180" />
+                <ChevronDown size={18} className="text-slate-600 shrink-0 transition-transform group-open:rotate-180" />
               </summary>
               <p className="pb-4 pr-8 text-[15px] leading-relaxed text-slate-600">{f.r}</p>
             </details>
@@ -235,17 +241,19 @@ export default function PublicCommander() {
         </a>
       </section>
 
+      </main>
+
       <footer className="border-t border-slate-200">
-        <div className="max-w-5xl mx-auto px-5 py-7 flex flex-wrap items-center justify-between gap-3 text-[13px] text-slate-500">
+        <div className="max-w-5xl mx-auto px-5 py-7 flex flex-wrap items-center justify-between gap-3 text-[13px] text-slate-600">
           <span>© {new Date().getFullYear()} SwimUp</span>
           <span className="flex items-center gap-5">
             <a href="/aide-commercants" className="hover:text-[#0B1F33]">Aide aux commerçants</a>
-            <a href="/confidentialite" className="hover:text-[#0B1F33]">Confidentialité</a>
             <a href={LIEN_INSTAGRAM} rel="noopener noreferrer me" target="_blank" className="hover:text-[#0B1F33]">Instagram</a>
             <a href={LIEN_TIKTOK} rel="noopener noreferrer me" target="_blank" className="hover:text-[#0B1F33]">TikTok</a>
             <a href="/login" className="hover:text-[#0B1F33]">Connexion</a>
           </span>
         </div>
+        <div className="max-w-5xl mx-auto px-5 pb-7"><LiensLegaux className="flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-slate-600" classe="hover:text-[#0B1F33]" /></div>
       </footer>
     </div>
   )

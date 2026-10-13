@@ -10,8 +10,10 @@ import api from '../lib/api'
 import { Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, Loader2, Tag } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LogoMarque } from '../components/Logo'
+import { LiensLegaux } from '../components/PageLegale'
 import toast from 'react-hot-toast'
 import { springSmooth, springSnappy, springSheet } from '../lib/motion'
+import { MentionDonnees } from '../components/PageLegale'
 
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
@@ -102,7 +104,7 @@ export default function Register() {
         className="absolute inset-x-0 top-0 h-[520px] -z-0 pointer-events-none"
         style={{ background: 'radial-gradient(60% 50% at 50% 0%, rgba(14,165,233,0.14) 0%, rgba(14,165,233,0) 70%)' }}
       />
-      <motion.div
+      <motion.main id="contenu"
         initial={{ opacity: 0, y: 24, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={springSmooth}
@@ -204,7 +206,8 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label={showPassword ? 'Cacher le mot de passe' : 'Voir le mot de passe'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -225,7 +228,7 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                ID Discord {!discordRequis && <span className="text-slate-400 font-normal">(optionnel)</span>}
+                ID Discord {!discordRequis && <span className="text-slate-500 font-normal">(optionnel)</span>}
               </label>
               <input
                 type="text"
@@ -259,7 +262,7 @@ export default function Register() {
             {!commandeToken && (
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Code d'invitation <span className="text-slate-400 font-normal">(optionnel)</span>
+                  Code d'invitation <span className="text-slate-500 font-normal">(optionnel)</span>
                 </label>
                 <input
                   type="text"
@@ -273,7 +276,7 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Code de parrainage <span className="text-slate-400 font-normal">(optionnel)</span>
+                Code de parrainage <span className="text-slate-500 font-normal">(optionnel)</span>
               </label>
               <input
                 type="text"
@@ -304,6 +307,7 @@ export default function Register() {
               )}
             </button>
           </form>
+            <MentionDonnees className="mt-4">SwimUp utilise ton email, ton mot de passe, ton identifiant Discord (si tu le donnes) et ton adresse IP pour créer ton compte membre, repérer les comptes en double et te payer.</MentionDonnees>
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-6">
@@ -312,7 +316,8 @@ export default function Register() {
             Se connecter
           </Link>
         </p>
-      </motion.div>
+        <LiensLegaux className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6 text-xs" classe="text-slate-600 hover:underline" />
+      </motion.main>
     </div>
   )
 }

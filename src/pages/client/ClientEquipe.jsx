@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { Users, Crown, Mail, Trash2, FileDown, LogOut, Check, Building2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api, { choisirCompte } from '../../lib/api'
+import { MentionDonnees } from '../../components/PageLegale'
 
 const erreurApi = (e, defaut = 'Une erreur est survenue, réessaie.') => e.response?.data?.error || defaut
 const dateFr = (s) => s ? new Date(String(s).replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR') : '—'
@@ -125,6 +126,7 @@ function Equipe() {
               </select>
               <button className="btn-primary" disabled={occupe || plein || !email}><Mail size={15} /> Inviter</button>
             </div>
+            <MentionDonnees>L'email de la personne invitée sert uniquement à lui envoyer l'invitation. Préviens-la avant.</MentionDonnees>
             <p className="text-xs text-slate-500">{DESC_ROLES[role]} La personne doit avoir (ou créer) un compte client SwimUp avec cette adresse.{d.business && ` ${d.acces.length + d.invitations.length}/${d.limite} places utilisées.`}</p>
           </form>
         </fieldset>

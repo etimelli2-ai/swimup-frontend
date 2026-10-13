@@ -2,6 +2,7 @@
 // Même grammaire visuelle que les guides ; ne dépend ni de la connexion ni de l'API.
 import { Link } from 'react-router-dom'
 import Logo from './Logo'
+import { LiensLegaux } from './PageLegale'
 import { LIEN_INSTAGRAM, LIEN_TIKTOK } from '../lib/seo.mjs'
 
 export default function CadrePublic({ children, large = false }) {
@@ -24,18 +25,18 @@ export default function CadrePublic({ children, large = false }) {
       {children}
       <footer className="w-full bg-slate-50 border-t border-slate-200 print:hidden">
         <div className={`${largeur} mx-auto px-4 py-8 space-y-2`}>
-          <div className="flex items-center justify-between text-[12px] text-slate-400 flex-wrap gap-2">
-            <span>© 2025 SwimUp</span>
+          <div className="flex items-center justify-between text-[12px] text-slate-500 flex-wrap gap-2">
+            <span>© {new Date().getFullYear()} SwimUp</span>
             <span className="flex gap-4">
               <Link to="/aide-commercants" className="hover:underline">Guides</Link>
               <Link to="/offres" className="hover:underline">Offres</Link>
-              <Link to="/confidentialite" className="hover:underline">Confidentialité</Link>
               <a href={LIEN_INSTAGRAM} rel="noopener noreferrer me" target="_blank" className="hover:underline">Instagram</a>
               <a href={LIEN_TIKTOK} rel="noopener noreferrer me" target="_blank" className="hover:underline">TikTok</a>
               <a href="/login" className="text-sky-500 hover:underline">Connexion</a>
             </span>
           </div>
-          <p className="text-[11px] text-slate-400">Conseils pratiques, pas des conseils juridiques. Les règles de Google peuvent changer : vérifie toujours l'aide officielle.</p>
+          <LiensLegaux className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-slate-600" classe="hover:underline" />
+          <p className="text-[11px] text-slate-500">Conseils pratiques, pas des conseils juridiques. Les règles de Google peuvent changer : vérifie toujours l'aide officielle.</p>
         </div>
       </footer>
     </div>

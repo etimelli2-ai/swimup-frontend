@@ -9,6 +9,8 @@ import { springSmooth, springSnappy, springSheet } from '../lib/motion'
 import toast from 'react-hot-toast'
 import { retenirOffreSouhaitee } from '../lib/offreSouhaitee'
 import { LogoMarque } from '../components/Logo'
+import { LiensLegaux } from '../components/PageLegale'
+import { MentionDonnees } from '../components/PageLegale'
 
 // Création d'un compte CLIENT : email + mot de passe, rien d'autre.
 // Les comptes membres ont leur propre page (/register), jamais proposée ici.
@@ -63,7 +65,7 @@ export default function InscriptionClient() {
         className="absolute inset-x-0 top-0 h-[520px] pointer-events-none"
         style={{ background: 'radial-gradient(60% 50% at 50% 0%, rgba(14,165,233,0.14) 0%, rgba(14,165,233,0) 70%)' }}
       />
-      <motion.div initial={{ opacity: 0, y: 24, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={springSmooth} className="relative w-full max-w-sm">
+      <motion.main id="contenu" initial={{ opacity: 0, y: 24, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={springSmooth} className="relative w-full max-w-sm">
         <div className="text-center mb-7">
           <motion.div initial={{ scale: 0.6, rotate: -8 }} animate={{ scale: 1, rotate: 0 }} transition={springSnappy}
             className="w-14 h-14 mx-auto mb-4">
@@ -114,7 +116,7 @@ export default function InscriptionClient() {
                 <input id="ins-mdp" type={voir ? 'text' : 'password'} autoComplete="new-password" required minLength={8} value={password}
                   onChange={e => setPassword(e.target.value)} className="input pr-10" placeholder="8 caractères, une lettre, un chiffre" />
                 <button type="button" onClick={() => setVoir(!voir)} aria-label={voir ? 'Cacher le mot de passe' : 'Voir le mot de passe'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600">
                   {voir ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -123,13 +125,15 @@ export default function InscriptionClient() {
               {envoi ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Créer mon compte <ArrowRight size={16} /></>}
             </button>
           </form>
+            <MentionDonnees className="mt-4">SwimUp utilise ton email et ton mot de passe pour créer ton compte et t'écrire à propos de ton compte. Aucune carte bancaire n'est demandée.</MentionDonnees>
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-6">
           Déjà un compte ?{' '}
           <Link to="/login" className="font-semibold text-sky-600 hover:text-sky-700">Se connecter</Link>
         </p>
-      </motion.div>
+        <LiensLegaux className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6 text-xs" classe="text-slate-600 hover:underline" />
+      </motion.main>
     </div>
   )
 }

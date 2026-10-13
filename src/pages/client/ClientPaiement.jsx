@@ -7,6 +7,7 @@ import { lienPaypal } from '../../lib/paypal'
 import { motion } from 'framer-motion'
 import { springSmooth } from '../../lib/motion'
 import toast from 'react-hot-toast'
+import { MentionDonnees, InfoAvantPaiement } from '../../components/PageLegale'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
@@ -229,13 +230,13 @@ export default function ClientPaiement() {
 
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-            <Link size={14} className="text-slate-400" />
+            <Link size={14} className="text-slate-500 dark:text-slate-400" />
             Lien Google Maps <span className="text-red-500">*</span>
           </label>
           <input className="input" placeholder="https://maps.app.goo.gl/..."
             value={form.lien_maps}
             onChange={e => setForm(p => ({ ...p, lien_maps: e.target.value }))} />
-          <p className="text-xs text-slate-400 mt-1">Sur Google Maps : ta fiche → Partager → Copier le lien.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Sur Google Maps : ta fiche → Partager → Copier le lien.</p>
         </div>
 
         <button type="button" onClick={() => setOptions(o => !o)}
@@ -255,22 +256,22 @@ export default function ClientPaiement() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-                  <Star size={14} className="text-slate-400" /> Note des avis
+                  <Star size={14} className="text-slate-500 dark:text-slate-400" /> Note des avis
                 </label>
                 <select className="input" value={form.nb_etoiles}
                   onChange={e => setForm(p => ({ ...p, nb_etoiles: e.target.value }))}>
                   {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} étoile{n > 1 ? 's' : ''}</option>)}
                 </select>
-                <p className="text-xs text-slate-400 mt-1">{etoilesLabel(form.nb_etoiles)}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{etoilesLabel(form.nb_etoiles)}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-                  <Clock size={14} className="text-slate-400" /> Garantie (jours)
+                  <Clock size={14} className="text-slate-500 dark:text-slate-400" /> Garantie (jours)
                 </label>
                 <input className="input" type="number" min="7" max="90" placeholder="30"
                   value={form.delai_paiement}
                   onChange={e => setForm(p => ({ ...p, delai_paiement: e.target.value }))} />
-                <p className="text-xs text-slate-400 mt-1">On vérifie que l'avis reste en ligne</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">On vérifie que l'avis reste en ligne</p>
               </div>
             </div>
           </div>
@@ -363,6 +364,8 @@ export default function ClientPaiement() {
           </button>
         ) : (
           <div className="space-y-2.5">
+            <InfoAvantPaiement />
+            <MentionDonnees>Le lien de ta fiche, le nom et le type de ton établissement servent à faire publier les avis commandés.</MentionDonnees>
             <button
               onClick={handleCarte}
               disabled={loading || !form.nom_etablissement || !form.lien_maps}

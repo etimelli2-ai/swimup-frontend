@@ -4,6 +4,7 @@ import { ArrowRight, AlertCircle, MailCheck } from 'lucide-react'
 import api from '../lib/api'
 import usePageTitle from '../hooks/usePageTitle'
 import AuthShell from '../components/AuthShell'
+import { MentionDonnees } from '../components/PageLegale'
 
 export default function MotDePasseOublie() {
   usePageTitle('Mot de passe oublié')
@@ -87,6 +88,7 @@ export default function MotDePasseOublie() {
           )}
         </button>
       </form>
+            <MentionDonnees className="mt-4">Ton email sert uniquement à t'envoyer le lien pour choisir un nouveau mot de passe.</MentionDonnees>
     </AuthShell>
   )
 }

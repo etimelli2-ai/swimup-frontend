@@ -129,7 +129,7 @@ export default function Dashboard() {
               <AlertTriangle size={17} className="text-amber-500 shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[14px] font-medium text-slate-800 dark:text-slate-200">Adresse PayPal manquante</p>
-                <p className="text-[13px] text-slate-400 mt-0.5">Ajoute ton PayPal pour pouvoir retirer ton solde.</p>
+                <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Ajoute ton PayPal pour pouvoir retirer ton solde.</p>
               </div>
               <Link to="/profil" className="text-[13px] font-medium text-sky-500 hover:underline shrink-0 flex items-center gap-0.5">
                 Profil <ChevronRight size={14} />
@@ -141,7 +141,7 @@ export default function Dashboard() {
               <MessageCircle size={17} className="text-sky-500 shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[14px] font-medium text-slate-800 dark:text-slate-200">ID Discord manquant</p>
-                <p className="text-[13px] text-slate-400 mt-0.5">Renseigne ton ID Discord dans ton profil.</p>
+                <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Renseigne ton ID Discord dans ton profil.</p>
               </div>
               <Link to="/profil" className="text-[13px] font-medium text-sky-500 hover:underline shrink-0 flex items-center gap-0.5">
                 Profil <ChevronRight size={14} />
@@ -165,7 +165,7 @@ export default function Dashboard() {
 
       {/* Comment ça marche — cartes avec icônes colorées */}
       <div>
-        <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide mb-4">Comment ça marche</h2>
+        <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">Comment ça marche</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { icon: MapPin, t: 'Réserve un avis', d: 'Choisis un établissement à noter', bg: 'bg-sky-50 dark:bg-sky-900/20', fg: 'text-sky-500' },
@@ -178,7 +178,7 @@ export default function Dashboard() {
                 <s.icon size={17} />
               </span>
               <p className="text-[14px] font-semibold text-slate-800 dark:text-slate-200">{s.t}</p>
-              <p className="text-[13px] text-slate-400 mt-0.5 leading-relaxed">{s.d}</p>
+              <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{s.d}</p>
             </div>
           ))}
         </div>
@@ -188,7 +188,7 @@ export default function Dashboard() {
       {recentAvis.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide">Mes derniers avis</h2>
+            <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Mes derniers avis</h2>
             <Link to="/avis" className="text-[13px] font-medium text-sky-500 hover:underline flex items-center gap-1">
               Voir tout <ArrowRight size={13} />
             </Link>
@@ -202,10 +202,10 @@ export default function Dashboard() {
                   <span className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} />
                   <div className="flex-1 min-w-0">
                     <p className="text-[14px] font-medium text-slate-800 dark:text-slate-200 truncate">{a.nom_societe}</p>
-                    <p className="text-[12px] text-slate-400">{parseFloat(a.prix).toFixed(2)} EUR</p>
+                    <p className="text-[12px] text-slate-500 dark:text-slate-400">{parseFloat(a.prix).toFixed(2)} EUR</p>
                   </div>
                   {delai && (
-                    <span className="text-[12px] text-slate-400 shrink-0">{delai}</span>
+                    <span className="text-[12px] text-slate-500 dark:text-slate-400 shrink-0">{delai}</span>
                   )}
                   <span className="text-[12px] font-medium text-slate-500 shrink-0">
                     {config.label}

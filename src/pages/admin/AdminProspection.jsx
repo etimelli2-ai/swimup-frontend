@@ -61,6 +61,8 @@ https://swimup.net/offres
 
 Si ça ne vous intéresse pas, répondez simplement « stop » et je ne vous écris plus.
 
+Vous recevez ce message parce que les coordonnées de votre entreprise sont publiques sur sa fiche Google Maps. Vous pouvez vous opposer à tout moment à être recontacté en répondant « stop ». Comment sont utilisées vos données : https://swimup.net/confidentialite
+
 Bonne journée,
 Enzo
 SwimUp`
@@ -138,7 +140,7 @@ export default function AdminProspection() {
     setModal(p)
     setSujet(SUJET_DEFAUT)
     setMessage(MESSAGE_DEFAUT(p))
-    setEssaiGratuit(true)
+    setEssaiGratuit(false)
   }
 
   const envoyerEmail = async () => {
@@ -495,7 +497,7 @@ export default function AdminProspection() {
                   <button
                     onClick={() => chercherEmail(p)}
                     disabled={loadingAction === `cherche_${p.id}`}
-                    className="bg-sky-50 text-sky-600 px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 disabled:opacity-70"
+                    className="bg-sky-50 text-sky-700 px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 disabled:opacity-70"
                   >
                     {loadingAction === `cherche_${p.id}` ? <><Spinner /> Recherche...</> : <><Search size={12} /> Chercher l'email</>}
                   </button>

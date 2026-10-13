@@ -8,6 +8,7 @@ import { springSmooth } from '../../lib/motion'
 import toast from 'react-hot-toast'
 import { lireOffreSouhaitee, oublierOffreSouhaitee } from '../../lib/offreSouhaitee'
 import { PALETTE, ARRONDIS, TAILLES, ICONES, ACCENT_DEFAUT, NOM_ESPACE_MAX, couleurTropClaire } from '../../lib/themePremium'
+import { InfoAvantPaiement } from '../../components/PageLegale'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
@@ -208,7 +209,7 @@ export default function ClientPremium() {
               <button
                 onClick={reinitialiserTheme}
                 disabled={occupe}
-                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 disabled:opacity-50"
+                className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 disabled:opacity-50"
               >
                 <RotateCcw size={12} /> Réinitialiser
               </button>
@@ -297,7 +298,7 @@ export default function ClientPremium() {
                   Enregistrer
                 </button>
               </div>
-              <p className="text-xs text-slate-400 mt-1">Laisse vide pour garder « SwimUp » ({NOM_ESPACE_MAX} caractères max).</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Laisse vide pour garder « SwimUp » ({NOM_ESPACE_MAX} caractères max).</p>
             </div>
 
             {/* Icône du logo */}
@@ -414,8 +415,8 @@ function Comparatif({ lignes, prix }) {
       <div className={`grid ${grille} items-end px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700`}>
         <span />
         <span className="text-center text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">Gratuit</span>
-        <span className="text-center text-xs sm:text-sm font-semibold text-amber-600 dark:text-amber-400">Premium<br /><span className="text-[11px] font-normal text-slate-400">{eur(prix.premium)}</span></span>
-        <span className="text-center text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400">Business<br /><span className="text-[11px] font-normal text-slate-400">{eur(prix.business)}</span></span>
+        <span className="text-center text-xs sm:text-sm font-semibold text-amber-600 dark:text-amber-400">Premium<br /><span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{eur(prix.premium)}</span></span>
+        <span className="text-center text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400">Business<br /><span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{eur(prix.business)}</span></span>
       </div>
       <ul>
         {lignes.map(l => (
@@ -505,6 +506,7 @@ function ChoixOffre({ statut, prixOffre, occupe, envoiPaypal, payer, paypal }) {
       <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
         Paiement sécurisé par Stripe, activation tout de suite. Tu résilies en un clic, l'offre reste active jusqu'à la fin du mois payé.
       </p>
+      <InfoAvantPaiement abonnement className="text-center" />
       <button onClick={() => setTableau(t => !t)} className="w-full flex items-center justify-center gap-1.5 text-sm text-sky-600 hover:text-sky-700" aria-expanded={tableau}>
         {tableau ? 'Masquer le détail' : 'Voir toutes les différences'} <ChevronDown size={16} className={`transition-transform ${tableau ? 'rotate-180' : ''}`} />
       </button>
@@ -548,9 +550,9 @@ function MonAbonnement({ statut, occupe, lancer }) {
     <div className="card p-5 space-y-4">
       <h2 className="section-title">Mon abonnement</h2>
       <dl className="text-sm grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
-        <dt className="text-slate-400">Paiement</dt>
+        <dt className="text-slate-500 dark:text-slate-400">Paiement</dt>
         <dd className="text-slate-700 dark:text-slate-200">{SOURCES[statut.premium_source] || 'Offre active'}</dd>
-        <dt className="text-slate-400">{parCarte && !carte.resiliation_prevue ? 'Prochain renouvellement' : 'Actif jusqu\'au'}</dt>
+        <dt className="text-slate-500 dark:text-slate-400">{parCarte && !carte.resiliation_prevue ? 'Prochain renouvellement' : 'Actif jusqu\'au'}</dt>
         <dd className="text-slate-700 dark:text-slate-200">{dateTxt}</dd>
       </dl>
 

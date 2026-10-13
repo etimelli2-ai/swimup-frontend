@@ -322,8 +322,8 @@ export default function AdminAvis() {
     const info = checkpointInfo(a)
     if (a.verif_statut === 'paye' || a.statut === 'paye') return <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Payé</span>
     if (!info) {
-      if (!a.last_check) return <span className="text-xs text-slate-400">Jamais vérifié</span>
-      return <span className="text-xs text-slate-400">—</span>
+      if (!a.last_check) return <span className="text-xs text-slate-500 dark:text-slate-400">Jamais vérifié</span>
+      return <span className="text-xs text-slate-500 dark:text-slate-400">—</span>
     }
     if (info.estFinal) {
       return <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Délai atteint · à créditer</span>
@@ -433,12 +433,12 @@ export default function AdminAvis() {
 
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
           <input className="input pl-10" placeholder="Rechercher par nom, membre ou #ID..."
             value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <div className="relative sm:w-56 shrink-0">
-          <ArrowDownUp size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <ArrowDownUp size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 pointer-events-none" />
           <select className="input pl-9 text-sm appearance-none" value={tri} onChange={e => setTri(e.target.value)}>
             <option value="recent">Plus récent</option>
             <option value="ancien">Plus ancien</option>
@@ -475,7 +475,7 @@ export default function AdminAvis() {
                 Avis #{detail.id}
                 {detail.prioritaire ? <span className="badge-amber"><Flame size={11} /> Prioritaire</span> : null}
               </h3>
-              <button onClick={closeDetail} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+              <button onClick={closeDetail} className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                 <X size={22} />
               </button>
             </div>
@@ -514,15 +514,15 @@ export default function AdminAvis() {
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
                         <p className="text-lg font-semibold">{info.joursEcoules}j</p>
-                        <p className="text-[10px] text-slate-400">écoulés</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">écoulés</p>
                       </div>
                       <div>
                         <p className="text-lg font-semibold">{info.joursRestants}j</p>
-                        <p className="text-[10px] text-slate-400">restants</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">restants</p>
                       </div>
                       <div>
                         <p className="text-lg font-semibold">{info.nbChecks}</p>
-                        <p className="text-[10px] text-slate-400">vérif. faites</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">vérif. faites</p>
                       </div>
                     </div>
                     <p className="text-xs text-center font-medium">
@@ -571,7 +571,7 @@ export default function AdminAvis() {
               <div className="card-flat">
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Texte de l'avis</p>
                 <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                  {cleanText(detail.texte) || <span className="italic text-slate-400">Aucun texte pour le moment</span>}
+                  {cleanText(detail.texte) || <span className="italic text-slate-500 dark:text-slate-400">Aucun texte pour le moment</span>}
                 </p>
               </div>
 
@@ -789,7 +789,7 @@ export default function AdminAvis() {
         </div>
       )}
 
-      <p className="text-xs text-slate-400 flex items-center gap-3 flex-wrap">
+      <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-3 flex-wrap">
         <span className="flex items-center gap-1.5"><ListFilter size={12} /> {avisFiltres.length} avis</span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-2.5 h-2.5 rounded-sm bg-violet-400" /> Avis public (client sans compte)
@@ -809,7 +809,7 @@ export default function AdminAvis() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                   Client : {a.commande_email || '—'}
                 </p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-500">
                   {a.membre_email ? a.membre_email : 'Non réservé'}<BadgePause actif={a.membre_avis_bloque} size={12} className="ml-1" />
                   {a.soumis_at ? ` · ${new Date(String(a.soumis_at).replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR')}` : ''}
                   {a.prix != null ? ` · +${parseFloat(a.prix).toFixed(2)}€` : ''}
@@ -849,14 +849,14 @@ export default function AdminAvis() {
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-slate-400 font-mono shrink-0">#{a.id}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-mono shrink-0">#{a.id}</span>
                   {a.prioritaire ? <Flame size={12} className="text-amber-500 shrink-0" /> : null}
                   <p className="font-semibold text-sm truncate">{getNomEtablissement(a)}</p>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                  {cleanText(a.texte) ? `${cleanText(a.texte).slice(0, 50)}...` : <span className="italic text-slate-400">Aucun texte pour le moment</span>}
+                  {cleanText(a.texte) ? `${cleanText(a.texte).slice(0, 50)}...` : <span className="italic text-slate-500 dark:text-slate-400">Aucun texte pour le moment</span>}
                 </p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-500">
                   {a.membre_email ? a.membre_email : 'Non réservé'}<BadgePause actif={a.membre_avis_bloque} size={12} className="ml-1" />
                   {a.soumis_at ? ` · ${new Date(a.soumis_at).toLocaleDateString('fr-FR')}` : ''}
                   {a.prioritaire ? ` · +${parseFloat(a.prix_membre || 1).toFixed(2)}€` : ''}
@@ -884,7 +884,7 @@ export default function AdminAvis() {
           </div>
         ))}
         {avisFiltres.length === 0 && (
-          <div className="card text-center py-10 text-slate-400 flex flex-col items-center gap-2">
+          <div className="card text-center py-10 text-slate-500 dark:text-slate-400 flex flex-col items-center gap-2">
             <AlertTriangle size={22} className="text-slate-300 dark:text-slate-600" />
             Aucun avis
           </div>

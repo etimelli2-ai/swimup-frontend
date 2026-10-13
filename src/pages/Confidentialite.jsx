@@ -1,88 +1,118 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../lib/api'
-import Seo from '../components/Seo'
-import Logo from '../components/Logo'
+import PageLegale, { Titre, Champ, ARemplir } from '../components/PageLegale'
+import { EDITEUR, CNIL } from '../lib/legal.mjs'
 
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
+const DUREE = '[À REMPLIR : durée]'
 
-const SOUS_TRAITANTS = [
-  ['Railway', "Héberge le site et l'API."],
-  ['Turso', 'Héberge la base de données.'],
-  ['Resend', "Envoie les emails (demandes d'avis, campagnes, rappels, messages du compte)."],
-  ['Stripe', "Encaisse les abonnements Premium par carte. SwimUp ne voit jamais ton numéro de carte."],
-  ['Google (Places)', "Donne les derniers avis de ta fiche et les résultats de recherche pour la visibilité locale."],
-  ['Umami', "Compte les visites des pages publiques (accueil, guides, outils, inscription), sans cookie, sans profil et sans stocker ton adresse IP. Respecte le réglage « Ne pas me suivre » de ton navigateur."],
-  ['Groq', "Rédige les brouillons de réponse aux avis et les résumés d'analyse. Il reçoit le texte de l'avis pour travailler, SwimUp ne le garde pas."],
+// Finalité, données, base légale, durée. Les durées de la dernière colonne viennent du fonctionnement réel quand il est connu.
+const TRAITEMENTS = [
+  ['Créer et gérer ton compte, te connecter', 'Email, mot de passe (haché), rôle, date de dernière connexion, double authentification si activée', 'Contrat (CGU)', 'Tant que le compte existe, puis ' + DUREE],
+  ['Prévenir la fraude et les comptes en double', 'Adresse IP à l\'inscription et à la connexion', 'Intérêt légitime (protéger le service et la rémunération des membres)', DUREE],
+  ['Traiter les commandes d\'avis et les paiements', 'Email, lien de la fiche, nom et type d\'établissement, consignes de l\'avis, montant, identifiant de paiement Stripe ou PayPal', 'Contrat (CGV) et obligation légale (comptabilité)', 'Écritures comptables : ' + DUREE + ' (la loi impose une durée minimale)'],
+  ['Rémunérer les membres', 'Email PayPal, solde, historique des gains et des retraits, identifiant Discord (aide et vérification)', 'Contrat (CGU) et obligation légale (comptabilité)', DUREE],
+  ['Fournir les outils des entreprises', 'Configuration du lien d\'avis, historiques, analyses, campagnes (voir plus bas pour leurs durées)', 'Contrat', 'Voir la liste des durées plus bas'],
+  ['Envoyer des emails du service', 'Email, contenu du message (vérification, commande, rappels, mot de passe oublié)', 'Contrat', 'Suivi technique d\'envoi : ' + DUREE],
+  ['Contacter des commerçants pour leur présenter SwimUp (prospection entre professionnels)', 'Nom, adresse, téléphone, site web et email professionnels de la fiche Google, note et nombre d\'avis', 'Intérêt légitime (démarcher des professionnels pour une offre liée à leur activité)', 'Jusqu\'à opposition, et ' + DUREE + ' après le dernier échange'],
+  ['Compter les visites des pages publiques', 'Page visitée, sans adresse IP ni cookie', 'Intérêt légitime (savoir quelles pages sont lues)', 'Statistiques agrégées : ' + DUREE],
+  ['Aider les utilisateurs', 'Messages, tickets, erreurs techniques', 'Contrat et intérêt légitime', 'Erreurs techniques : 30 jours. Tickets : ' + DUREE],
 ]
 
-function Titre({ children }) {
-  return <h2 className="text-lg font-semibold text-slate-900 mt-8 mb-2">{children}</h2>
-}
+const SOUS_TRAITANTS = [
+  ['Railway', "Héberge le site et l'API.", 'États-Unis possible'],
+  ['Turso', 'Héberge la base de données.', '[À REMPLIR : région choisie]'],
+  ['Resend', "Envoie les emails (service, demandes d'avis, campagnes).", 'États-Unis possible'],
+  ['Stripe', "Encaisse les paiements par carte et les abonnements. SwimUp ne voit jamais ton numéro de carte.", 'Selon Stripe'],
+  ['PayPal', "Reçoit des paiements de clients et verse les gains des membres.", 'Selon PayPal'],
+  ['Google (Places)', "Fournit les derniers avis d'une fiche, les résultats de recherche locale et les fiches utilisées pour la prospection.", 'États-Unis possible'],
+  ['Groq', "Rédige les brouillons de réponse aux avis et les résumés d'analyse. Il reçoit le texte de l'avis pour travailler.", 'États-Unis'],
+  ['Umami', "Compte les visites des pages publiques, sans cookie, sans profil et sans adresse IP.", 'Selon Umami'],
+  ['Discord', "Aide et échanges avec les membres, si tu rejoins le serveur.", 'Selon Discord'],
+]
 
 export default function Confidentialite() {
   const [conservation, setConservation] = useState(null)
   useEffect(() => { api.get('/public/conservation').then(r => setConservation(r.data.conservation)).catch(() => setConservation(false)) }, [])
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
-      <Seo title="Confidentialité" description="Quelles données SwimUp garde pour les outils des entreprises, combien de temps, et comment les télécharger ou les effacer." path="/confidentialite" />
-      <header className="border-b border-slate-200">
-        <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
-          <Link to="/" aria-label="SwimUp, accueil">
-            <Logo taille={26} classeTexte="text-slate-900" />
-          </Link>
-          <a href="/login" className="text-[13px] text-sky-600 hover:text-sky-700 font-medium">Se connecter</a>
-        </div>
-      </header>
+    <PageLegale titre="Politique de confidentialité" chemin="/confidentialite" description="Qui traite tes données sur SwimUp, pourquoi, combien de temps, avec qui, et comment exercer tes droits (accès, effacement, opposition, réclamation auprès de la CNIL).">
+      <p className="mt-3">Cette page explique quelles données personnelles SwimUp utilise, pourquoi, combien de temps elles sont gardées, qui les reçoit et comment tu gardes la main. Elle s'applique aux visiteurs, aux clients et aux membres.</p>
 
-      <main className="max-w-2xl mx-auto px-4 py-10 text-[15px] leading-relaxed text-slate-700">
-        <h1 className="text-2xl font-bold text-slate-900">Confidentialité des outils pour entreprises</h1>
-        <p className="mt-3">Cette page explique ce que SwimUp garde quand tu utilises les outils d'avis (réputation, visibilité, campagnes, équipe), chez qui ça passe, et comment tu récupères ou effaces tes données.</p>
+      <Titre>1. Qui est responsable</Titre>
+      <p>Le responsable du traitement est <Champ v={EDITEUR.nom} /> (<Champ v={EDITEUR.statut} />), <Champ v={EDITEUR.adresse} />. Contact : <Champ v={EDITEUR.email} />. Il n'y a pas de délégué à la protection des données <ARemplir>[À CONFIRMER]</ARemplir>.</p>
 
-        <Titre>Ce qu'on garde</Titre>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>Ton compte : adresse email, nom de ta société, mot de passe (stocké haché, donc illisible).</li>
-          <li>Ta configuration : lien d'avis Google, nom du commerce, préférences de l'assistant.</li>
-          <li>Les résultats de tes outils : historique de ta note, analyses d'avis, relevés de position, chiffres de tes campagnes.</li>
-          <li>Les adresses email que tu saisis pour une campagne, uniquement le temps de l'envoi.</li>
-          <li>Ton historique de paiements Premium, car la comptabilité nous oblige à le garder.</li>
-        </ul>
-        <p className="mt-2">Pas de publicité, pas de revente de données. Le seul cookie sert à te garder connecté. Les visites des pages publiques sont comptées avec Umami, sans cookie ni profil (voir plus bas). Rien n'est mesuré une fois connecté, ni sur les pages de suivi de commande.</p>
+      <Titre>2. Ce qu'on fait avec tes données</Titre>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm border-collapse">
+          <caption className="sr-only">Finalités, données, base légale et durée de conservation</caption>
+          <thead>
+            <tr className="border-b border-slate-300 text-slate-900">
+              <th scope="col" className="py-2 pr-3">Pourquoi</th>
+              <th scope="col" className="py-2 pr-3">Quelles données</th>
+              <th scope="col" className="py-2 pr-3">Base légale</th>
+              <th scope="col" className="py-2">Combien de temps</th>
+            </tr>
+          </thead>
+          <tbody>
+            {TRAITEMENTS.map(t => (
+              <tr key={t[0]} className="border-b border-slate-200 align-top">
+                <th scope="row" className="py-2 pr-3 font-medium text-slate-900">{t[0]}</th>
+                <td className="py-2 pr-3">{t[1]}</td>
+                <td className="py-2 pr-3">{t[2]}</td>
+                <td className="py-2">{t[3].includes('[À REMPLIR') ? <ARemplir>{t[3]}</ARemplir> : t[3]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2">Pas de publicité, pas de revente de données, pas de décision automatique qui produise un effet juridique sur toi. Les mots de passe sont stockés hachés (illisibles).</p>
 
-        <Titre>Les adresses de tes clients</Titre>
-        <p>Quand tu lances une campagne, les adresses sont gardées pour envoyer le message (et la relance si tu l'as choisie), puis effacées à la fin de la campagne, au plus tard après 45 jours. SwimUp garde seulement une empreinte non réversible de chaque adresse pour ne pas redemander un avis à la même personne, et pour respecter ceux qui se sont désinscrits. Les adresses ne sont jamais incluses dans ton export.</p>
+      <Titre>3. Les commerçants contactés par SwimUp</Titre>
+      <p>Pour présenter SwimUp, nous écrivons à des commerces à partir des informations publiques de leur fiche Google (source : Google Places). Le message indique d'où vient l'adresse. Tu peux t'opposer à tout moment en répondant « stop » ou à <Champ v={EDITEUR.email} /> : ton adresse est alors retirée et on ne t'écrit plus. Chaque contact reçoit au plus une relance.</p>
 
-        <Titre>Chez qui ça passe</Titre>
+      <Titre>4. Les adresses de tes clients (campagnes)</Titre>
+      <p>Quand une entreprise lance une campagne d'emails d'avis, c'est elle qui décide d'écrire à ses clients : elle est responsable de ces adresses et SwimUp agit pour son compte (sous-traitant). Les adresses sont gardées le temps de l'envoi (et de la relance choisie), puis effacées à la fin de la campagne, au plus tard après 45 jours. SwimUp garde seulement une empreinte non réversible de chaque adresse pour ne pas redemander un avis à la même personne et pour respecter les désinscriptions. Chaque email contient un lien de désinscription. Les adresses ne sont jamais incluses dans l'export de l'entreprise.</p>
+
+      <Titre>5. Qui reçoit tes données</Titre>
+      <p>Seules les personnes qui administrent SwimUp y ont accès. Nous faisons appel à ces prestataires, qui traitent des données pour notre compte :</p>
+      <ul className="mt-2 space-y-2">
+        {SOUS_TRAITANTS.map(([nom, role, lieu]) => (
+          <li key={nom}><strong className="text-slate-900">{nom}</strong> : {role} Localisation des données : {lieu.startsWith('[') ? <ARemplir>{lieu}</ARemplir> : lieu}.</li>
+        ))}
+      </ul>
+      <p className="mt-2">Plusieurs de ces prestataires sont situés hors de l'Union européenne, surtout aux États-Unis. Dans ce cas, le transfert doit reposer sur un cadre reconnu (décision d'adéquation, clauses contractuelles types). <ARemplir>[À VÉRIFIER : garantie utilisée par chaque prestataire, dans leur contrat de traitement des données]</ARemplir> Les autorités et les administrations peuvent aussi recevoir des données quand la loi l'impose.</p>
+
+      <Titre>6. Combien de temps pour les outils des entreprises</Titre>
+      {conservation === null && <p className="text-slate-600">Chargement…</p>}
+      {conservation === false && <p className="text-slate-600">La liste n'a pas pu être chargée. Recharge la page, ou retrouve-la dans Réputation, onglet Réglages, une fois connecté.</p>}
+      {conservation && (
         <ul className="space-y-2">
-          {SOUS_TRAITANTS.map(([nom, role]) => (
-            <li key={nom}><strong className="text-slate-900">{nom}</strong> : {role}</li>
+          {conservation.map(c => (
+            <li key={c.donnee}><strong className="text-slate-900">{c.donnee}</strong> : {c.duree}.{c.note ? ` ${c.note}` : ''}</li>
           ))}
         </ul>
+      )}
 
-        <Titre>Combien de temps</Titre>
-        {conservation === null && <p className="text-slate-500">Chargement…</p>}
-        {conservation === false && <p className="text-slate-500">La liste n'a pas pu être chargée. Elle est aussi visible dans Réputation, onglet Réglages, une fois connecté.</p>}
-        {conservation && (
-          <ul className="space-y-2">
-            {conservation.map(c => (
-              <li key={c.donnee}><strong className="text-slate-900">{c.donnee}</strong> : {c.duree}.{c.note ? ` ${c.note}` : ''}</li>
-            ))}
-          </ul>
-        )}
+      <Titre>7. Tes droits</Titre>
+      <p>Tu peux demander l'accès à tes données, leur correction, leur effacement, la limitation du traitement, leur portabilité, et t'opposer à un traitement fondé sur l'intérêt légitime (dont la prospection, sans avoir à te justifier). Quand le traitement repose sur ton consentement, tu peux le retirer à tout moment. Tu peux aussi donner des directives sur le sort de tes données après ton décès.</p>
+      <p className="mt-2">Pour les outils des entreprises, tu télécharges une copie de tes données et tu les effaces toi-même : Réputation, onglet Réglages. L'effacement garde le lien d'avis (ton QR imprimé continue de marcher), les désinscriptions et les paiements.</p>
+      <p className="mt-2">Pour toute autre demande (correction, suppression du compte, opposition), écris à <Champ v={EDITEUR.email} />. Tu peux aussi passer par le <a className="text-sky-600 underline" href={LIEN_DISCORD} target="_blank" rel="noopener noreferrer">salon Discord de SwimUp</a>, mais l'email reste le canal officiel. Nous répondons dans un délai d'un mois. Les écritures de paiement ne peuvent pas être effacées : la loi nous demande de les conserver.</p>
 
-        <Titre>Tes droits</Titre>
-        <p>Tu peux télécharger une copie de tes données d'outils et les effacer toi-même : va dans Réputation, onglet Réglages. L'effacement supprime les campagnes, les relevés, les analyses, l'historique de note et l'équipe liée. Il garde le lien d'avis (ton QR imprimé continue de marcher), les désinscriptions et les paiements.</p>
-        <p className="mt-2">Pour une demande sur ton compte lui-même (correction, suppression), écris-nous sur le <a className="text-sky-600 underline" href={LIEN_DISCORD} target="_blank" rel="noopener noreferrer">salon Discord de SwimUp</a>. Les paiements déjà faits ne peuvent pas être effacés, la loi nous demande de les conserver.</p>
+      <Titre>8. Réclamation</Titre>
+      <p>Si tu estimes que tes droits ne sont pas respectés, tu peux d'abord nous écrire. Tu peux aussi saisir la {CNIL.nom} : {CNIL.adresse}, ou en ligne sur <a className="text-sky-600 underline" href={CNIL.plainte} target="_blank" rel="noopener noreferrer">cnil.fr/fr/plaintes</a>.</p>
 
-        <Titre>Ce que les outils ne font pas</Titre>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>Google ne donne que les derniers avis de ta fiche (5 au maximum) : les analyses portent sur ceux-là.</li>
-          <li>Les positions de visibilité sont des relevés indicatifs, pas un classement officiel de Google.</li>
-          <li>Un clic sur ton lien d'avis ne veut pas dire qu'un avis a été publié.</li>
-        </ul>
-        <p className="mt-8 text-sm text-slate-500">Cette page décrit les outils pour entreprises. Elle sera mise à jour si les pratiques changent.</p>
-      </main>
-    </div>
+      <Titre>9. Cookies</Titre>
+      <p>Le seul cookie sert à te garder connecté. Aucun cookie publicitaire. Le détail est sur la page <Link to="/cookies" className="text-sky-600 underline">cookies</Link>.</p>
+
+      <Titre>10. Ce que les outils ne font pas</Titre>
+      <ul className="list-disc pl-5 space-y-1">
+        <li>Google ne donne que les derniers avis d'une fiche (5 au maximum) : les analyses portent sur ceux-là.</li>
+        <li>Les positions de visibilité sont des relevés indicatifs, pas un classement officiel de Google.</li>
+        <li>Un clic sur ton lien d'avis ne veut pas dire qu'un avis a été publié.</li>
+      </ul>
+      <p className="mt-8 text-sm text-slate-600">Cette page est mise à jour quand les pratiques changent. La date est en haut de page.</p>
+    </PageLegale>
   )
 }

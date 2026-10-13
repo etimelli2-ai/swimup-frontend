@@ -32,6 +32,7 @@ import SelecteurCompte from './SelecteurCompte'
 import React from 'react'
 import { springSheet, springSmooth } from '../lib/motion'
 import { LogoMarque } from './Logo'
+import { LiensLegaux } from './PageLegale'
 import { ACCENT_DEFAUT, couleurHover, ARRONDIS, TAILLES, ICONES } from '../lib/themePremium'
 
 const DiscordIcon = () => (
@@ -159,10 +160,10 @@ export default function Layout() {
             style={{ backgroundColor: `${accent}1a` }}
           />
         )}
-        <Icon size={18} className={`relative ${active ? '' : 'text-slate-400 dark:text-slate-500'}`} style={active ? { color: accent } : undefined} />
+        <Icon size={18} className={`relative ${active ? '' : 'text-slate-500 dark:text-slate-500'}`} style={active ? { color: accent } : undefined} />
         <span className="relative" style={active ? { color: accent } : undefined}>{item.label}</span>
         {item.verrou && (
-          <span className="relative ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 dark:text-slate-500" title={`Débloquer avec ${item.verrou}`}>
+          <span className="relative ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-500" title={`Débloquer avec ${item.verrou}`}>
             <Lock size={11} /> {item.verrou}
           </span>
         )}
@@ -199,7 +200,7 @@ export default function Layout() {
         <div className="p-3 border-t border-slate-100 dark:border-slate-700 space-y-0.5">
           <div className="px-3 py-2">
             <p className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 min-w-0"><span className="truncate">{user?.email}</span><BadgePause actif={user?.avis_bloque} size={13} /></p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 capitalize">{user?.role}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-500 capitalize">{user?.role}</p>
           </div>
           <DiscordButton />
           <button
@@ -209,6 +210,7 @@ export default function Layout() {
             <LogOut size={18} />
             Déconnexion
           </button>
+          <LiensLegaux className="flex flex-wrap gap-x-3 gap-y-1 px-3 pt-2 text-[11px]" classe="text-slate-600 dark:text-slate-400 hover:underline" />
         </div>
       </aside>
 
@@ -275,13 +277,14 @@ export default function Layout() {
                 <LogOut size={18} />
                 Déconnexion
               </button>
+              <LiensLegaux className="flex flex-wrap gap-x-3 gap-y-1 px-3 py-3 text-xs" classe="text-slate-600 dark:text-slate-400 hover:underline" />
             </nav>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0 lg:ml-64 pt-14 lg:pt-0">
+      <main id="contenu" tabIndex={-1} className="flex-1 outline-none min-w-0 lg:ml-64 pt-14 lg:pt-0">
         <div className="max-w-5xl mx-auto p-4 lg:p-8">
           {isClient && <SelecteurCompte />}
           <Outlet />

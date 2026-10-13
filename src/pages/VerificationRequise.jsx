@@ -57,7 +57,7 @@ export default function VerificationRequise() {
           <button onClick={renvoyer} disabled={envoi} className="btn-primary w-full justify-center disabled:opacity-70">
             {envoi ? 'Envoi...' : "Renvoyer l'email"}
           </button>
-          <button onClick={handleLogout} className="btn-ghost w-full justify-center text-slate-400">
+          <button onClick={handleLogout} className="btn-ghost w-full justify-center text-slate-500">
             <LogOut size={15} /> Se déconnecter
           </button>
         </div>

@@ -65,7 +65,7 @@ function CarteDisponible({ a, onReserver, reserving, bloque }) {
           </div>
           <div className="flex items-center gap-2 mt-1.5">
             <Etoiles n={a.nb_etoiles} />
-            <span className="text-xs text-slate-400">{parseInt(a.nb_etoiles) || 5} étoiles à mettre</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{parseInt(a.nb_etoiles) || 5} étoiles à mettre</span>
           </div>
         </div>
         <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
@@ -80,7 +80,7 @@ function CarteDisponible({ a, onReserver, reserving, bloque }) {
             <button
               onClick={copierTexte}
               title="Copier le texte"
-              className="absolute top-2.5 right-2.5 p-1.5 text-slate-400 hover:text-sky-500 transition-colors"
+              className="absolute top-2.5 right-2.5 p-1.5 text-slate-500 dark:text-slate-400 hover:text-sky-500 transition-colors"
             >
               {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
             </button>
@@ -167,7 +167,7 @@ function AvisEnCours({ avis, onSoumettre, onAnnuler, soumettant, annulant }) {
           <h2 className="font-semibold text-slate-900 dark:text-white">{avis.nom_societe}</h2>
           <div className="flex items-center gap-2 mt-1">
             <Etoiles n={nbEtoiles} />
-            <span className="text-xs text-slate-400">|</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">|</span>
             <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">+{parseFloat(avis.prix).toFixed(2)}€</span>
           </div>
         </div>
@@ -176,7 +176,7 @@ function AvisEnCours({ avis, onSoumettre, onAnnuler, soumettant, annulant }) {
           {avis.texte ? (
             <>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pr-8">{avis.texte}</p>
-              <button onClick={copierTexte} title="Copier le texte" className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-sky-500 transition-colors">
+              <button onClick={copierTexte} title="Copier le texte" className="absolute top-3 right-3 p-1.5 text-slate-500 dark:text-slate-400 hover:text-sky-500 transition-colors">
                 {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
               </button>
             </>
@@ -215,7 +215,7 @@ function AvisEnCours({ avis, onSoumettre, onAnnuler, soumettant, annulant }) {
                   {soumettant ? <Loader2 size={16} className="animate-spin" /> : <><Send size={16} />Soumettre</>}
                 </button>
               </div>
-              <p className="text-xs text-slate-400">Colle le lien direct de ton avis sur Google Maps.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Colle le lien direct de ton avis sur Google Maps.</p>
             </form>
           </>
         )}
@@ -390,13 +390,13 @@ export default function Avis() {
         <div className="card p-10 text-center">
           <AlertTriangle size={28} className="text-slate-300 mx-auto mb-3" />
           <p className="font-medium text-slate-600 dark:text-slate-400">Aucun avis disponible</p>
-          <p className="text-sm text-slate-400 mt-1">Reviens un peu plus tard</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Reviens un peu plus tard</p>
         </div>
       ) : (
         <div className="space-y-6">
           {avisPrioritaires.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide">
+              <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                 Prioritaires — à faire en premier
               </h2>
               {avisPrioritaires.map(a => (
@@ -407,7 +407,7 @@ export default function Avis() {
           {avisNormaux.length > 0 && (
             <div className="space-y-3">
               {avisPrioritaires.length > 0 && (
-                <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide">Autres avis</h2>
+                <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Autres avis</h2>
               )}
               {avisNormaux.map(a => (
                 <CarteDisponible key={a.cle} a={a} onReserver={handleReserver} reserving={reserving} />
@@ -419,7 +419,7 @@ export default function Avis() {
 
       {avisValides.length > 0 && (
         <div>
-          <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide mb-3">
+          <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">
             En attente de paiement
           </h2>
           <div className="divide-y divide-slate-100 dark:divide-slate-800 border-y border-slate-100 dark:border-slate-800">
@@ -440,7 +440,7 @@ export default function Avis() {
 
       {avisRefuses.length > 0 && (
         <div>
-          <h2 className="text-[13px] font-semibold text-slate-400 uppercase tracking-wide mb-3">Avis supprimés</h2>
+          <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Avis supprimés</h2>
           <div className="space-y-2">
             {avisRefuses.map(a => (
               <AvisRefuse

@@ -9,7 +9,7 @@ export default function MiniLineChart({ points, color = '#0ea5e9', height = 140,
 
   if (!points || points.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[140px] text-sm text-slate-400">
+      <div className="flex items-center justify-center h-[140px] text-sm text-slate-500 dark:text-slate-400">
         Pas encore assez de données
       </div>
     )
@@ -96,7 +96,7 @@ export default function MiniLineChart({ points, color = '#0ea5e9', height = 140,
         </div>
       )}
 
-      <div className="flex justify-between text-[11px] text-slate-400 mt-1">
+      <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400 mt-1">
         <span>{points[0]?.label}</span>
         <span className="font-semibold text-slate-600 dark:text-slate-300">
           {formatValue(points[points.length - 1]?.value)}

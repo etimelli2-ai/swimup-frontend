@@ -13,7 +13,7 @@ const note1 = (n) => (n === null || n === undefined ? '—' : Number(n).toFixed(
 const erreurApi = (e, defaut = 'Une erreur est survenue, réessaie.') => e.response?.data?.error || defaut
 
 function Etoiles({ n }) {
-  if (!n) return <span className="text-xs text-slate-400">sans note</span>
+  if (!n) return <span className="text-xs text-slate-500 dark:text-slate-400">sans note</span>
   return (
     <span className="inline-flex" aria-label={`${n} sur 5`}>
       {[1, 2, 3, 4, 5].map(i => (
@@ -211,7 +211,7 @@ function AvisGoogle({ apercu, rafraichir }) {
 
           <div className="space-y-2">
             <div className="relative">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
               <input className="input pl-9" placeholder="Rechercher dans les avis" value={filtres.q} onChange={e => maj('q', e.target.value)} maxLength={80} />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -367,7 +367,7 @@ function Evolution({ apercu }) {
 
 const TENDANCES = {
   mieux: ['En progrès', 'text-emerald-600'], moins_bien: ['En recul', 'text-red-500'], stable: ['Stable', 'text-slate-500'],
-  nouveau: ['Nouveau sujet', 'text-sky-600'], disparu: ['Plus cité', 'text-slate-500'], insuffisant: ['Pas assez de notes pour comparer', 'text-slate-400'],
+  nouveau: ['Nouveau sujet', 'text-sky-600'], disparu: ['Plus cité', 'text-slate-500'], insuffisant: ['Pas assez de notes pour comparer', 'text-slate-500 dark:text-slate-400'],
 }
 
 function EvolutionThemes({ e }) {
@@ -766,7 +766,7 @@ function Reglages() {
         <details className="group rounded-xl bg-slate-50 dark:bg-slate-800/60">
           <summary className="cursor-pointer list-none flex items-center justify-between gap-2 px-4 py-3 text-sm font-medium">
             Combien de temps on garde quoi
-            <ChevronDown size={16} className="text-slate-400 transition-transform group-open:rotate-180" />
+            <ChevronDown size={16} className="text-slate-500 dark:text-slate-400 transition-transform group-open:rotate-180" />
           </summary>
           <ul className="divide-y divide-slate-200/70 dark:divide-slate-700 text-sm px-4 pb-2">
             {d.conservation.map(c => (
@@ -783,7 +783,7 @@ function Reglages() {
       <details className="card group border border-red-200/70 dark:border-red-900/50">
         <summary className="cursor-pointer list-none flex items-center justify-between gap-2">
           <span className="section-title flex items-center gap-2 text-red-600 dark:text-red-400"><Trash2 size={17} /> Effacer les données de mes outils</span>
-          <ChevronDown size={16} className="text-slate-400 transition-transform group-open:rotate-180" />
+          <ChevronDown size={16} className="text-slate-500 dark:text-slate-400 transition-transform group-open:rotate-180" />
         </summary>
         <div className="space-y-3 mt-3">
           <p className="text-sm text-slate-600 dark:text-slate-300">Campagnes, mots-clés et relevés, analyses, pistes, historique de ta note, équipe, rappels, supports et brouillons de réponse. Tes commandes d'avis, tes paiements et le lien de ton QR code ne bougent pas. C'est définitif.</p>

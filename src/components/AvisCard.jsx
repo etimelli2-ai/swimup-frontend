@@ -30,7 +30,7 @@ export default function AvisCard({ avis, onReserve, isReserving, index = 0 }) {
       <div className="flex justify-between items-start mb-3">
         <div className="min-w-0 flex-1">
           <h3 className="font-bold text-slate-800 text-base truncate">{avis.nom_societe}</h3>
-          <div className="flex items-center gap-1 mt-1 text-slate-400 text-xs">
+          <div className="flex items-center gap-1 mt-1 text-slate-500 text-xs">
             <MapPin size={11} />
             <span className="truncate max-w-[220px]">{avis.lien_maps}</span>
           </div>
@@ -63,7 +63,7 @@ export default function AvisCard({ avis, onReserve, isReserving, index = 0 }) {
         </p>
         <button 
           onClick={handleCopy}
-          className="absolute top-2 right-2 p-1.5 rounded-md bg-white border border-slate-200 text-slate-400 hover:text-sky-600 hover:border-sky-200 transition-all"
+          className="absolute top-2 right-2 p-1.5 rounded-md bg-white border border-slate-200 text-slate-500 hover:text-sky-600 hover:border-sky-200 transition-all"
           title="Copier le texte"
         >
           {copied ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
@@ -72,7 +72,7 @@ export default function AvisCard({ avis, onReserve, isReserving, index = 0 }) {
 
       {/* Footer */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500">
           <Clock size={11} />
           <span>Délai : {avis.delai_paiement}j</span>
         </div>

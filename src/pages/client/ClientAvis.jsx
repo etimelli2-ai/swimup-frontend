@@ -92,7 +92,7 @@ export default function ClientAvis() {
       )}
 
       {avis.length === 0 ? (
-        <div className="card-flat text-center py-12 text-slate-400">
+        <div className="card-flat text-center py-12 text-slate-500 dark:text-slate-400">
           <AlertTriangle className="w-10 h-10 mx-auto mb-2 opacity-50" />
           Aucun avis
         </div>

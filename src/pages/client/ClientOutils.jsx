@@ -205,7 +205,7 @@ export default function ClientOutils() {
   }
 
   if (erreur) return <div className="card p-6 text-sm text-slate-600 dark:text-slate-300">Impossible de charger tes outils pour l'instant, réessaie dans un moment.</div>
-  if (!data) return <div className="p-8 text-center text-slate-400 text-sm">Chargement…</div>
+  if (!data) return <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">Chargement…</div>
 
   const dernier = bilanMails
   return (
@@ -361,7 +361,7 @@ export default function ClientOutils() {
               { cle: 'envoyes', label: 'Emails envoyés', icone: Send, val: data.suivi.emails_envoyes },
             ].map(({ cle, label, icone: Icone, val }) => (
               <div key={cle} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3">
-                <Icone size={16} className="text-slate-400" aria-hidden="true" />
+                <Icone size={16} className="text-slate-500 dark:text-slate-400" aria-hidden="true" />
                 <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums mt-1">{val[periode === '7' ? 'j7' : 'j30']}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
               </div>

@@ -78,7 +78,7 @@ export default function Offres() {
         jsonLd={JSON_LD}
       />
       <section className="max-w-4xl mx-auto px-4 pt-10 pb-6">
-        <nav aria-label="Fil d'Ariane" className="text-[13px] text-slate-400 flex items-center gap-1">
+        <nav aria-label="Fil d'Ariane" className="text-[13px] text-slate-500 flex items-center gap-1">
           <Link to="/" className="hover:text-slate-600">Accueil</Link><ChevronRight size={12} />
           <span className="text-slate-500">Offres</span>
         </nav>
@@ -88,7 +88,7 @@ export default function Offres() {
         </p>
       </section>
 
-      <main className="max-w-4xl mx-auto px-4 pb-16">
+      <main id="contenu" className="max-w-4xl mx-auto px-4 pb-16">
         {erreur && <p className="rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[15px] px-4 py-3">Les offres ne se sont pas chargées. Recharge la page, ou <a href="/inscription?src=offres" className="underline">crée ton compte gratuit</a> pour les voir depuis ton espace.</p>}
         {!d && !erreur && <div className="grid gap-4 md:grid-cols-3" aria-busy="true">{[0, 1, 2].map(i => <div key={i} className="h-80 rounded-2xl bg-slate-100 animate-pulse" />)}</div>}
 
@@ -108,8 +108,8 @@ export default function Offres() {
               <div className={`grid ${grille} items-end px-4 pt-4 pb-3 border-b border-slate-100`}>
                 <span />
                 <span className="text-center text-xs sm:text-sm font-semibold text-slate-600">Gratuit</span>
-                <span className="text-center text-xs sm:text-sm font-semibold text-sky-700">Premium<br /><span className="text-[11px] font-normal text-slate-400">{eur(d.premium.prix)}</span></span>
-                <span className="text-center text-xs sm:text-sm font-semibold text-indigo-700">Business<br /><span className="text-[11px] font-normal text-slate-400">{eur(d.business.prix)}</span></span>
+                <span className="text-center text-xs sm:text-sm font-semibold text-sky-700">Premium<br /><span className="text-[11px] font-normal text-slate-500">{eur(d.premium.prix)}</span></span>
+                <span className="text-center text-xs sm:text-sm font-semibold text-indigo-700">Business<br /><span className="text-[11px] font-normal text-slate-500">{eur(d.business.prix)}</span></span>
               </div>
               <ul>
                 {d.comparatif.map(l => (

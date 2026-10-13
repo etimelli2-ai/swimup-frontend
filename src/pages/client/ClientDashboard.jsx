@@ -97,12 +97,12 @@ export default function ClientDashboard() {
             <div className="card p-4 space-y-2">
               <h3 className="section-title">🔔 Notifications</h3>
               {notifs.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-4">Aucune notification</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">Aucune notification</p>
               ) : notifs.slice(0, 5).map(n => (
                 <div key={n.id} className={`rounded-xl p-3 ${n.lu ? 'bg-slate-50 dark:bg-slate-700/50' : 'bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800'}`}>
                   <p className="text-sm font-semibold dark:text-white">{n.titre}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{n.message}</p>
-                  <p className="text-xs text-slate-400 mt-1">{new Date(n.created_at).toLocaleString('fr-FR')}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{new Date(n.created_at).toLocaleString('fr-FR')}</p>
                 </div>
               ))}
             </div>

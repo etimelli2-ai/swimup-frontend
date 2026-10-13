@@ -145,9 +145,9 @@ export default function AdminCommandes() {
                       )}
                     </p>
                     <p className="text-sm text-slate-500 dark:text-slate-400">{c.nom_societe || c.client_email}</p>
-                    <p className="text-xs text-slate-400">{c.client_email}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{c.client_email}</p>
                     {c.infos_attente?.nom_etablissement && (
-                      <p className="text-xs text-slate-400 mt-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         Établissement : <span className="text-slate-600 dark:text-slate-300">{c.infos_attente.nom_etablissement}</span>
                       </p>
                     )}
@@ -156,7 +156,7 @@ export default function AdminCommandes() {
                         {c.infos_attente.lien_maps}
                       </a>
                     )}
-                    <p className="text-xs text-slate-400 mt-1">{new Date(c.created_at).toLocaleString('fr-FR')}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{new Date(c.created_at).toLocaleString('fr-FR')}</p>
                   </div>
                   <div>
                     {c.statut === 'en_attente' && <span className="badge-amber">En attente</span>}
@@ -185,7 +185,7 @@ export default function AdminCommandes() {
               </div>
             ))}
             {filtered.length === 0 && (
-              <div className="card text-center py-10 text-slate-400">Aucune commande</div>
+              <div className="card text-center py-10 text-slate-500 dark:text-slate-400">Aucune commande</div>
             )}
           </div>
         </>
@@ -202,8 +202,8 @@ export default function AdminCommandes() {
                     Abonnement {a.offre === 'business' ? 'Business' : 'Premium'} — {parseFloat(a.montant).toFixed(2)}€/mois
                   </p>
                   <p className="text-sm text-slate-500 dark:text-slate-400">{a.nom_societe || a.client_email}</p>
-                  <p className="text-xs text-slate-400">{a.client_email}</p>
-                  <p className="text-xs text-slate-400 mt-1">{new Date(a.created_at).toLocaleString('fr-FR')}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{a.client_email}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{new Date(a.created_at).toLocaleString('fr-FR')}</p>
                 </div>
                 <div>
                   {a.statut === 'en_attente' && <span className="badge-amber">En attente</span>}
@@ -232,7 +232,7 @@ export default function AdminCommandes() {
             </div>
           ))}
           {abonnements.length === 0 && (
-            <div className="card text-center py-10 text-slate-400">Aucune demande d'abonnement</div>
+            <div className="card text-center py-10 text-slate-500 dark:text-slate-400">Aucune demande d'abonnement</div>
           )}
         </div>
       )}

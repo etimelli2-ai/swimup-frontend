@@ -63,7 +63,7 @@ function Liste({ ouvrir }) {
   return (
     <>
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
         <input className="input pl-9" placeholder="Rechercher un nom ou un email" value={recherche}
           onChange={e => setRecherche(e.target.value)} maxLength={80} />
       </div>

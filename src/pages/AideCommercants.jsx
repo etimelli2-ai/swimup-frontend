@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Star, ArrowLeft, QrCode, ChevronRight, Copy, Check, TriangleAlert, Sparkles, MessageSquareReply, MapPin, ShieldAlert, MessageCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Seo from '../components/Seo'
+import { LiensLegaux } from '../components/PageLegale'
 import { organisationLd, filAriane, urlAbsolue, LIEN_INSTAGRAM, LIEN_TIKTOK } from '../lib/seo.mjs'
 import { springSmooth } from '../lib/motion'
 import { GUIDES, guideParSlug } from '../content/guidesCommercants'
@@ -14,7 +15,7 @@ const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 const ICONES = { Star, MessageSquareReply, MapPin, ShieldAlert, QrCode }
 // Classes écrites en entier pour que Tailwind les garde au build
 const COULEURS = {
-  sky:     { tuile: 'bg-sky-50 text-sky-600 border-sky-100',             halo: 'rgba(14,165,233,0.14)' },
+  sky:     { tuile: 'bg-sky-50 text-sky-700 border-sky-100',             halo: 'rgba(14,165,233,0.14)' },
   violet:  { tuile: 'bg-violet-50 text-violet-600 border-violet-100',    halo: 'rgba(139,92,246,0.14)' },
   emerald: { tuile: 'bg-emerald-50 text-emerald-600 border-emerald-100', halo: 'rgba(16,185,129,0.14)' },
   amber:   { tuile: 'bg-amber-50 text-amber-600 border-amber-100',       halo: 'rgba(245,158,11,0.16)' },
@@ -50,15 +51,16 @@ function Cadre({ children }) {
       {children}
       <footer className="w-full bg-slate-50 border-t border-slate-200">
         <div className="max-w-2xl mx-auto px-4 py-8 space-y-2">
-          <div className="flex items-center justify-between text-[12px] text-slate-400 flex-wrap gap-2">
-            <span>© 2025 SwimUp</span>
+          <div className="flex items-center justify-between text-[12px] text-slate-500 flex-wrap gap-2">
+            <span>© {new Date().getFullYear()} SwimUp</span>
             <span className="flex gap-4">
               <a href={LIEN_INSTAGRAM} rel="noopener noreferrer me" target="_blank" className="hover:underline">Instagram</a>
               <a href={LIEN_TIKTOK} rel="noopener noreferrer me" target="_blank" className="hover:underline">TikTok</a>
               <a href="/login" className="text-sky-500 hover:underline">Connexion</a>
             </span>
           </div>
-          <p className="text-[11px] text-slate-400">
+          <LiensLegaux className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-slate-600" classe="hover:underline" />
+          <p className="text-[11px] text-slate-500">
             Conseils pratiques, pas des conseils juridiques. Les règles de Google peuvent changer : vérifie toujours l'aide officielle.
           </p>
         </div>
@@ -136,7 +138,7 @@ export function AideCommercantsIndex() {
                path="/aide-commercants"
                jsonLd={[filAriane([['Accueil', '/'], ['Aide aux commerçants', '/aide-commercants']])]} />}
       <Hero>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 text-sky-600 border border-sky-100 px-3.5 py-1.5 text-[12px] font-semibold tracking-wide uppercase mb-5">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100 px-3.5 py-1.5 text-[12px] font-semibold tracking-wide uppercase mb-5">
           <Star size={12} className="fill-sky-500 text-sky-500" />
           Guides gratuits
         </span>
@@ -149,7 +151,7 @@ export function AideCommercantsIndex() {
         </p>
       </Hero>
 
-      <main className="max-w-2xl mx-auto px-4 pb-16">
+      <main id="contenu" className="max-w-2xl mx-auto px-4 pb-16">
         <Link to="/outils/lien-avis-google" className="mb-4 flex items-center gap-4 rounded-2xl border border-sky-200 bg-sky-50 p-5 hover:border-sky-300 transition-colors">
           <span className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center shrink-0"><QrCode size={20} className="text-white" /></span>
           <span className="min-w-0">
@@ -164,14 +166,14 @@ export function AideCommercantsIndex() {
               <span className="block text-[15px] font-semibold tracking-tight text-slate-900">Modèles de réponses aux avis</span>
               <span className="block mt-0.5 text-[13px] leading-snug text-slate-500">12 textes à copier et adapter. Gratuit.</span>
             </span>
-            <ChevronRight size={16} className="ml-auto shrink-0 text-slate-400" />
+            <ChevronRight size={16} className="ml-auto shrink-0 text-slate-500" />
           </Link>
           <Link to="/outils/diagnostic-fiche-google" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 hover:border-slate-300 transition-colors">
             <span className="min-w-0">
               <span className="block text-[15px] font-semibold tracking-tight text-slate-900">Diagnostic de ta fiche Google</span>
               <span className="block mt-0.5 text-[13px] leading-snug text-slate-500">Une liste à cocher pour voir ce qu'il reste à faire.</span>
             </span>
-            <ChevronRight size={16} className="ml-auto shrink-0 text-slate-400" />
+            <ChevronRight size={16} className="ml-auto shrink-0 text-slate-500" />
           </Link>
         </div>
         <ul className="grid gap-4 sm:grid-cols-2">
@@ -325,7 +327,7 @@ export function AideCommercantsGuide() {
                  filAriane([['Accueil', '/'], ['Aide aux commerçants', '/aide-commercants'], [guide.titre, chemin]]),
                ]} />}
       <Hero halo={c.halo}>
-        <Link to={base} className="inline-flex items-center gap-1.5 text-[13px] text-slate-400 hover:text-slate-600 mb-6">
+        <Link to={base} className="inline-flex items-center gap-1.5 text-[13px] text-slate-500 hover:text-slate-600 mb-6">
           <ArrowLeft size={14} /> Tous les guides
         </Link>
         <div className="flex justify-center">
@@ -335,7 +337,7 @@ export function AideCommercantsGuide() {
         <p className="mt-4 text-[18px] leading-relaxed text-slate-500 max-w-xl mx-auto font-light">{guide.resume}</p>
       </Hero>
 
-      <main className="max-w-2xl mx-auto px-4 pb-16">
+      <main id="contenu" className="max-w-2xl mx-auto px-4 pb-16">
         <article>
           {guide.sections.map(s => <Section key={s.t} s={s} />)}
         </article>
@@ -348,7 +350,7 @@ export function AideCommercantsGuide() {
             {autres.map(g => (
               <li key={g.slug}>
                 <Link to={`${base}/${g.slug}`} className="flex items-center justify-between py-3.5 text-[15px] text-slate-700 hover:text-sky-600">
-                  {g.titre} <ChevronRight size={16} className="text-slate-400" />
+                  {g.titre} <ChevronRight size={16} className="text-slate-500" />
                 </Link>
               </li>
             ))}

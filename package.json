@@ -8,6 +8,7 @@
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
+    "@fontsource/bricolage-grotesque": "^5.3.0",
     "@tanstack/react-query": "^5.101.4",
     "axios": "^1.7.2",
     "framer-motion": "^12.43.0",

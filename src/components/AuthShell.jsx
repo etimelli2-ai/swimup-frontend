@@ -1,4 +1,5 @@
 import { LogoMarque } from './Logo'
+import { LiensLegaux } from './PageLegale'
 import { motion } from 'framer-motion'
 import { springSmooth, springSnappy } from '../lib/motion'
 
@@ -10,7 +11,7 @@ export default function AuthShell({ sousTitre, children, pied }) {
         className="absolute inset-x-0 top-0 h-[520px] -z-0 pointer-events-none"
         style={{ background: 'radial-gradient(60% 50% at 50% 0%, rgba(14,165,233,0.14) 0%, rgba(14,165,233,0) 70%)' }}
       />
-      <motion.div
+      <motion.main id="contenu"
         initial={{ opacity: 0, y: 24, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={springSmooth}
@@ -32,7 +33,8 @@ export default function AuthShell({ sousTitre, children, pied }) {
           {children}
         </div>
         {pied && <p className="text-center text-sm text-slate-500 mt-6">{pied}</p>}
-      </motion.div>
+        <LiensLegaux className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6 text-xs" classe="text-slate-600 hover:underline" />
+      </motion.main>
     </div>
   )
 }

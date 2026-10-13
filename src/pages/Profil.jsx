@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { springSmooth } from '../lib/motion'
+import { MentionDonnees } from '../components/PageLegale'
 
 function Deux2FA() {
   const { user, updateUser } = useAuth()
@@ -150,7 +151,7 @@ function Deux2FA() {
         <div className="flex justify-center">
           <img loading="lazy" src={qrCode} alt="QR code 2FA" className="w-44 h-44 rounded-lg border border-slate-200 dark:border-slate-700" />
         </div>
-        <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+        <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
           <span>Ou entre la clé manuellement : <code className="font-mono">{secret}</code></span>
           <button type="button" onClick={copierSecret} className="text-sky-500">
             {copie ? <Check size={14} /> : <Copy size={14} />}
@@ -281,7 +282,7 @@ export default function Profil() {
             <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
               {dark ? 'Mode sombre' : 'Mode clair'}
             </p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5">
               Changer l'apparence de l'application
             </p>
           </div>
@@ -325,7 +326,7 @@ export default function Profil() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <Mail size={14} className="text-slate-400" />
+              <Mail size={14} className="text-slate-500 dark:text-slate-400" />
               Email
             </label>
             <input
@@ -339,9 +340,10 @@ export default function Profil() {
           {/* Discord et PayPal ne servent qu'aux comptes membres (communications, retraits) : un client ne les voit pas. */}
           {user?.role !== 'client' && (
             <>
+          <MentionDonnees>Ton identifiant Discord et ton email PayPal servent à te contacter et à te verser tes gains. Tu peux les modifier ou les retirer à tout moment.</MentionDonnees>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <MessageCircle size={14} className="text-slate-400" />
+              <MessageCircle size={14} className="text-slate-500 dark:text-slate-400" />
               ID Discord
             </label>
             <input
@@ -351,12 +353,12 @@ export default function Profil() {
               placeholder="123456789012345678"
               className="input"
             />
-            <p className="text-xs text-slate-400 mt-1">Requis pour les communications</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Requis pour les communications</p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <CreditCard size={14} className="text-slate-400" />
+              <CreditCard size={14} className="text-slate-500 dark:text-slate-400" />
               Email PayPal
             </label>
             <input
@@ -366,7 +368,7 @@ export default function Profil() {
               placeholder="paypal@email.com"
               className="input"
             />
-            <p className="text-xs text-slate-400 mt-1">Requis pour les retraits</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Requis pour les retraits</p>
           </div>
             </>
           )}
@@ -374,7 +376,7 @@ export default function Profil() {
 
         <div className="border-t border-slate-100 dark:border-slate-700 pt-5 space-y-4">
           <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-            <Lock size={14} className="text-slate-400" />
+            <Lock size={14} className="text-slate-500 dark:text-slate-400" />
             Changer le mot de passe
           </h3>
 

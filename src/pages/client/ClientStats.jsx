@@ -123,7 +123,7 @@ export default function ClientStats() {
   const tuilesRepartition = [
     { label: 'Validés', valeur: repartition.valides, icone: CheckCircle2, couleur: 'text-emerald-500' },
     { label: 'En cours', valeur: repartition.enCours, icone: Clock, couleur: 'text-amber-500' },
-    { label: 'Disponibles', valeur: repartition.disponibles, icone: PackageOpen, couleur: 'text-slate-400' },
+    { label: 'Disponibles', valeur: repartition.disponibles, icone: PackageOpen, couleur: 'text-slate-500 dark:text-slate-400' },
     { label: 'Refusés', valeur: repartition.refuses, icone: XCircle, couleur: 'text-rose-500' },
   ]
 
@@ -170,12 +170,12 @@ export default function ClientStats() {
               <div key={t.label} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
                 <t.icone size={16} className={t.couleur} />
                 <p className="text-xl font-extrabold text-slate-900 dark:text-white mt-1">{t.valeur}</p>
-                <p className="text-xs text-slate-400">{t.label}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{t.label}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-slate-400">Pas encore d'avis commandé.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Pas encore d'avis commandé.</p>
         )}
       </div>
 
@@ -193,11 +193,11 @@ export default function ClientStats() {
         </div>
         {derniereNote && (
           <div className="flex items-center gap-2 mb-3">
-            <p className="text-xs text-slate-400">{derniereNote.nb_avis_google} avis sur Google Maps</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{derniereNote.nb_avis_google} avis sur Google Maps</p>
             {deltaNote != null && (
               <>
                 <DeltaBadge delta={deltaNote} suffixe="★" />
-                <span className="text-[11px] text-slate-400">depuis le {formatDateLongue(premiereNote.created_at)}</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">depuis le {formatDateLongue(premiereNote.created_at)}</span>
               </>
             )}
           </div>
@@ -227,7 +227,7 @@ export default function ClientStats() {
         {deltaAvisGoogle != null && (
           <div className="flex items-center gap-2 mb-3">
             <DeltaBadge delta={deltaAvisGoogle} suffixe=" avis" />
-            <span className="text-[11px] text-slate-400">depuis le {formatDateLongue(premiereNote.created_at)}</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">depuis le {formatDateLongue(premiereNote.created_at)}</span>
           </div>
         )}
         {historiqueNote.length > 0 ? (
@@ -250,7 +250,7 @@ export default function ClientStats() {
           </h3>
           <span className="text-2xl font-extrabold text-slate-900 dark:text-white">{totalAvisPublies}</span>
         </div>
-        <p className="text-xs text-slate-400 mb-3">Total depuis le début</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Total depuis le début</p>
         {avisParMois.length > 0 ? (
           <MiniLineChart points={pointsAvis} color="#0ea5e9" formatValue={v => `${v} avis`} />
         ) : (

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
+import { LiensLegaux, MentionDonnees } from '../components/PageLegale'
 import { CheckCircle2, Clock, AlertCircle, Package, Star, MapPin, Mail, Copy, Check, Sparkles, Loader2, Building2, Link as LinkIcon } from 'lucide-react'
 import { motion } from 'framer-motion'
 import axios from 'axios'
@@ -129,7 +130,7 @@ function CompleterInfosForm({ token, onSaved }) {
           Nom de l'établissement *
         </label>
         <div className="relative">
-          <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
             placeholder="Ex: Restaurant Le Petit Bistro"
@@ -145,7 +146,7 @@ function CompleterInfosForm({ token, onSaved }) {
           Lien Google Maps de votre établissement *
         </label>
         <div className="relative">
-          <LinkIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <LinkIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="url"
             placeholder="https://maps.google.com/..."
@@ -211,7 +212,7 @@ function CompleterInfosForm({ token, onSaved }) {
       <div className="space-y-2">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <label className="block text-[13px] font-semibold text-slate-700">
-            Texte de l'avis <span className="font-normal text-slate-400">(optionnel)</span>
+            Texte de l'avis <span className="font-normal text-slate-500">(optionnel)</span>
           </label>
           <button
             type="button"
@@ -233,6 +234,8 @@ function CompleterInfosForm({ token, onSaved }) {
           className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[15px] focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none transition-all"
         />
       </div>
+
+      <MentionDonnees>Ces informations servent à faire rédiger et publier les avis de ta commande.</MentionDonnees>
 
       {error && (
         <div className="rounded-xl bg-red-50 p-4 flex items-start gap-3">
@@ -324,11 +327,11 @@ export default function PublicSuivi() {
           <Link to="/commander" className="flex items-center gap-2">
             <Logo taille={26} classeTexte="text-slate-900" />
           </Link>
-          <span className="text-[12px] text-slate-400 font-mono">#{order.id}</span>
+          <span className="text-[12px] text-slate-500 font-mono">#{order.id}</span>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-12 space-y-10">
+      <main id="contenu" className="max-w-2xl mx-auto px-4 py-12 space-y-10">
 
         {/* Message succès paiement */}
         {success && order.statut !== 'en_attente' && (
@@ -363,7 +366,7 @@ export default function PublicSuivi() {
           <p className="text-[40px] font-semibold tracking-tight text-slate-900">
             {parseFloat(order.montant).toFixed(2)}€
           </p>
-          <p className="text-[13px] text-slate-400 -mt-4">Total payé</p>
+          <p className="text-[13px] text-slate-500 -mt-4">Total payé</p>
         </motion.div>
 
         {/* Complète les infos de l'établissement — uniquement tant que ce n'est pas fait */}
@@ -385,10 +388,10 @@ export default function PublicSuivi() {
               const done = step.key.includes(order.statut)
               return (
                 <div key={i} className="flex items-center gap-3">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-semibold shrink-0 ${done ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-semibold shrink-0 ${done ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-500'}`}>
                     {done ? '✓' : i + 1}
                   </div>
-                  <p className={`text-[15px] font-medium ${done ? 'text-slate-900' : 'text-slate-400'}`}>
+                  <p className={`text-[15px] font-medium ${done ? 'text-slate-900' : 'text-slate-500'}`}>
                     {step.label}
                   </p>
                 </div>
@@ -404,30 +407,30 @@ export default function PublicSuivi() {
 
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <Mail size={16} className="text-slate-400 mt-0.5 shrink-0" />
+              <Mail size={16} className="text-slate-500 mt-0.5 shrink-0" />
               <div>
-                <p className="text-[12px] text-slate-400 font-medium">Email</p>
+                <p className="text-[12px] text-slate-500 font-medium">Email</p>
                 <p className="text-[15px] font-medium text-slate-900">{order.email}</p>
               </div>
             </div>
 
             {order.nom_etablissement && (
               <div className="flex items-start gap-3">
-                <MapPin size={16} className="text-slate-400 mt-0.5 shrink-0" />
+                <MapPin size={16} className="text-slate-500 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-[12px] text-slate-400 font-medium">Établissement</p>
+                  <p className="text-[12px] text-slate-500 font-medium">Établissement</p>
                   <p className="text-[15px] font-medium text-slate-900">{order.nom_etablissement}</p>
                   {order.type_etablissement && (
-                    <p className="text-[13px] text-slate-400">{order.type_etablissement}</p>
+                    <p className="text-[13px] text-slate-500">{order.type_etablissement}</p>
                   )}
                 </div>
               </div>
             )}
 
             <div className="flex items-start gap-3">
-              <Star size={16} className="text-slate-400 mt-0.5 shrink-0" />
+              <Star size={16} className="text-slate-500 mt-0.5 shrink-0" />
               <div>
-                <p className="text-[12px] text-slate-400 font-medium">Note demandée</p>
+                <p className="text-[12px] text-slate-500 font-medium">Note demandée</p>
                 <p className="text-[15px] font-medium text-slate-900">
                   {'★'.repeat(order.nb_etoiles)}{'☆'.repeat(5 - order.nb_etoiles)} ({order.nb_etoiles}/5)
                 </p>
@@ -435,16 +438,16 @@ export default function PublicSuivi() {
             </div>
 
             <div className="flex items-start gap-3">
-              <span className="text-slate-400 mt-0.5 shrink-0 text-[15px]">💬</span>
+              <span className="text-slate-500 mt-0.5 shrink-0 text-[15px]">💬</span>
               <div>
-                <p className="text-[12px] text-slate-400 font-medium">Ton</p>
+                <p className="text-[12px] text-slate-500 font-medium">Ton</p>
                 <p className="text-[15px] font-medium text-slate-900">{TONS_LABELS[order.ton] || order.ton}</p>
               </div>
             </div>
 
             {order.texte_avis && (
               <div className="border-t border-slate-100 pt-4">
-                <p className="text-[12px] text-slate-400 font-medium mb-1">Texte personnalisé</p>
+                <p className="text-[12px] text-slate-500 font-medium mb-1">Texte personnalisé</p>
                 <p className="text-[14px] text-slate-500 italic">"{order.texte_avis}"</p>
               </div>
             )}
@@ -481,7 +484,7 @@ export default function PublicSuivi() {
               {copied ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} className="text-slate-500" />}
             </button>
           </div>
-          <p className="text-[13px] text-slate-400">
+          <p className="text-[13px] text-slate-500">
             Pas d'email de suivi automatique. Ce lien est ta seule façon de suivre ta commande.
           </p>
         </div>
@@ -523,10 +526,11 @@ export default function PublicSuivi() {
       </main>
 
       <footer className="bg-slate-50 border-t border-slate-200 mt-4 py-8">
-        <div className="max-w-2xl mx-auto px-4 flex items-center justify-between text-[12px] text-slate-400">
-          <span>© 2025 SwimUp</span>
-          <Link to="/commander" className="text-sky-500 hover:underline">Nouvelle commande</Link>
+        <div className="max-w-2xl mx-auto px-4 flex items-center justify-between text-[12px] text-slate-500">
+          <span>© {new Date().getFullYear()} SwimUp</span>
+          <Link to="/commander" className="text-sky-600 hover:underline">Nouvelle commande</Link>
         </div>
+        <div className="max-w-2xl mx-auto px-4 pt-3"><LiensLegaux className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-slate-600" classe="hover:underline" /></div>
       </footer>
     </div>
   )

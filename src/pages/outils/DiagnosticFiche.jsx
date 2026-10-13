@@ -50,7 +50,7 @@ export default function DiagnosticFiche() {
         jsonLd={JSON_LD}
       />
       <section className="max-w-2xl mx-auto px-4 pt-10 pb-6">
-        <nav aria-label="Fil d'Ariane" className="text-[13px] text-slate-400 flex items-center gap-1">
+        <nav aria-label="Fil d'Ariane" className="text-[13px] text-slate-500 flex items-center gap-1">
           <Link to="/" className="hover:text-slate-600">Accueil</Link><ChevronRight size={12} />
           <span className="text-slate-500">Outils</span>
         </nav>
@@ -62,10 +62,10 @@ export default function DiagnosticFiche() {
         </p>
       </section>
 
-      <main className="max-w-2xl mx-auto px-4 pb-16">
+      <main id="contenu" className="max-w-2xl mx-auto px-4 pb-16">
         <div className="sticky top-14 z-20 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur p-4 shadow-xl shadow-slate-200/60" aria-live="polite">
           <p className="text-[15px] text-slate-900"><span className="font-semibold">{faits} point{faits > 1 ? 's' : ''} coché{faits > 1 ? 's' : ''} sur {total}</span></p>
-          <div className="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={faits}>
+          <div className="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden" role="progressbar" aria-label="Points cochés du diagnostic" aria-valuemin={0} aria-valuemax={total} aria-valuenow={faits}>
             <div className="h-full bg-sky-500 transition-all" style={{ width: `${(faits / total) * 100}%` }} />
           </div>
         </div>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Mail, Crown, Send, Square, Trash2, ChevronDown, ChevronUp, AlertTriangle, Check, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../lib/api'
+import { MentionDonnees } from '../../components/PageLegale'
 
 const erreurApi = (e, defaut = 'Une erreur est survenue, réessaie.') => e.response?.data?.error || defaut
 const EMAIL = /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]{2,}$/
@@ -113,7 +114,7 @@ export default function ClientCampagnes() {
 
       {campagnes && campagnes.length === 0 && !creation && infos?.config_ok && infos.premium && (
         <div className="card text-center py-10 space-y-3">
-          <Mail size={28} className="mx-auto text-slate-400" />
+          <Mail size={28} className="mx-auto text-slate-500 dark:text-slate-400" />
           <p className="font-medium">Aucune campagne pour l'instant</p>
           <p className="text-sm text-muted max-w-sm mx-auto">Colle les adresses de clients qui t'ont donné leur email, choisis un modèle, et SwimUp s'occupe de l'envoi.</p>
           <button className="btn-primary" onClick={() => setCreation(true)}>Créer ma première campagne</button>
@@ -275,6 +276,8 @@ function Formulaire({ infos, annuler, fait }) {
         <input type="checkbox" className="mt-1" checked={attestation} onChange={e => setAttestation(e.target.checked)} />
         <span>Ces personnes sont bien mes clients et m'ont donné leur adresse email. Je n'offre rien en échange d'un avis.</span>
       </label>
+
+      <MentionDonnees>Les adresses que tu ajoutes servent uniquement à envoyer ta demande d'avis. Tu en es responsable et SwimUp agit pour ton compte : elles sont effacées à la fin de la campagne (45 jours au plus) et chaque email contient un lien de désinscription.</MentionDonnees>
 
       <p className="text-xs text-slate-500">
         Envoi étalé : au plus {infos.quota_email.limite} emails par jour sur ton offre ({infos.quota_email.restant} restant{infos.quota_email.restant > 1 ? 's' : ''} aujourd'hui). Le reste part les jours suivants.
