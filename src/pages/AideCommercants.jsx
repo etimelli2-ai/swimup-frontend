@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Star, ArrowLeft, QrCode, ChevronRight, Copy, Check, TriangleAlert, Sparkles, MessageSquareReply, MapPin, ShieldAlert, MessageCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Seo from '../components/Seo'
-import { organisationLd, filAriane, urlAbsolue } from '../lib/seo.mjs'
+import { organisationLd, filAriane, urlAbsolue, LIEN_INSTAGRAM, LIEN_TIKTOK } from '../lib/seo.mjs'
 import { springSmooth } from '../lib/motion'
 import { GUIDES, guideParSlug } from '../content/guidesCommercants'
 import Logo from '../components/Logo'
@@ -52,7 +52,11 @@ function Cadre({ children }) {
         <div className="max-w-2xl mx-auto px-4 py-8 space-y-2">
           <div className="flex items-center justify-between text-[12px] text-slate-400 flex-wrap gap-2">
             <span>© 2025 SwimUp</span>
-            <a href="/login" className="text-sky-500 hover:underline">Connexion</a>
+            <span className="flex gap-4">
+              <a href={LIEN_INSTAGRAM} rel="noopener noreferrer me" target="_blank" className="hover:underline">Instagram</a>
+              <a href={LIEN_TIKTOK} rel="noopener noreferrer me" target="_blank" className="hover:underline">TikTok</a>
+              <a href="/login" className="text-sky-500 hover:underline">Connexion</a>
+            </span>
           </div>
           <p className="text-[11px] text-slate-400">
             Conseils pratiques, pas des conseils juridiques. Les règles de Google peuvent changer : vérifie toujours l'aide officielle.

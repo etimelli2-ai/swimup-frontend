@@ -5,6 +5,8 @@
 export const SITE_URL = 'https://swimup.net'
 export const SITE_NAME = 'SwimUp'
 export const IMAGE_PARTAGE = '/og-image.png'
+export const LIEN_INSTAGRAM = 'https://www.instagram.com/swimu.p/'
+export const LIEN_TIKTOK = 'https://www.tiktok.com/@swimu.p'
 
 export const urlAbsolue = (chemin = '/') => (/^https?:\/\//.test(chemin) ? chemin : `${SITE_URL}${chemin.startsWith('/') ? '' : '/'}${chemin}`)
 
@@ -36,6 +38,7 @@ export const organisationLd = {
   '@type': 'Organization',
   name: SITE_NAME,
   url: SITE_URL,
+  sameAs: [LIEN_INSTAGRAM, LIEN_TIKTOK],
 }
 
 export const filAriane = (items) => ({

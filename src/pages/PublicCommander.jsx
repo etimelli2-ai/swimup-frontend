@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { ArrowRight, AlertCircle, Loader2, Check, Lock, ChevronDown, MessageCircle } from 'lucide-react'
 import axios from 'axios'
 import Logo from '../components/Logo'
+import { LIEN_INSTAGRAM, LIEN_TIKTOK } from '../lib/seo.mjs'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.swimup.net/api'
 const PRIX_UNITAIRE = 4
@@ -240,6 +241,8 @@ export default function PublicCommander() {
           <span className="flex items-center gap-5">
             <a href="/aide-commercants" className="hover:text-[#0B1F33]">Aide aux commerçants</a>
             <a href="/confidentialite" className="hover:text-[#0B1F33]">Confidentialité</a>
+            <a href={LIEN_INSTAGRAM} rel="noopener noreferrer me" target="_blank" className="hover:text-[#0B1F33]">Instagram</a>
+            <a href={LIEN_TIKTOK} rel="noopener noreferrer me" target="_blank" className="hover:text-[#0B1F33]">TikTok</a>
             <a href="/login" className="hover:text-[#0B1F33]">Connexion</a>
           </span>
         </div>

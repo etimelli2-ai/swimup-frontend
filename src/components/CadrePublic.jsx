@@ -2,6 +2,7 @@
 // Même grammaire visuelle que les guides ; ne dépend ni de la connexion ni de l'API.
 import { Link } from 'react-router-dom'
 import Logo from './Logo'
+import { LIEN_INSTAGRAM, LIEN_TIKTOK } from '../lib/seo.mjs'
 
 export default function CadrePublic({ children, large = false }) {
   const largeur = large ? 'max-w-4xl' : 'max-w-2xl'
@@ -29,6 +30,8 @@ export default function CadrePublic({ children, large = false }) {
               <Link to="/aide-commercants" className="hover:underline">Guides</Link>
               <Link to="/offres" className="hover:underline">Offres</Link>
               <Link to="/confidentialite" className="hover:underline">Confidentialité</Link>
+              <a href={LIEN_INSTAGRAM} rel="noopener noreferrer me" target="_blank" className="hover:underline">Instagram</a>
+              <a href={LIEN_TIKTOK} rel="noopener noreferrer me" target="_blank" className="hover:underline">TikTok</a>
               <a href="/login" className="text-sky-500 hover:underline">Connexion</a>
             </span>
           </div>
