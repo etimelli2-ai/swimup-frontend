@@ -18,8 +18,6 @@
     { "source": "/mon-avis", "destination": "/index.html" },
     { "source": "/portefeuille", "destination": "/index.html" },
     { "source": "/profil", "destination": "/index.html" },
-    { "source": "/loterie", "destination": "/index.html" },
-    { "source": "/boutique", "destination": "/index.html" },
     { "source": "/parrainage", "destination": "/index.html" },
     { "source": "/admin", "destination": "/index.html" },
     { "source": "/admin/**", "destination": "/index.html" },

@@ -8,14 +8,10 @@ import Dashboard from './pages/Dashboard'
 const Avis = lazy(() => import('./pages/Avis'))
 const Profil = lazy(() => import('./pages/Profil'))
 const Portefeuille = lazy(() => import('./pages/Portefeuille'))
-const Loterie = lazy(() => import('./pages/Loterie'))
-const Boutique = lazy(() => import('./pages/Boutique'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminAvis = lazy(() => import('./pages/admin/AdminAvis'))
 const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminRetraits = lazy(() => import('./pages/admin/AdminRetraits'))
-const AdminLoterie = lazy(() => import('./pages/admin/AdminLoterie'))
-const AdminBoutique = lazy(() => import('./pages/admin/AdminBoutique'))
 const AdminCommandes = lazy(() => import('./pages/admin/AdminCommandes'))
 const AdminProspection = lazy(() => import('./pages/admin/AdminProspection'))
 const AdminEmails = lazy(() => import('./pages/admin/AdminEmails'))
@@ -83,6 +79,14 @@ function RacineRoute({ children }) {
   return <PrivateRoute>{children}</PrivateRoute>
 }
 
+// Pages du côté « membres » (réserver et publier des avis, portefeuille,
+// parrainage) : un compte client n'y a pas accès, il retombe sur son espace.
+function ReserveMembres({ children }) {
+  const { user } = useAuth()
+  if (user?.role === 'client') return <Navigate to="/client" replace />
+  return children
+}
+
 // Le compte doit être connecté pour voir cette page, mais elle ne doit PAS
 // elle-même être bloquée par la vérification email (sinon boucle infinie).
 function RouteConnecteSeulement({ children }) {
@@ -126,16 +130,14 @@ export default function App() {
 
       {/* Routes membres */}
       <Route path="/" element={<RacineRoute><Layout /></RacineRoute>}>
-        <Route index               element={<Dashboard />} />
-        <Route path="dashboard"    element={<Dashboard />} />
-        <Route path="avis"         element={<Avis />} />
+        <Route index               element={<ReserveMembres><Dashboard /></ReserveMembres>} />
+        <Route path="dashboard"    element={<ReserveMembres><Dashboard /></ReserveMembres>} />
+        <Route path="avis"         element={<ReserveMembres><Avis /></ReserveMembres>} />
         {/* "Mon avis" a fusionné dans /avis (même page : réserver, remplir, suivre) */}
         <Route path="mon-avis"     element={<Navigate to="/avis" replace />} />
-        <Route path="portefeuille" element={<Portefeuille />} />
+        <Route path="portefeuille" element={<ReserveMembres><Portefeuille /></ReserveMembres>} />
         <Route path="profil"       element={<Profil />} />
-        <Route path="loterie"      element={<Loterie />} />
-        <Route path="boutique"     element={<Boutique />} />
-        <Route path="parrainage"   element={<Parrainage />} />
+        <Route path="parrainage"   element={<ReserveMembres><Parrainage /></ReserveMembres>} />
       </Route>
 
       {/* Routes admin */}
@@ -145,10 +147,8 @@ export default function App() {
         <Route path="avis-publics" element={<Navigate to="/admin/avis" replace />} />
         <Route path="users"    element={<AdminUsers />} />
         <Route path="retraits" element={<AdminRetraits />} />
-        <Route path="loterie"  element={<AdminLoterie />} />
         <Route path="commande" element={<ClientDashboard />} />
         <Route path="commandes-clients" element={<AdminCommandes />} />
-        <Route path="boutique" element={<AdminBoutique />} />
         <Route path="prospection" element={<AdminProspection />} />
         <Route path="emails" element={<AdminEmails />} />
         <Route path="entreprises" element={<AdminEntreprises />} />

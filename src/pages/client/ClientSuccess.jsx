@@ -31,7 +31,7 @@ export default function ClientSuccess() {
           <p className="font-semibold">Prochaines étapes :</p>
           <p>1. Va dans "Mes commandes" pour voir tes avis</p>
           <p>2. Remplis les textes de chaque avis</p>
-          <p>3. Les membres vont rédiger et publier tes avis</p>
+          <p>3. SwimUp publie tes avis</p>
         </div>
 
         <div className="flex flex-col gap-3">

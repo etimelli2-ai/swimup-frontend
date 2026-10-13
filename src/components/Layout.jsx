@@ -11,7 +11,6 @@ import {
   LogOut,
   Menu,
   X,
-  Ticket,
   ChevronRight,
   CreditCard,
   ShoppingBag,
@@ -89,10 +88,8 @@ export default function Layout() {
     { path: '/admin/avis',     label: 'Avis',         icon: Star },
     { path: '/admin/users',    label: 'Membres',      icon: User },
     { path: '/admin/retraits', label: 'Retraits',     icon: Wallet },
-    { path: '/admin/loterie',  label: 'Loterie',      icon: Ticket },
     { path: '/admin/commande', label: 'Commande',     icon: FileText },
     { path: '/admin/commandes-clients', label: 'Commandes clients', icon: ClipboardCheck },
-    { path: '/admin/boutique', label: 'Boutique',     icon: ShoppingBag },
     { path: '/admin/prospection', label: 'Prospection', icon: Search },
     { path: '/admin/emails', label: 'Emails', icon: Mail },
     { path: '/admin/entreprises', label: 'Entreprises', icon: Building2 },
@@ -117,8 +114,6 @@ export default function Layout() {
     { path: '/avis',         label: 'Avis',             icon: Star },
     { path: '/portefeuille', label: 'Portefeuille',     icon: Wallet },
     { path: '/parrainage',   label: 'Parrainage',       icon: Gift },
-    { path: '/loterie',      label: 'Loterie',          icon: Ticket },
-    { path: '/boutique',     label: 'Boutique',         icon: ShoppingBag },
     { path: '/profil',       label: 'Profil',           icon: User },
   ]
 

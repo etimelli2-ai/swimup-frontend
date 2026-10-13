@@ -121,7 +121,7 @@ export default function ClientDashboard() {
                 {commandesAPayer.length > 1 ? `${commandesAPayer.length} commandes attendent ton paiement` : 'Ta commande attend ton paiement'}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                Dès qu'on voit le paiement PayPal, on active ta commande (en général sous 12 h).
+                Dès qu'on voit ton paiement PayPal, on active ta commande (en général sous 12 h).
               </p>
             </div>
           </div>
@@ -141,7 +141,7 @@ export default function ClientDashboard() {
               {textesARemplir} texte{textesARemplir > 1 ? 's' : ''} d'avis à écrire
             </p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              Tes avis ne partent chez les membres qu'une fois leur texte rempli.
+              Tes avis ne sont publiés qu'une fois leur texte rempli.
             </p>
           </div>
           <Link to="/client/commandes" className="btn-primary text-sm py-2.5 px-4 shrink-0">Écrire</Link>
@@ -164,7 +164,7 @@ export default function ClientDashboard() {
           <div className="flex-1">
             <p className="font-semibold text-slate-900 dark:text-white">Tout est en ordre</p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              Les membres publient tes avis. Tu peux en commander d'autres quand tu veux.
+              SwimUp s'occupe de la publication. Tu peux en commander d'autres quand tu veux.
             </p>
           </div>
           <Link to="/client/payer" className="btn-secondary text-sm py-2.5 px-4 shrink-0">Commander</Link>
@@ -198,7 +198,7 @@ export default function ClientDashboard() {
           </div>
           <h3 className="font-bold text-slate-900 dark:text-white">Commander des avis</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Choisis le nombre d'avis, paie par PayPal, c'est lancé
+            Choisis le nombre d'avis, paie par carte ou PayPal, c'est lancé
           </p>
           <div className="mt-3 flex items-center gap-1 text-sky-600 dark:text-sky-400 text-sm font-medium">
             3 € par avis · 1 offert tous les 10
@@ -255,9 +255,9 @@ export default function ClientDashboard() {
         <h2 className="section-title mb-4">Comment ça marche ?</h2>
         <div className="space-y-3">
           {[
-            { n: '1', t: 'Commander', d: 'Colle ton lien Google Maps, choisis le nombre d\'avis et paie par PayPal', color: 'bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' },
+            { n: '1', t: 'Commander', d: 'Colle ton lien Google Maps, choisis le nombre d\'avis et paie par carte ou PayPal', color: 'bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' },
             { n: '2', t: 'Remplir les textes', d: 'Dès que ton paiement est confirmé, tu écris le texte de chaque avis', color: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
-            { n: '3', t: 'Publication', d: 'Les membres de SwimUp publient tes avis sur Google Maps', color: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
+            { n: '3', t: 'Publication', d: 'SwimUp publie tes avis sur Google Maps', color: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
             { n: '4', t: 'Vérification', d: 'On vérifie que chaque avis reste en ligne pendant toute la durée de garantie', color: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
           ].map((s) => (
             <div key={s.n} className="flex items-start gap-3">

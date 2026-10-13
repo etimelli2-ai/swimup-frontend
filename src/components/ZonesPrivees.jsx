@@ -4,7 +4,7 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 
-const PREFIXES = ['/client', '/admin', '/dashboard', '/avis', '/profil', '/portefeuille', '/parrainage', '/loterie', '/boutique',
+const PREFIXES = ['/client', '/admin', '/dashboard', '/avis', '/profil', '/portefeuille', '/parrainage',
   '/login', '/register', '/mot-de-passe-oublie', '/reinitialiser-mot-de-passe', '/verifier-email', '/verification-requise', '/suivi']
 
 export const estZonePrivee = (chemin) => PREFIXES.some(p => chemin === p || chemin.startsWith(p + '/'))

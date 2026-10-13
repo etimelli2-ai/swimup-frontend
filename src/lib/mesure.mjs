@@ -7,7 +7,7 @@ export const UMAMI_SITE_ID = '9554d496-110a-42b3-9520-436bc529e4b1'
 export const DOMAINE_MESURE = 'swimup.net'
 
 // Zones où on ne mesure rien (même liste que le noindex : espace connecté, comptes, suivi de commande).
-const PREFIXES_NON_MESURES = ['/client', '/admin', '/dashboard', '/avis', '/profil', '/portefeuille', '/parrainage', '/loterie', '/boutique',
+const PREFIXES_NON_MESURES = ['/client', '/admin', '/dashboard', '/avis', '/profil', '/portefeuille', '/parrainage',
   '/login', '/register', '/mot-de-passe-oublie', '/reinitialiser-mot-de-passe', '/verifier-email', '/verification-requise', '/suivi']
 
 // connecte : un compte connecté n'est pas mesuré non plus (sur « / », il voit son tableau de bord).

@@ -336,6 +336,9 @@ export default function Profil() {
             />
           </div>
 
+          {/* Discord et PayPal ne servent qu'aux comptes membres (communications, retraits) : un client ne les voit pas. */}
+          {user?.role !== 'client' && (
+            <>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
               <MessageCircle size={14} className="text-slate-400" />
@@ -365,6 +368,8 @@ export default function Profil() {
             />
             <p className="text-xs text-slate-400 mt-1">Requis pour les retraits</p>
           </div>
+            </>
+          )}
         </div>
 
         <div className="border-t border-slate-100 dark:border-slate-700 pt-5 space-y-4">

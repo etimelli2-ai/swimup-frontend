@@ -330,7 +330,7 @@ export default function ClientCommandes() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="page-title">Mes commandes</h1>
-        <p className="text-muted mt-1">Suis tes avis et écris leurs textes pour que les membres puissent les publier</p>
+        <p className="text-muted mt-1">Suis tes avis et écris leurs textes pour qu'ils puissent être publiés</p>
       </div>
 
       {retourCarte && (
