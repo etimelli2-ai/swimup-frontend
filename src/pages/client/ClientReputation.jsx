@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Star, Crown, RefreshCw, Check, Copy, FileDown, Search, Trash2, TrendingDown, TrendingUp } from 'lucide-react'
+import { Star, Crown, RefreshCw, Check, Copy, FileDown, Search, Trash2, TrendingDown, TrendingUp, Bell, ShieldCheck, ChevronDown } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api, { compteActif } from '../../lib/api'
 import MiniLineChart from '../../components/MiniLineChart'
@@ -67,14 +67,18 @@ export default function ClientReputation() {
         <p className="text-muted mt-1">Tes avis Google, l'évolution de ta note et ce qu'il y a à améliorer.</p>
       </div>
 
-      <div className="flex gap-1 overflow-x-auto -mx-1 px-1 pb-1" role="tablist">
-        {onglets.map(([v, l]) => (
-          <button key={v} role="tab" aria-selected={onglet === v} onClick={() => setOnglet(v)}
-            className={`px-3.5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${onglet === v ? 'bg-sky-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}
-            style={onglet === v ? { backgroundColor: 'var(--accent)' } : undefined}>
-            {l}
-          </button>
-        ))}
+      <div className="-mx-4 md:mx-0">
+        <div className="flex md:flex-wrap gap-1.5 overflow-x-auto md:overflow-visible no-scrollbar px-4 md:px-0 py-1 [mask-image:linear-gradient(to_right,transparent,black_16px,black_calc(100%-32px),transparent)] md:[mask-image:none]" role="tablist">
+          {onglets.map(([v, l]) => (
+            <button key={v} role="tab" aria-selected={onglet === v}
+              ref={el => { if (el && onglet === v && window.innerWidth < 768) { const c = el.parentElement; c.scrollLeft = el.offsetLeft - (c.clientWidth - el.offsetWidth) / 2 } }}
+              onClick={() => setOnglet(v)}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${onglet === v ? 'bg-sky-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              style={onglet === v ? { backgroundColor: 'var(--accent)' } : undefined}>
+              {l}
+            </button>
+          ))}
+        </div>
       </div>
 
       {erreur && <div className="card text-center text-sm text-red-500 py-8">Impossible de charger cette page. Recharge-la dans un instant.</div>}
@@ -687,12 +691,16 @@ function Visibilite() {
 
 function Interrupteur({ id, label, aide, actif, verrou, onChange, occupe }) {
   return (
-    <div className="flex items-start justify-between gap-3 py-3">
+    <div className="flex items-center justify-between gap-4 py-3.5">
       <div className="min-w-0">
-        <label htmlFor={id} className="text-sm font-medium flex items-center gap-1">{label}{verrou && <Crown size={12} className="text-amber-500" />}</label>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{aide}</p>
+        <label htmlFor={id} className="text-[15px] font-medium flex items-center gap-1.5">{label}{verrou && <Crown size={13} className="text-amber-500" />}</label>
+        <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{aide}</p>
       </div>
-      <input id={id} type="checkbox" role="switch" className="mt-1 h-5 w-5 shrink-0" checked={actif} disabled={occupe || verrou} onChange={e => onChange(e.target.checked)} />
+      <button id={id} type="button" role="switch" aria-checked={actif} disabled={occupe || verrou} onClick={() => onChange(!actif)}
+        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-40 ${actif ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+        style={actif ? { backgroundColor: 'var(--accent)' } : undefined}>
+        <span className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${actif ? 'translate-x-5' : ''}`} />
+      </button>
     </div>
   )
 }
@@ -736,45 +744,56 @@ function Reglages() {
   const p = d.preferences
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div className="card">
-        <h2 className="section-title">Rappels par email</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Tout est désactivé tant que tu ne l'actives pas. Tu peux couper un rappel à tout moment.</p>
-        <div className="divide-y divide-slate-100 dark:divide-slate-700 mt-2">
+        <h2 className="section-title flex items-center gap-2"><Bell size={17} /> Rappels par email</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Rien n'est envoyé tant que tu n'actives pas un rappel.</p>
+        <div className="divide-y divide-slate-100 dark:divide-slate-700 mt-1">
           <Interrupteur id="r-resume" label="Résumé de fin de mois" verrou={!d.premium} actif={p.resume_mensuel} occupe={occupe}
-            aide="Le 1er du mois : ta note, tes nouveaux avis et tes passages sur le lien pour le mois écoulé." onChange={v => changer('resume_mensuel', v)} />
+            aide="Le 1er du mois : ta note, tes nouveaux avis et tes passages sur le lien." onChange={v => changer('resume_mensuel', v)} />
           <Interrupteur id="r-visi" label="Alerte si ta visibilité baisse" verrou={!d.premium} actif={p.alerte_visibilite} occupe={occupe}
-            aide="Un email quand ta fiche perd au moins 3 places ou sort des 20 premiers résultats (un par jour au plus)." onChange={v => changer('alerte_visibilite', v)} />
+            aide="Un email si ta fiche perd 3 places ou sort des 20 premiers résultats." onChange={v => changer('alerte_visibilite', v)} />
           <Interrupteur id="r-demandes" label="Rappel de demander des avis" actif={p.rappel_demandes} occupe={occupe}
-            aide="Si tu n'as envoyé aucune demande d'avis depuis 30 jours (au plus un rappel par mois)." onChange={v => changer('rappel_demandes', v)} />
+            aide="Un email si tu n'as envoyé aucune demande depuis 30 jours." onChange={v => changer('rappel_demandes', v)} />
         </div>
         {!d.premium && <p className="text-xs text-slate-500 mt-2 flex items-center gap-1"><Crown size={12} className="text-amber-500" /> Le résumé et l'alerte sont inclus avec <Link to="/client/premium" className="underline">Premium</Link>.</p>}
       </div>
 
       <div className="card space-y-3">
-        <h2 className="section-title">Mes données</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Voici combien de temps SwimUp garde chaque donnée de tes outils d'avis.</p>
-        <ul className="divide-y divide-slate-100 dark:divide-slate-700 text-sm">
-          {d.conservation.map(c => (
-            <li key={c.donnee} className="py-2">
-              <p className="font-medium">{c.donnee}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-300">{c.duree}{c.note ? ` · ${c.note}` : ''}</p>
-            </li>
-          ))}
-        </ul>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Le détail de ce que SwimUp utilise et des services concernés est sur la <a href="/confidentialite" target="_blank" rel="noopener noreferrer" className="underline">page confidentialité</a>.</p>
-        <button className="btn-secondary w-full" onClick={exporter} disabled={occupe}><FileDown size={16} /> Télécharger mes données (JSON)</button>
+        <h2 className="section-title flex items-center gap-2"><ShieldCheck size={17} /> Mes données</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Tes données t'appartiennent : tu peux les récupérer ou les effacer quand tu veux.</p>
+        <button className="btn-secondary w-full" onClick={exporter} disabled={occupe}><FileDown size={16} /> Télécharger mes données</button>
+        <details className="group rounded-xl bg-slate-50 dark:bg-slate-800/60">
+          <summary className="cursor-pointer list-none flex items-center justify-between gap-2 px-4 py-3 text-sm font-medium">
+            Combien de temps on garde quoi
+            <ChevronDown size={16} className="text-slate-400 transition-transform group-open:rotate-180" />
+          </summary>
+          <ul className="divide-y divide-slate-200/70 dark:divide-slate-700 text-sm px-4 pb-2">
+            {d.conservation.map(c => (
+              <li key={c.donnee} className="py-2.5 flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-0.5 sm:gap-4">
+                <span className="font-medium">{c.donnee}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 sm:text-right sm:max-w-[60%]">{c.duree}{c.note ? ` · ${c.note}` : ''}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-slate-500 dark:text-slate-400 px-4 pb-3">Le détail est sur la <a href="/confidentialite" target="_blank" rel="noopener noreferrer" className="underline">page confidentialité</a>.</p>
+        </details>
       </div>
 
-      <div className="card space-y-3 border border-red-200 dark:border-red-900/60">
-        <h2 className="section-title">Effacer les données de mes outils</h2>
-        <p className="text-sm text-slate-600 dark:text-slate-300">Supprime tes campagnes, tes mots-clés et relevés de visibilité, tes analyses, tes pistes, l'historique de ta note, l'équipe, tes rappels, l'historique de tes supports et de tes brouillons de réponse. Tes commandes d'avis, tes paiements et le lien de ton QR code ne sont pas touchés. Cette action est définitive.</p>
-        <label className="text-sm font-medium" htmlFor="eff-conf">Écris SUPPRIMER pour confirmer</label>
-        <div className="flex gap-2">
-          <input id="eff-conf" className="input flex-1" value={confirmation} onChange={e => setConfirmation(e.target.value)} autoComplete="off" />
-          <button className="btn-danger" onClick={effacer} disabled={occupe || confirmation !== 'SUPPRIMER'}><Trash2 size={15} /> Effacer</button>
+      <details className="card group border border-red-200/70 dark:border-red-900/50">
+        <summary className="cursor-pointer list-none flex items-center justify-between gap-2">
+          <span className="section-title flex items-center gap-2 text-red-600 dark:text-red-400"><Trash2 size={17} /> Effacer les données de mes outils</span>
+          <ChevronDown size={16} className="text-slate-400 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="space-y-3 mt-3">
+          <p className="text-sm text-slate-600 dark:text-slate-300">Campagnes, mots-clés et relevés, analyses, pistes, historique de ta note, équipe, rappels, supports et brouillons de réponse. Tes commandes d'avis, tes paiements et le lien de ton QR code ne bougent pas. C'est définitif.</p>
+          <label className="text-sm font-medium" htmlFor="eff-conf">Écris SUPPRIMER pour confirmer</label>
+          <div className="flex gap-2">
+            <input id="eff-conf" className="input flex-1" value={confirmation} onChange={e => setConfirmation(e.target.value)} autoComplete="off" />
+            <button className="btn-danger" onClick={effacer} disabled={occupe || confirmation !== 'SUPPRIMER'}><Trash2 size={15} /> Effacer</button>
+          </div>
         </div>
-      </div>
+      </details>
     </div>
   )
 }

@@ -296,3 +296,7 @@
 .dark .app-shell .dark\:text-slate-500 { color:#a3abba; }
 .dark .app-shell .dark\:text-slate-400 { color:#b0b8c6; }
 .dark .app-shell .dark\:text-sky-400 { color:#4ba6ff; }
+
+/* Défilement horizontal sans barre visible (onglets sur mobile) */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
