@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { Copy, Check, Download, Printer, TriangleAlert, ChevronRight, QrCode, ExternalLink } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Seo from '../../components/Seo'
+import { mesure } from '../../lib/mesure.mjs'
 import CadrePublic from '../../components/CadrePublic'
 import { analyserLien } from '../../lib/lienAvis.mjs'
 import { filAriane, urlAbsolue } from '../../lib/seo.mjs'
@@ -68,11 +69,12 @@ export default function LienAvisGoogle() {
   const qr = useQr(lien)
 
   const copier = async () => {
-    try { await navigator.clipboard.writeText(lien); setCopie(true); setTimeout(() => setCopie(false), 1800) }
+    try { await navigator.clipboard.writeText(lien); mesure('outil-lien-copie'); setCopie(true); setTimeout(() => setCopie(false), 1800) }
     catch { toast.error('Copie impossible, sélectionne le lien à la main.') }
   }
   const telecharger = () => {
     if (!qr) return
+    mesure('outil-qr-telecharge')
     const a = document.createElement('a'); a.href = qr; a.download = 'qr-code-avis-google.png'
     document.body.appendChild(a); a.click(); a.remove()
   }
@@ -169,7 +171,7 @@ export default function LienAvisGoogle() {
                 <button onClick={telecharger} disabled={!qr} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 text-slate-700 text-[14px] font-medium px-5 py-2.5 hover:bg-slate-50 disabled:opacity-40">
                   <Download size={15} /> Télécharger le QR code (PNG)
                 </button>
-                <button onClick={() => window.print()} disabled={!qr} className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 text-white text-[14px] font-semibold px-5 py-2.5 hover:bg-slate-800 disabled:opacity-40">
+                <button onClick={() => { mesure('outil-affiche-imprimee'); window.print() }} disabled={!qr} className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 text-white text-[14px] font-semibold px-5 py-2.5 hover:bg-slate-800 disabled:opacity-40">
                   <Printer size={15} /> Imprimer l'affiche A4
                 </button>
               </div>

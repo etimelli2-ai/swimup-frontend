@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star, Eye, EyeOff, ArrowRight, AlertCircle, Check } from 'lucide-react'
 import Seo from '../components/Seo'
+import { mesure } from '../lib/mesure.mjs'
 import { useAuth } from '../hooks/useAuth'
 import { springSmooth, springSnappy, springSheet } from '../lib/motion'
 import toast from 'react-hot-toast'
@@ -39,6 +40,7 @@ export default function InscriptionClient() {
     setEnvoi(true)
     try {
       await registerClient(email.trim(), password)
+      mesure('compte-cree')
       if (offre) retenirOffreSouhaitee(offre)
       toast.success('Compte créé ! Confirme ton adresse avec le mail que tu viens de recevoir.', { duration: 6000 })
       navigate('/client')

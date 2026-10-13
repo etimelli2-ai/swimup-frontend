@@ -35,3 +35,12 @@
 - `public/serve.json` (copié dans `dist/`) : `cleanUrls`, pas de slash final, et des rewrites uniquement vers les routes de l'appli. Tout le reste : fichier, page prérendue ou 404.
 - **Commande de démarrage Railway** : avec `npx serve dist -p $PORT --single`, `serve` renvoie `index.html` pour tout (prérendu et 404 inactifs, site identique à avant). Pour les activer : `npx serve dist -p $PORT` (sans `--single`). Retour arrière : remettre `--single`.
 - Nouvelle route dans `App.jsx` : `npm test` échoue tant qu'elle n'est pas dans `public/serve.json` (ou prérendue). Nouvelle page publique à prérendre : l'ajouter à `PAGES` et à `public/sitemap.xml`.
+
+## Mesure d'audience (lot 4) : Umami
+- `src/lib/mesure.mjs` (identifiants, règles, chargement du script) + `src/components/Mesure.jsx` (monté dans `App.jsx`). `index.html` n'est pas modifié : le script est ajouté par le code, seulement quand une page mesurée s'affiche.
+- Mesuré : `/`, `/commander`, guides, outil, `/inscription`, `/confidentialite`, pour un visiteur non connecté, sur `swimup.net` uniquement. Jamais : `/suivi` (jeton dans l'adresse), espace client, admin, connexion, pages membres, visiteur connecté, autre domaine (localhost, adresse Railway).
+- Script : `data-auto-track="false"` (page vue envoyée à la main, chemin seul, sans paramètres), `data-do-not-track="true"`, `data-domains="swimup.net"`. Sans cookie.
+- Événements : `inscription-source` (`src` = guide, outil...), `compte-cree`, `outil-lien-copie`, `outil-qr-telecharge`, `outil-affiche-imprimee`.
+- Un événement : `mesure('nom', { clé: valeur })`. Sans effet si le script est bloqué.
+- `src/pages/Confidentialite.jsx` mentionne Umami (liste des sous-traitants et phrase sur la mesure).
+- Dans Umami : Goals/Funnels à créer à la main, p. ex. page `/aide-commercants/*` → `/inscription` → événement `compte-cree`.

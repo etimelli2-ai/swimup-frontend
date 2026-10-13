@@ -45,6 +45,7 @@ const ReinitialiserMotDePasse = lazy(() => import('./pages/ReinitialiserMotDePas
 const VerificationRequise = lazy(() => import('./pages/VerificationRequise'))
 import Layout from './components/Layout'
 import ZonesPrivees from './components/ZonesPrivees'
+import Mesure from './components/Mesure'
 const NotFound = lazy(() => import('./pages/NotFound'))
 const LienAvisGoogle = lazy(() => import('./pages/outils/LienAvisGoogle'))
 
@@ -96,6 +97,7 @@ export default function App() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/></div>}>
     <ZonesPrivees />
+    <Mesure />
     <Routes>
       {/* Pages publiques — sans auth */}
       <Route path="/commander" element={<PublicCommander />} />

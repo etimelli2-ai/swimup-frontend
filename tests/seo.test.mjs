@@ -58,3 +58,15 @@ test('injecterHead : remplace les balises globales, retire les JSON-LD de la com
   // la commande n'est pas touchée : la fonction ne modifie pas son entrée
   assert.ok(indexHtml.includes('FAQPage') && !indexHtml.includes('data-prerender'))
 })
+
+import { doitMesurer, UMAMI_SITE_ID } from '../src/lib/mesure.mjs'
+
+test('mesure d\'audience : seulement swimup.net, pages publiques, visiteur non connecté', () => {
+  const ok = (chemin, o = {}) => doitMesurer({ chemin, hote: 'swimup.net', connecte: false, ...o })
+  for (const c of ['/', '/commander', '/inscription', '/aide-commercants', '/aide-commercants/repondre-aux-avis', '/outils/lien-avis-google', '/confidentialite']) assert.ok(ok(c), c)
+  for (const c of ['/suivi', '/client', '/client/payer', '/admin/users', '/login', '/register', '/dashboard', '/verifier-email']) assert.ok(!ok(c), c)
+  assert.ok(!ok('/', { connecte: true }))
+  assert.ok(!ok('/', { hote: 'localhost' }))
+  assert.ok(!ok('/', { hote: 'swimup-frontend-production.up.railway.app' }))
+  assert.match(UMAMI_SITE_ID, /^[0-9a-f-]{36}$/)
+})

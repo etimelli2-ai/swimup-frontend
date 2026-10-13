@@ -12,6 +12,7 @@ const SOUS_TRAITANTS = [
   ['Resend', "Envoie les emails (demandes d'avis, campagnes, rappels, messages du compte)."],
   ['Stripe', "Encaisse les abonnements Premium par carte. SwimUp ne voit jamais ton numéro de carte."],
   ['Google (Places)', "Donne les derniers avis de ta fiche et les résultats de recherche pour la visibilité locale."],
+  ['Umami', "Compte les visites des pages publiques (accueil, guides, outils, inscription), sans cookie, sans profil et sans stocker ton adresse IP. Respecte le réglage « Ne pas me suivre » de ton navigateur."],
   ['Groq', "Rédige les brouillons de réponse aux avis et les résumés d'analyse. Il reçoit le texte de l'avis pour travailler, SwimUp ne le garde pas."],
 ]
 
@@ -48,7 +49,7 @@ export default function Confidentialite() {
           <li>Les adresses email que tu saisis pour une campagne, uniquement le temps de l'envoi.</li>
           <li>Ton historique de paiements Premium, car la comptabilité nous oblige à le garder.</li>
         </ul>
-        <p className="mt-2">Pas de publicité, pas de revente de données, pas d'outil de mesure d'audience. Le seul cookie sert à te garder connecté.</p>
+        <p className="mt-2">Pas de publicité, pas de revente de données. Le seul cookie sert à te garder connecté. Les visites des pages publiques sont comptées avec Umami, sans cookie ni profil (voir plus bas). Rien n'est mesuré une fois connecté, ni sur les pages de suivi de commande.</p>
 
         <Titre>Les adresses de tes clients</Titre>
         <p>Quand tu lances une campagne, les adresses sont gardées pour envoyer le message (et la relance si tu l'as choisie), puis effacées à la fin de la campagne, au plus tard après 45 jours. SwimUp garde seulement une empreinte non réversible de chaque adresse pour ne pas redemander un avis à la même personne, et pour respecter ceux qui se sont désinscrits. Les adresses ne sont jamais incluses dans ton export.</p>
