@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Star } from 'lucide-react'
 import api from '../lib/api'
-import usePageTitle from '../hooks/usePageTitle'
+import Seo from '../components/Seo'
 
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
@@ -20,12 +20,12 @@ function Titre({ children }) {
 }
 
 export default function Confidentialite() {
-  usePageTitle('Confidentialité')
   const [conservation, setConservation] = useState(null)
   useEffect(() => { api.get('/public/conservation').then(r => setConservation(r.data.conservation)).catch(() => setConservation(false)) }, [])
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
+      <Seo title="Confidentialité" description="Quelles données SwimUp garde pour les outils des entreprises, combien de temps, et comment les télécharger ou les effacer." path="/confidentialite" />
       <header className="border-b border-slate-200">
         <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">

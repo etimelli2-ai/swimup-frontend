@@ -3,7 +3,8 @@ import { Link, useParams, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Star, ArrowLeft, QrCode, ChevronRight, Copy, Check, TriangleAlert, Sparkles, MessageSquareReply, MapPin, ShieldAlert, MessageCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
-import usePageTitle from '../hooks/usePageTitle'
+import Seo from '../components/Seo'
+import { organisationLd, filAriane, urlAbsolue } from '../lib/seo.mjs'
 import { springSmooth } from '../lib/motion'
 import { GUIDES, guideParSlug } from '../content/guidesCommercants'
 
@@ -43,7 +44,8 @@ function Cadre({ children }) {
             <Link to="/aide-commercants" className="hidden sm:inline text-[13px] text-slate-500 hover:text-slate-700 font-medium transition-colors">
               Aide aux commerçants
             </Link>
-            <a href="/login" className="text-[13px] text-sky-600 hover:text-sky-700 font-medium transition-colors">Se connecter</a>
+            <a href="/login" className="text-[13px] text-slate-500 hover:text-slate-700 font-medium transition-colors">Se connecter</a>
+            <a href="/inscription?src=guide" className="text-[13px] text-sky-600 hover:text-sky-700 font-semibold transition-colors">Compte gratuit</a>
           </div>
         </div>
       </header>
@@ -106,11 +108,11 @@ function Cta() {
     <div className="rounded-2xl bg-gradient-to-br from-sky-500 to-violet-500 p-6 sm:p-8 text-center text-white shadow-xl shadow-sky-500/20">
       <h2 className="text-[22px] font-semibold tracking-tight">Un espace pour gérer tout ça</h2>
       <p className="mt-2 text-[15px] text-white/85 max-w-md mx-auto font-light leading-relaxed">
-        QR code et affiche à imprimer, demandes d'avis par email à tes clients, aide à la rédaction de tes réponses.
+        QR code et affiche à imprimer, demandes d'avis par email à tes clients, aide à la rédaction de tes réponses. Le compte gratuit suffit pour commencer.
       </p>
       <div className="mt-5 flex items-center justify-center gap-5 flex-wrap">
-        <a href="/login" className="inline-flex items-center rounded-full bg-white text-sky-600 text-[14px] font-semibold px-6 py-2.5 hover:bg-sky-50 transition-colors">
-          Se connecter
+        <a href="/inscription?src=guide" className="inline-flex items-center rounded-full bg-white text-sky-600 text-[14px] font-semibold px-6 py-2.5 hover:bg-sky-50 transition-colors">
+          Créer un compte gratuit
         </a>
         <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-white/90 hover:text-white underline-offset-4 hover:underline">
           <MessageCircle size={14} /> Une question ? Discord
@@ -123,9 +125,14 @@ function Cta() {
 export function AideCommercantsIndex() {
   const integre = useContext(ModeIntegre)
   const base = racine(integre)
-  usePageTitle('Aide aux commerçants', "Guides gratuits pour les commerçants : obtenir de vrais avis Google, y répondre, optimiser sa fiche et gérer un avis injuste.")
   return (
     <Cadre>
+      {integre
+        ? <Seo title="Guides" noindex />
+        : <Seo title="Aide aux commerçants : guides pour vos avis Google"
+               description="Guides gratuits pour les commerçants : obtenir de vrais avis Google, y répondre, optimiser sa fiche et gérer un avis injuste."
+               path="/aide-commercants"
+               jsonLd={[filAriane([['Accueil', '/'], ['Aide aux commerçants', '/aide-commercants']])]} />}
       <Hero>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 text-sky-600 border border-sky-100 px-3.5 py-1.5 text-[12px] font-semibold tracking-wide uppercase mb-5">
           <Star size={12} className="fill-sky-500 text-sky-500" />
@@ -141,6 +148,14 @@ export function AideCommercantsIndex() {
       </Hero>
 
       <main className="max-w-2xl mx-auto px-4 pb-16">
+        <Link to="/outils/lien-avis-google" className="mb-4 flex items-center gap-4 rounded-2xl border border-sky-200 bg-sky-50 p-5 hover:border-sky-300 transition-colors">
+          <span className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center shrink-0"><QrCode size={20} className="text-white" /></span>
+          <span className="min-w-0">
+            <span className="block text-[16px] font-semibold tracking-tight text-slate-900">Outil gratuit : ton lien d'avis et ton QR code</span>
+            <span className="block mt-0.5 text-[14px] leading-snug text-slate-600">Colle ton lien Google, télécharge le QR code et imprime l'affiche. Sans compte.</span>
+          </span>
+          <ChevronRight size={18} className="ml-auto shrink-0 text-sky-500" />
+        </Link>
         <ul className="grid gap-4 sm:grid-cols-2">
           {GUIDES.map(g => {
             const Icone = ICONES[g.icone] || Star
@@ -183,7 +198,7 @@ function ModeleCopiable({ texte }) {
   }
   return (
     <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-      <p className="text-[15px] leading-relaxed text-slate-700 italic">{texte}</p>
+      <p className="text-[15px] leading-relaxed text-slate-700 italic whitespace-pre-line">{texte}</p>
       <button
         onClick={copier}
         className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-medium text-sky-500 hover:text-sky-600"
@@ -234,6 +249,19 @@ function Section({ s }) {
     )
   }
 
+  if (s.type === 'lien') {
+    return (
+      <section className="mt-10 rounded-2xl border border-sky-200 bg-sky-50 p-5 sm:p-6">
+        <div className="flex items-center gap-2.5">
+          <span className="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center shrink-0"><QrCode size={16} className="text-white" /></span>
+          <h2 className="text-[18px] font-semibold tracking-tight text-sky-900">{s.t}</h2>
+        </div>
+        {s.p.map((para, i) => <p key={i} className="mt-3 text-[15px] leading-relaxed text-sky-950/80">{para}</p>)}
+        <Link to={s.href} className="mt-4 inline-flex items-center gap-1 rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[14px] font-semibold px-5 py-2.5">{s.label} <ChevronRight size={14} /></Link>
+      </section>
+    )
+  }
+
   if (s.type === 'modele') {
     const [modele, ...reste] = s.p
     return (
@@ -260,14 +288,24 @@ export function AideCommercantsGuide() {
   const base = racine(integre)
   const { slug } = useParams()
   const guide = guideParSlug(slug)
-  usePageTitle(guide?.titre, guide?.description)
   if (!guide) return <Navigate to={base} replace />
   const Icone = ICONES[guide.icone] || Star
   const c = COULEURS[guide.couleur] || COULEURS.sky
   const autres = GUIDES.filter(g => g.slug !== guide.slug)
 
+  const chemin = `/aide-commercants/${guide.slug}`
   return (
     <Cadre>
+      {integre
+        ? <Seo title={guide.titre} noindex />
+        : <Seo title={guide.titre} description={guide.description} path={chemin} type="article"
+               jsonLd={[
+                 {
+                   '@context': 'https://schema.org', '@type': 'Article', headline: guide.titre, description: guide.description,
+                   inLanguage: 'fr-FR', mainEntityOfPage: urlAbsolue(chemin), author: organisationLd, publisher: organisationLd,
+                 },
+                 filAriane([['Accueil', '/'], ['Aide aux commerçants', '/aide-commercants'], [guide.titre, chemin]]),
+               ]} />}
       <Hero halo={c.halo}>
         <Link to={base} className="inline-flex items-center gap-1.5 text-[13px] text-slate-400 hover:text-slate-600 mb-6">
           <ArrowLeft size={14} /> Tous les guides

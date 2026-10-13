@@ -1,8 +1,24 @@
 User-agent: *
 Allow: /
-Allow: /commander
-Allow: /suivi
-Allow: /aide-commercants
+
+# Espace connecté, administration, comptes : rien à indexer
 Disallow: /admin
+Disallow: /client
 Disallow: /dashboard
+Disallow: /avis$
+Disallow: /avis/
+Disallow: /profil
+Disallow: /portefeuille
+Disallow: /parrainage
+Disallow: /loterie
+Disallow: /boutique
+Disallow: /login
+Disallow: /register
+Disallow: /mot-de-passe-oublie
+Disallow: /reinitialiser-mot-de-passe
+Disallow: /verifier-email
+Disallow: /verification-requise
+# Une page de suivi par commande : jamais dans Google
+Disallow: /suivi
+
 Sitemap: https://swimup.net/sitemap.xml

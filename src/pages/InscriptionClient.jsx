@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star, Eye, EyeOff, ArrowRight, AlertCircle, Check } from 'lucide-react'
-import usePageTitle from '../hooks/usePageTitle'
+import Seo from '../components/Seo'
 import { useAuth } from '../hooks/useAuth'
 import { springSmooth, springSnappy, springSheet } from '../lib/motion'
 import toast from 'react-hot-toast'
@@ -17,7 +17,6 @@ const ATOUTS = [
 ]
 
 export default function InscriptionClient() {
-  usePageTitle('Créer un compte')
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const { registerClient } = useAuth()
@@ -53,6 +52,7 @@ export default function InscriptionClient() {
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
+      <Seo title="Créer un compte gratuit" description="Crée ton compte gratuit SwimUp : lien et QR code d'avis, affiche à imprimer et aide pour répondre à tes avis Google. Sans carte bancaire." path="/inscription" />
       <div
         className="absolute inset-x-0 top-0 h-[520px] pointer-events-none"
         style={{ background: 'radial-gradient(60% 50% at 50% 0%, rgba(14,165,233,0.14) 0%, rgba(14,165,233,0) 70%)' }}

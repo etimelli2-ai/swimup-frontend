@@ -9,19 +9,43 @@ export const GUIDES = [
     couleur: 'sky',
     titre: 'Obtenir plus d\'avis Google, honnêtement',
     resume: 'Les gestes simples pour que tes vrais clients laissent un avis, sans enfreindre les règles de Google.',
-    description: 'Comment obtenir plus d\'avis Google pour ton commerce : lien direct, QR code, bon moment pour demander, et ce qu\'il ne faut pas faire.',
+    description: 'Comment obtenir plus d\'avis Google pour ton commerce : lien direct, QR code, bon moment pour demander, modèles de messages (SMS, email, à l\'oral) et ce qu\'il ne faut pas faire.',
     sections: [
+      { t: 'Retrouve ton lien d\'avis', p: [
+        'Tout part d\'un lien : celui qui ouvre directement le formulaire d\'avis de ta fiche. Dans ton profil Google, le bouton « Demander des avis » te le donne. Tu peux aussi le fabriquer à partir de l\'identifiant de ton lieu.',
+        'Sans lien direct, le client doit chercher ta fiche, trouver le bon bouton, et beaucoup abandonnent en route. Avec le lien, il arrive en un geste sur la bonne page.',
+      ] },
+      { t: 'Crée ton lien et ton QR code', type: 'lien', href: '/outils/lien-avis-google', label: 'Ouvrir l\'outil gratuit', p: [
+        'Notre outil gratuit transforme ton lien ou ton identifiant en QR code à télécharger et en affiche A4 prête à imprimer. Il fonctionne sans compte, directement dans ton navigateur.',
+      ] },
       { t: 'Facilite le geste', p: [
         'La plupart des clients satisfaits ne laissent pas d\'avis par oubli, pas par mauvaise volonté. Plus le chemin est court, plus ils le font.',
-        'Dans Google Business Profile, le bouton « Demander des avis » te donne un lien direct vers le formulaire. Mets ce lien partout où tu parles à tes clients : ticket, devis, facture, signature d\'email, message de confirmation.',
-        'Sur place, un QR code vers ce même lien, imprimé et posé près de la caisse ou à la sortie, évite au client de chercher ta fiche.',
+        'Mets ton lien partout où tu parles à tes clients : ticket, devis, facture, signature d\'email, message de confirmation de rendez-vous.',
+        'Sur place, un QR code vers ce même lien, imprimé et posé près de la caisse ou à la sortie, évite au client de chercher ta fiche. Pour un artisan, la facture de fin de chantier est un bon support. Pour un restaurant, l\'addition ou le plateau.',
       ] },
       { t: 'Demande au bon moment', p: [
-        'Le meilleur moment, c\'est juste après un bon moment passé chez toi : une prestation terminée, une livraison reçue, un client qui te remercie. Une phrase suffit : « Si ça t\'a plu, un avis sur Google nous aide beaucoup. »',
-        'Pour un achat en ligne ou un rendez-vous, un petit email quelques heures ou un jour après marche mieux qu\'une demande immédiate.',
+        'Le meilleur moment, c\'est juste après la prestation : un service terminé, une livraison reçue, un chantier rendu. Le client a le souvenir frais et le téléphone en main.',
+        'Pour un achat en ligne ou un rendez-vous, un petit message quelques heures ou un jour après marche mieux qu\'une demande immédiate.',
+        'Demande simplement un avis, sans orienter la réponse : pas de « donnez-nous 5 étoiles », pas de « si vous avez aimé ».',
+      ] },
+      { t: 'Modèle : SMS', type: 'modele', p: [
+        '« Bonjour [prénom], merci pour votre visite chez [commerce]. Si vous avez une minute, votre avis sur Google nous aide à nous améliorer et aide d\'autres personnes à nous connaître : [lien] »',
+        'Garde le message court et envoie-le toi-même, à des clients qui ont déjà échangé avec toi. Évite les envois en masse à une liste achetée.',
+      ] },
+      { t: 'Modèle : email', type: 'modele', p: [
+        '« Objet : Votre avis sur [commerce]\n\nBonjour [prénom],\n\nMerci d\'avoir choisi [commerce]. Votre retour, positif ou critique, nous aide à progresser. Voici le lien direct, cela prend moins d\'une minute : [lien]\n\nMerci et à bientôt,\n[ta signature] »',
+        'Un seul rappel au maximum, quelques jours plus tard. Si la personne ne répond pas ou dit non, n\'insiste pas.',
+      ] },
+      { t: 'Modèle : à l\'oral', type: 'modele', p: [
+        '« Si vous voulez nous laisser un avis sur Google, positif ou critique, le QR code est juste là. Ça prend une minute et ça nous aide beaucoup. »',
+        'Dis-le à tous tes clients de la même façon, pas seulement à ceux qui te complimentent.',
       ] },
       { t: 'Demande à tout le monde', p: [
         'Google interdit de ne solliciter que les clients contents (« filtrage des avis »). Pose la même demande à tous tes clients, avec le même lien, et accepte ce qui arrive. Un profil avec quelques avis moyens mais authentiques inspire plus confiance qu\'une page parfaite.',
+      ] },
+      { t: 'Quand les avis arrivent', p: [
+        'Réponds à tous, y compris aux avis négatifs : les futurs clients lisent aussi tes réponses. La méthode et des modèles sont dans notre guide « Répondre aux avis Google ».',
+        'Note de temps en temps combien d\'avis tu reçois par mois et ce qui revient dans les commentaires. C\'est plus utile qu\'une note moyenne qui bouge un peu.',
       ] },
       { t: 'Ce qu\'il ne faut pas faire', type: 'attention', p: [
         'Offrir une réduction, un cadeau ou un service en échange d\'un avis est contraire aux règles de Google sur les avis, même si tu ne demandes pas qu\'il soit positif.',

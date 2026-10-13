@@ -44,6 +44,9 @@ const MotDePasseOublie = lazy(() => import('./pages/MotDePasseOublie'))
 const ReinitialiserMotDePasse = lazy(() => import('./pages/ReinitialiserMotDePasse'))
 const VerificationRequise = lazy(() => import('./pages/VerificationRequise'))
 import Layout from './components/Layout'
+import ZonesPrivees from './components/ZonesPrivees'
+const NotFound = lazy(() => import('./pages/NotFound'))
+const LienAvisGoogle = lazy(() => import('./pages/outils/LienAvisGoogle'))
 
 function PrivateRoute({ children, roles }) {
   const { user, loading } = useAuth()
@@ -92,12 +95,14 @@ function RouteConnecteSeulement({ children }) {
 export default function App() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/></div>}>
+    <ZonesPrivees />
     <Routes>
       {/* Pages publiques — sans auth */}
       <Route path="/commander" element={<PublicCommander />} />
       <Route path="/suivi"     element={<PublicSuivi />} />
       <Route path="/aide-commercants" element={<AideCommercantsIndex />} />
       <Route path="/confidentialite" element={<Confidentialite />} />
+      <Route path="/outils/lien-avis-google" element={<LienAvisGoogle />} />
       <Route path="/aide-commercants/:slug" element={<AideCommercantsGuide />} />
       <Route path="/verifier-email" element={<VerifierEmail />} />
       <Route path="/verification-requise" element={
@@ -164,7 +169,8 @@ export default function App() {
         </PrivateRoute>
       } />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* Adresse inconnue : vraie page « introuvable » en noindex (avant : redirection silencieuse vers l'accueil) */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
     </Suspense>
   )
