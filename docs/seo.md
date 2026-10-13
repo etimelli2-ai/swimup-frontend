@@ -44,3 +44,8 @@
 - Un événement : `mesure('nom', { clé: valeur })`. Sans effet si le script est bloqué.
 - `src/pages/Confidentialite.jsx` mentionne Umami (liste des sous-traitants et phrase sur la mesure).
 - Dans Umami : Goals/Funnels à créer à la main, p. ex. page `/aide-commercants/*` → `/inscription` → événement `compte-cree`.
+
+## Pages de contenu du lot 5
+- `/outils/modeles-reponses-avis-google` : 12 modèles (positifs, négatifs, faux ou injustes). Textes et champs dans `src/lib/modelesReponses.mjs` (`remplir` laisse un champ vide entre crochets). Événement : `modele-copie` (type).
+- `/outils/diagnostic-fiche-google` : liste de 17 points cochés par le commerçant. Points dans `src/lib/diagnosticFiche.mjs`. Le score compte seulement les points cochés, aucune donnée Google. Événements : `diagnostic-commence`, `diagnostic-liste-copiee`.
+- Les deux sont prérendues (`PAGES`), dans le sitemap, liées depuis les guides « répondre aux avis » et « optimiser ta fiche » et depuis l'index des guides. CTA : `/inscription?src=modeles` et `?src=diagnostic`.
