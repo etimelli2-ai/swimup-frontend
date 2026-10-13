@@ -49,3 +49,10 @@
 - `/outils/modeles-reponses-avis-google` : 12 modèles (positifs, négatifs, faux ou injustes). Textes et champs dans `src/lib/modelesReponses.mjs` (`remplir` laisse un champ vide entre crochets). Événement : `modele-copie` (type).
 - `/outils/diagnostic-fiche-google` : liste de 17 points cochés par le commerçant. Points dans `src/lib/diagnosticFiche.mjs`. Le score compte seulement les points cochés, aucune donnée Google. Événements : `diagnostic-commence`, `diagnostic-liste-copiee`.
 - Les deux sont prérendues (`PAGES`), dans le sitemap, liées depuis les guides « répondre aux avis » et « optimiser ta fiche » et depuis l'index des guides. CTA : `/inscription?src=modeles` et `?src=diagnostic`.
+
+## Page des offres (lot 6)
+- `/offres` (`src/pages/Offres.jsx`) lit `GET /api/public/offres` (backend : `routes/offresPubliques.js`, lecture seule, même source que l'espace client : `services/offres.js`). Aucun prix n'est écrit dans le front.
+- Rendue côté navigateur, pas prérendue (un prix figé dans le HTML pourrait être faux après un changement de tarif). Ses balises (title, description, canonical) sont posées par `<Seo />`. Route déclarée dans `public/serve.json` et dans le sitemap.
+- CTA : `/inscription?src=offres`, `?offre=premium&src=offres`, `?offre=business&src=offres` (l'offre choisie est retenue pour l'espace client).
+- Une page prérendue ne doit pas dépendre des paramètres d'adresse au premier rendu (le prérendu n'en a pas) : `InscriptionClient` les lit après l'affichage.
+- Lien « Offres » dans l'en-tête et le pied des pages publiques (`CadrePublic`).

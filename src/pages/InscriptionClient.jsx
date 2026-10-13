@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star, Eye, EyeOff, ArrowRight, AlertCircle, Check } from 'lucide-react'
@@ -21,7 +21,10 @@ export default function InscriptionClient() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const { registerClient } = useAuth()
-  const offre = ['premium', 'business'].includes(params.get('offre')) ? params.get('offre') : null
+  // Lu après l'affichage : la page est prérendue sans paramètres d'adresse, un premier rendu qui en dépend
+  // ne correspondrait pas au HTML déjà présent (erreur d'hydratation).
+  const [offre, setOffre] = useState(null)
+  useEffect(() => { setOffre(['premium', 'business'].includes(params.get('offre')) ? params.get('offre') : null) }, [params])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

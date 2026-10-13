@@ -15,6 +15,7 @@ export default function CadrePublic({ children, large = false }) {
           </Link>
           <nav className="flex items-center gap-4" aria-label="Navigation">
             <Link to="/aide-commercants" className="hidden sm:inline text-[13px] text-slate-500 hover:text-slate-700 font-medium">Guides</Link>
+            <Link to="/offres" className="hidden sm:inline text-[13px] text-slate-500 hover:text-slate-700 font-medium">Offres</Link>
             <a href="/login" className="text-[13px] text-slate-500 hover:text-slate-700 font-medium">Se connecter</a>
             <a href="/inscription?src=outil" className="text-[13px] text-sky-600 hover:text-sky-700 font-semibold">Compte gratuit</a>
           </nav>
@@ -27,6 +28,7 @@ export default function CadrePublic({ children, large = false }) {
             <span>© 2025 SwimUp</span>
             <span className="flex gap-4">
               <Link to="/aide-commercants" className="hover:underline">Guides</Link>
+              <Link to="/offres" className="hover:underline">Offres</Link>
               <Link to="/confidentialite" className="hover:underline">Confidentialité</Link>
               <a href="/login" className="text-sky-500 hover:underline">Connexion</a>
             </span>

@@ -50,6 +50,7 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 const LienAvisGoogle = lazy(() => import('./pages/outils/LienAvisGoogle'))
 const ModelesReponsesAvis = lazy(() => import('./pages/outils/ModelesReponsesAvis'))
 const DiagnosticFiche = lazy(() => import('./pages/outils/DiagnosticFiche'))
+const Offres = lazy(() => import('./pages/Offres'))
 
 function PrivateRoute({ children, roles }) {
   const { user, loading } = useAuth()
@@ -106,6 +107,7 @@ export default function App() {
       <Route path="/suivi"     element={<PublicSuivi />} />
       <Route path="/aide-commercants" element={<AideCommercantsIndex />} />
       <Route path="/confidentialite" element={<Confidentialite />} />
+      <Route path="/offres" element={<Offres />} />
       <Route path="/outils/lien-avis-google" element={<LienAvisGoogle />} />
       <Route path="/outils/modeles-reponses-avis-google" element={<ModelesReponsesAvis />} />
       <Route path="/outils/diagnostic-fiche-google" element={<DiagnosticFiche />} />
