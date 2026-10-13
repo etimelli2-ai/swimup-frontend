@@ -192,7 +192,7 @@ export default function LienAvisGoogle() {
 
           <h2 className="mt-10 text-[24px] font-semibold tracking-tight text-slate-900">Où mettre le QR code</h2>
           <p className="mt-3 text-[16px] leading-relaxed text-slate-600">
-            Le bon endroit est celui où le client a déjà son téléphone en main et un moment de calme : à côté de la caisse ou du terminal de paiement, au dos du ticket ou de l'addition, sur la facture ou le devis, sur la carte de visite, dans la signature de tes emails. Pour un artisan, la fin du chantier avec la facture marche bien. Pour un restaurant, l'addition ou le plateau.
+            Le bon endroit est celui où le client a déjà son téléphone en main et un moment de calme : à côté de la caisse ou du terminal de paiement, au dos du ticket ou de l'addition, sur la facture ou le devis, sur la carte de visite, dans la signature de tes emails. Pour un artisan, la fin du chantier avec la facture marche bien. Pour un restaurant, l'addition ou le plateau. Notre guide détaille les bons supports selon ton activité : <Link to="/aide-commercants/ou-mettre-son-qr-code-davis" className="underline text-sky-600">où mettre ton QR code d'avis</Link>.
           </p>
 
           <h2 className="mt-10 text-[24px] font-semibold tracking-tight text-slate-900">Ce qu'il ne faut pas faire</h2>

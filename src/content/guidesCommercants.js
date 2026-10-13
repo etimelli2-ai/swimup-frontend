@@ -58,6 +58,64 @@ export const GUIDES = [
     ],
   },
   {
+    slug: 'ou-mettre-son-qr-code-davis',
+    icone: 'QrCode',
+    couleur: 'sky',
+    titre: 'Où mettre ton QR code d\'avis selon ton commerce',
+    resume: 'Les bons supports pour un restaurant, une boutique, un artisan, un coiffeur ou un garage.',
+    description: 'Où placer le QR code de tes avis Google selon ton activité : restaurant, boutique, artisan, coiffeur, garage. Bons supports, taille, texte d\'accroche et erreurs à éviter.',
+    sections: [
+      { t: 'Le principe', p: [
+        'Un QR code marche quand le client a son téléphone en main, un moment tranquille et l\'envie de dire que c\'était bien. Il faut donc le placer là où ça arrive : au moment de payer, à la remise de la facture, dans le message qui suit la prestation.',
+        'Google propose lui-même d\'indiquer son lien ou son QR code sur les reçus, dans les emails de remerciement, à la fin d\'une discussion ou sur un affichage en magasin (page d\'aide « Créer un lien ou un QR code pour demander des avis »).',
+      ] },
+      { t: 'Crée ton QR code avant d\'imprimer', type: 'lien', href: '/outils/lien-avis-google', label: 'Ouvrir l\'outil gratuit', p: [
+        'Colle ton lien d\'avis Google, télécharge le QR code et imprime l\'affiche A4. Sans compte.',
+      ] },
+      { t: 'Quelques règles pour tous les supports', p: [
+        'Teste le QR code avec deux téléphones différents avant d\'imprimer : le formulaire d\'avis de ta fiche doit s\'ouvrir tout de suite.',
+        'Imprime-le assez grand. Un carré d\'environ 3 cm de côté est une bonne base pour un ticket ou une carte, plus grand pour une affiche vue à distance. Garde du blanc autour.',
+        'Ajoute une phrase courte qui dit quoi faire, sans orienter la réponse : « Scannez pour laisser un avis sur Google ».',
+        'Mets le même QR code partout : un seul lien, un seul code à suivre.',
+      ] },
+      { t: 'Restaurant, café, bar', p: [
+        'Le bon moment est celui de l\'addition. Glisse une petite carte avec le QR code dans la pochette de l\'addition, ou imprime-le au dos du ticket. Un chevalet près de la caisse ou du terminal de paiement fonctionne aussi.',
+        'Évite de le mettre au milieu de la table pendant le repas : le client mange, il n\'est pas disponible, et ça ressemble à de la pub.',
+      ] },
+      { t: 'Boulangerie, boutique, commerce de proximité', p: [
+        'Le QR code se place à côté de la caisse ou du terminal de paiement, à hauteur des yeux, avec la phrase d\'invitation. Un autocollant ou une petite carte glissée dans le sac complète le dispositif.',
+        'Pour une boutique où l\'on ne s\'arrête pas, mets-le aussi sur la vitrine côté intérieur, visible quand on sort.',
+      ] },
+      { t: 'Artisan du bâtiment, services à domicile', p: [
+        'La fin de chantier est le meilleur moment : le client voit le résultat. Mets le QR code et le lien cliquable sur la facture (au format PDF, le lien s\'ouvre d\'un clic) et sur le devis signé pour les clients que tu reverras.',
+        'Un SMS ou un email de remerciement le lendemain avec le lien direct marche bien aussi. Ta carte de visite peut porter le QR code au dos.',
+      ] },
+      { t: 'Coiffeur, institut, cabinet', p: [
+        'Mets une petite carte avec le QR code dans le ticket ou la carte de rendez-vous remis à la caisse, et ajoute le lien dans le message de confirmation du prochain rendez-vous.',
+        'Pour les praticiens, vérifie les règles de ta profession sur ce que tu peux afficher : certaines encadrent la publicité.',
+      ] },
+      { t: 'Garage, réparation', p: [
+        'Le moment idéal est la remise du véhicule : le QR code figure sur la facture et dans la pochette de documents. Le SMS « votre véhicule est prêt » peut aussi porter le lien.',
+        'Donne-le à tous les clients, y compris à ceux dont le dossier a été compliqué. Choisir seulement les clients contents est interdit par Google.',
+      ] },
+      { t: 'En ligne et par message', p: [
+        'Pour les ventes en ligne et les rendez-vous, un QR code n\'a pas de sens : envoie le lien direct. Mets-le dans la signature de tes emails, dans l\'email de remerciement après la commande ou la prestation, et dans le SMS de fin de rendez-vous.',
+        'Un message quelques heures ou un jour après marche mieux qu\'une demande immédiate.',
+      ] },
+      { t: 'Ce qu\'il ne faut pas faire', type: 'attention', p: [
+        'Ne propose rien en échange d\'un avis : réduction, produit offert, café gratuit. Google considère les avantages offerts en échange d\'avis comme de l\'engagement artificiel, strictement interdit.',
+        'Ne montre pas le QR code seulement aux clients que tu sais contents, et n\'écris pas « 5 étoiles » sur l\'affiche.',
+        'Ne fais pas écrire d\'avis par ton équipe ou tes proches.',
+      ] },
+      { t: 'Mesurer ce que ça donne', p: [
+        'Note le nombre d\'avis de ta fiche le jour où tu installes le QR code, puis regarde un mois plus tard. Avec un compte gratuit SwimUp, tu vois aussi combien de personnes ont scanné ton code ou cliqué sur ton lien. Un scan ne veut pas dire qu\'un avis a été publié.',
+      ] },
+      { t: 'Avec SwimUp', type: 'swimup', p: [
+        'Dans ton espace client, l\'onglet « Outils avis » garde ton lien et ton QR code au même endroit et affiche les scans et les clics.',
+      ] },
+    ],
+  },
+  {
     slug: 'repondre-aux-avis',
     icone: 'MessageSquareReply',
     couleur: 'violet',

@@ -10,7 +10,7 @@ import { GUIDES, guideParSlug } from '../content/guidesCommercants'
 
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
-const ICONES = { Star, MessageSquareReply, MapPin, ShieldAlert }
+const ICONES = { Star, MessageSquareReply, MapPin, ShieldAlert, QrCode }
 // Classes écrites en entier pour que Tailwind les garde au build
 const COULEURS = {
   sky:     { tuile: 'bg-sky-50 text-sky-600 border-sky-100',             halo: 'rgba(14,165,233,0.14)' },
