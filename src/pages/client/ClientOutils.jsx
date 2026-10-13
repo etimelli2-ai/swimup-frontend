@@ -215,7 +215,7 @@ export default function ClientOutils() {
           <h1 className="page-title">⭐ Outils avis</h1>
           <p className="text-muted mt-1">Récupère de vrais avis auprès de tes clients et réponds à ceux que tu reçois</p>
         </div>
-        <Link to="/aide-commercants" className="btn-secondary text-sm"><BookOpen size={16} /> Guides</Link>
+        <Link to="/client/aide" className="btn-secondary text-sm"><BookOpen size={16} /> Guides</Link>
       </div>
 
       {/* Démarrage : étapes cochées seulement quand elles sont réellement faites */}

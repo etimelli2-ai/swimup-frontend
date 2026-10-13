@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, createContext, useContext } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Star, ArrowLeft, ChevronRight, Copy, Check, TriangleAlert, Sparkles, MessageSquareReply, MapPin, ShieldAlert, MessageCircle } from 'lucide-react'
+import { Star, ArrowLeft, QrCode, ChevronRight, Copy, Check, TriangleAlert, Sparkles, MessageSquareReply, MapPin, ShieldAlert, MessageCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import usePageTitle from '../hooks/usePageTitle'
 import { springSmooth } from '../lib/motion'
@@ -18,7 +18,17 @@ const COULEURS = {
   amber:   { tuile: 'bg-amber-50 text-amber-600 border-amber-100',       halo: 'rgba(245,158,11,0.16)' },
 }
 
+// Les mêmes guides existent en deux versions : la page publique (/aide-commercants, sans compte)
+// et la version dans l'espace client (/client/aide, avec le menu de l'espace). Le contexte dit laquelle.
+const ModeIntegre = createContext(false)
+const racine = (integre) => (integre ? '/client/aide' : '/aide-commercants')
+
 function Cadre({ children }) {
+  const integre = useContext(ModeIntegre)
+  if (integre) {
+    // Dans l'espace client : pas d'en-tête ni de pied de page publics, sur fond clair pour rester lisible en mode sombre.
+    return <div className="max-w-3xl mx-auto bg-white text-slate-900 rounded-3xl border border-slate-200 overflow-hidden">{children}</div>
+  }
   return (
     <div className="min-h-screen bg-white text-slate-900">
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200">
@@ -73,6 +83,25 @@ function Hero({ halo = 'rgba(14,165,233,0.14)', children }) {
 }
 
 function Cta() {
+  const integre = useContext(ModeIntegre)
+  if (integre) {
+    return (
+      <div className="rounded-2xl bg-slate-50 border border-slate-200 p-5 sm:p-6 text-center">
+        <h2 className="text-[18px] font-semibold tracking-tight text-slate-900">Passe à l'action</h2>
+        <p className="mt-1.5 text-[14px] text-slate-500 max-w-md mx-auto leading-relaxed">
+          Ton QR code, ton affiche et tes demandes d'avis par email sont dans « Mes avis ».
+        </p>
+        <div className="mt-4 flex items-center justify-center gap-4 flex-wrap">
+          <Link to="/client/outils" className="inline-flex items-center gap-1.5 rounded-full bg-sky-500 text-white text-[14px] font-semibold px-5 py-2.5 hover:bg-sky-600 transition-colors">
+            <QrCode size={15} /> Ouvrir Mes avis
+          </Link>
+          <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-slate-600 hover:text-slate-900 underline-offset-4 hover:underline">
+            <MessageCircle size={14} /> Une question ? Discord
+          </a>
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="rounded-2xl bg-gradient-to-br from-sky-500 to-violet-500 p-6 sm:p-8 text-center text-white shadow-xl shadow-sky-500/20">
       <h2 className="text-[22px] font-semibold tracking-tight">Un espace pour gérer tout ça</h2>
@@ -92,6 +121,8 @@ function Cta() {
 }
 
 export function AideCommercantsIndex() {
+  const integre = useContext(ModeIntegre)
+  const base = racine(integre)
   usePageTitle('Aide aux commerçants', "Guides gratuits pour les commerçants : obtenir de vrais avis Google, y répondre, optimiser sa fiche et gérer un avis injuste.")
   return (
     <Cadre>
@@ -117,7 +148,7 @@ export function AideCommercantsIndex() {
             return (
               <li key={g.slug}>
                 <Link
-                  to={`/aide-commercants/${g.slug}`}
+                  to={`${base}/${g.slug}`}
                   className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/60 transition-all hover:-translate-y-0.5 hover:border-slate-300"
                 >
                   <span className={`w-10 h-10 rounded-xl border flex items-center justify-center ${c.tuile}`}>
@@ -225,10 +256,12 @@ function Section({ s }) {
 }
 
 export function AideCommercantsGuide() {
+  const integre = useContext(ModeIntegre)
+  const base = racine(integre)
   const { slug } = useParams()
   const guide = guideParSlug(slug)
   usePageTitle(guide?.titre, guide?.description)
-  if (!guide) return <Navigate to="/aide-commercants" replace />
+  if (!guide) return <Navigate to={base} replace />
   const Icone = ICONES[guide.icone] || Star
   const c = COULEURS[guide.couleur] || COULEURS.sky
   const autres = GUIDES.filter(g => g.slug !== guide.slug)
@@ -236,7 +269,7 @@ export function AideCommercantsGuide() {
   return (
     <Cadre>
       <Hero halo={c.halo}>
-        <Link to="/aide-commercants" className="inline-flex items-center gap-1.5 text-[13px] text-slate-400 hover:text-slate-600 mb-6">
+        <Link to={base} className="inline-flex items-center gap-1.5 text-[13px] text-slate-400 hover:text-slate-600 mb-6">
           <ArrowLeft size={14} /> Tous les guides
         </Link>
         <div className="flex justify-center">
@@ -258,7 +291,7 @@ export function AideCommercantsGuide() {
           <ul className="mt-3 divide-y divide-slate-200 border-y border-slate-200">
             {autres.map(g => (
               <li key={g.slug}>
-                <Link to={`/aide-commercants/${g.slug}`} className="flex items-center justify-between py-3.5 text-[15px] text-slate-700 hover:text-sky-600">
+                <Link to={`${base}/${g.slug}`} className="flex items-center justify-between py-3.5 text-[15px] text-slate-700 hover:text-sky-600">
                   {g.titre} <ChevronRight size={16} className="text-slate-400" />
                 </Link>
               </li>
@@ -268,4 +301,12 @@ export function AideCommercantsGuide() {
       </main>
     </Cadre>
   )
+}
+
+// Versions de l'espace client : mêmes guides, dans le menu de l'espace.
+export function AideClientIndex() {
+  return <ModeIntegre.Provider value={true}><AideCommercantsIndex /></ModeIntegre.Provider>
+}
+export function AideClientGuide() {
+  return <ModeIntegre.Provider value={true}><AideCommercantsGuide /></ModeIntegre.Provider>
 }

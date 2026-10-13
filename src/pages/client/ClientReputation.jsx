@@ -4,8 +4,9 @@ import { Star, Crown, RefreshCw, Check, Copy, FileDown, Search, Trash2, Trending
 import toast from 'react-hot-toast'
 import api, { compteActif } from '../../lib/api'
 import MiniLineChart from '../../components/MiniLineChart'
+import ReputationEntreprises from './ReputationEntreprises'
 
-const ONGLETS = [['avis', 'Avis Google'], ['evolution', 'Évolution'], ['visibilite', 'Visibilité'], ['analyse', 'Analyse'], ['pistes', 'À améliorer'], ['rapport', 'Rapport'], ['reglages', 'Réglages']]
+const ONGLETS = [['avis', 'Avis Google'], ['evolution', 'Évolution'], ['visibilite', 'Visibilité'], ['analyse', 'Analyse'], ['pistes', 'À améliorer'], ['rapport', 'Rapport'], ['entreprises', 'Entreprises'], ['reglages', 'Réglages']]
 
 const dateFr = (s) => s ? new Date(s.includes('T') || s.includes('Z') ? s : String(s).replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR') : '—'
 const note1 = (n) => (n === null || n === undefined ? '—' : Number(n).toFixed(1).replace('.', ','))
@@ -40,9 +41,17 @@ export default function ClientReputation() {
   // Les réglages (rappels, export, effacement) sont toujours ceux de son propre compte :
   // on les masque quand on travaille sur l'établissement de quelqu'un d'autre.
   const delegue = !!compteActif()
-  const onglets = delegue ? ONGLETS.filter(([v]) => v !== 'reglages') : ONGLETS
+  // Sur le compte de quelqu'un d'autre : ni réglages, ni gestion des entreprises (elles sont à son propriétaire).
+  // Sur une entreprise qu'on a ajoutée soi-même : on garde « Entreprises », pas les réglages.
+  const [comptes, setComptes] = useState(null)
+  useEffect(() => {
+    if (delegue) api.get('/client/equipe/comptes').then(r => setComptes(r.data.comptes || [])).catch(() => setComptes([]))
+  }, [delegue])
+  const entrepriseAjoutee = !delegue || comptes === null || comptes.some(c => String(c.client_id) === compteActif() && c.etablissement)
+  const onglets = ONGLETS.filter(([v]) => (v !== 'reglages' || !delegue) && (v !== 'entreprises' || entrepriseAjoutee))
   const demande = params.get('onglet')
   const [onglet, setOnglet] = useState(onglets.some(([v]) => v === demande) ? demande : 'avis')
+  useEffect(() => { if (!onglets.some(([v]) => v === onglet)) setOnglet('avis') }, [onglets, onglet])
   const [apercu, setApercu] = useState(null)
   const [erreur, setErreur] = useState(false)
 
@@ -75,6 +84,7 @@ export default function ClientReputation() {
       {apercu && onglet === 'analyse' && <Analyse apercu={apercu} rafraichir={chargerApercu} />}
       {apercu && onglet === 'pistes' && <Pistes />}
       {apercu && onglet === 'rapport' && <Rapport apercu={apercu} />}
+      {apercu && onglet === 'entreprises' && <ReputationEntreprises apercu={apercu} rafraichir={chargerApercu} FicheGoogle={Etablissement} />}
       {onglet === 'reglages' && !delegue && <Reglages />}
     </div>
   )
@@ -82,7 +92,7 @@ export default function ClientReputation() {
 
 // ---------- Avis Google ----------
 
-function Etablissement({ apres }) {
+function Etablissement({ apres, titre = 'Indique ton établissement' }) {
   const [saisie, setSaisie] = useState('')
   const [nom, setNom] = useState('')
   const [ville, setVille] = useState('')
@@ -105,7 +115,7 @@ function Etablissement({ apres }) {
   return (
     <div className="card space-y-4">
       <div>
-        <h2 className="section-title">Indique ton établissement</h2>
+        <h2 className="section-title">{titre}</h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Pour récupérer tes avis, SwimUp a besoin de retrouver ta fiche Google.</p>
       </div>
       <div className="space-y-2">

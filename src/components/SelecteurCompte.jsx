@@ -44,7 +44,7 @@ export default function SelecteurCompte() {
         <label htmlFor="sel-compte" className="font-medium">Établissement</label>
       </div>
       <select id="sel-compte" className="input sm:w-64" value={String(courant?.client_id || '')} onChange={changer}>
-        {comptes.map(c => <option key={c.client_id} value={c.client_id}>{c.nom} ({ROLES[c.role]})</option>)}
+        {comptes.map(c => <option key={c.client_id} value={c.client_id}>{c.nom} ({c.etablissement ? 'ton entreprise' : ROLES[c.role]})</option>)}
       </select>
       {delegue && (
         <p className="text-xs text-amber-800 dark:text-amber-200">

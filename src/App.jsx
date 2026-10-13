@@ -37,6 +37,8 @@ const PublicSuivi = lazy(() => import('./pages/PublicSuivi'))
 const AideCommercantsIndex = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideCommercantsIndex })))
 const Confidentialite = lazy(() => import('./pages/Confidentialite'))
 const AideCommercantsGuide = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideCommercantsGuide })))
+const AideClientIndex = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideClientIndex })))
+const AideClientGuide = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideClientGuide })))
 const VerifierEmail = lazy(() => import('./pages/VerifierEmail'))
 const MotDePasseOublie = lazy(() => import('./pages/MotDePasseOublie'))
 const ReinitialiserMotDePasse = lazy(() => import('./pages/ReinitialiserMotDePasse'))
@@ -151,6 +153,9 @@ export default function App() {
         <Route path="reputation" element={<ClientReputation />} />
         <Route path="campagnes" element={<ClientCampagnes />} />
         <Route path="equipe" element={<ClientEquipe />} />
+        {/* Les guides restent publics (/aide-commercants) et sont aussi dans l'espace client */}
+        <Route path="aide" element={<AideClientIndex />} />
+        <Route path="aide/:slug" element={<AideClientGuide />} />
       </Route>
 
       <Route path="/client/success" element={

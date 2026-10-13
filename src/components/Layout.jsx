@@ -26,6 +26,7 @@ import {
   Building2,
   BarChart3,
   Users,
+  BookOpen,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SelecteurCompte from './SelecteurCompte'
@@ -105,6 +106,7 @@ export default function Layout() {
     { path: '/client/reputation', label: 'Réputation',   icon: Star },
     { path: '/client/campagnes', label: 'Campagnes',     icon: Mail,  verrou: user?.premium ? null : 'Premium' },
     { path: '/client/equipe',    label: 'Équipe',        icon: Users, verrou: user?.premium_offre === 'business' ? null : 'Business' },
+    { path: '/client/aide',      label: 'Guides',        icon: BookOpen },
     { path: '/client/payer',     label: 'Commander des avis', icon: CreditCard },
     { path: '/client/commandes', label: 'Mes commandes', icon: ShoppingBag },
     { path: '/client/stats',     label: 'Statistiques', icon: TrendingUp },
