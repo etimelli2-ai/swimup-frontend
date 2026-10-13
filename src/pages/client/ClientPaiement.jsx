@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link as RouterLink } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import api from '../../lib/api'
-import { CreditCard, Star, Building, Link, Clock, CheckCircle2, ArrowRight, ShieldCheck, Gift, Crown, ChevronDown } from 'lucide-react'
+import { CreditCard, Star, Building, Link, Clock, CheckCircle2, ArrowRight, ShieldCheck, Gift, Crown, ChevronDown, Wallet } from 'lucide-react'
 import { lienPaypal } from '../../lib/paypal'
 import { motion } from 'framer-motion'
 import { springSmooth } from '../../lib/motion'
@@ -54,12 +54,44 @@ export default function ClientPaiement() {
     }
   }, [user?.id])
 
+  // Retour de la page Stripe après un paiement abandonné.
+  const [params] = useSearchParams()
+  useEffect(() => {
+    if (params.get('paiement') === 'annule') toast('Paiement annulé, rien n\'a été débité.', { icon: 'ℹ️' })
+  }, [params])
+
   const estPremium = !!user?.premium
 
   const nb = parseInt(form.nb_avis) || 1
   const nbBonus = Math.floor(nb / 10)
   const sousTotal = nb * PRIX_AVIS
   const total = estPremium ? Math.round(sousTotal * 0.9 * 100) / 100 : sousTotal
+
+  // Paiement par carte : on envoie le client chez Stripe, c'est le webhook de
+  // Stripe qui crée la commande une fois l'argent reçu (rien n'est créé avant).
+  const handleCarte = async () => {
+    if (!form.nom_etablissement) return toast.error('Entre le nom de l\'établissement')
+    if (!form.lien_maps) return toast.error('Entre le lien Google Maps')
+    if (nb < 1) return toast.error('Minimum 1 avis')
+
+    setLoading(true)
+    try {
+      const r = await api.post('/stripe/commande-carte', {
+        nb_avis:            nb,
+        nom_etablissement:  form.nom_etablissement,
+        lien_maps:          form.lien_maps,
+        type_etablissement: form.type_etablissement,
+        delai_paiement:     parseInt(form.delai_paiement) || 30,
+        nb_etoiles:         parseInt(form.nb_etoiles) || 5,
+      })
+      if (user?.id) ecrireMemoire(user.id, { nom_etablissement: form.nom_etablissement, type_etablissement: form.type_etablissement, lien_maps: form.lien_maps })
+      window.location.href = r.data.url
+      return // la page change : on laisse le bouton bloqué
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Impossible de lancer le paiement par carte')
+    }
+    setLoading(false)
+  }
 
   const handleCommander = async () => {
     if (!form.nom_etablissement) return toast.error('Entre le nom de l\'établissement')
@@ -155,7 +187,7 @@ export default function ClientPaiement() {
         <p className="text-muted mt-1">
           {isAdmin
             ? 'En tant qu\'admin, les avis sont créés gratuitement et immédiatement.'
-            : 'Ton lien Google Maps, le nombre d\'avis, puis le paiement par PayPal'
+            : 'Ton lien Google Maps, le nombre d\'avis, puis le paiement par carte ou PayPal'
           }
         </p>
       </div>
@@ -308,8 +340,8 @@ export default function ClientPaiement() {
 
         {!isAdmin && (
           <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
-            <p>Tu paies par PayPal juste après avoir validé.</p>
-            <p>On active ta commande dès réception, en général sous 12 h.</p>
+            <p>Par carte : paiement sécurisé chez Stripe, commande activée en quelques secondes.</p>
+            <p>Par PayPal : on active ta commande dès qu'on voit le paiement, en général sous 12 h.</p>
             <p>Ensuite tu écris le texte de chaque avis.</p>
           </div>
         )}
@@ -321,24 +353,32 @@ export default function ClientPaiement() {
           </RouterLink>
         )}
 
-        <button
-          onClick={handleCommander}
-          disabled={loading || !form.nom_etablissement || !form.lien_maps}
-          className={`w-full text-base py-3.5 font-medium rounded-full flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all ${
-            isAdmin
-              ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-              : 'btn-primary'
-          }`}
-        >
-          {loading ? (
-            <><Spinner /> Envoi...</>
-          ) : isAdmin ? (
-            <><CheckCircle2 size={18} /> Créer {nb} avis gratuitement</>
-          ) : (
-            <><CreditCard size={18} /> Commander {total.toFixed(2)}€</>
-          )}
-
-        </button>
+        {isAdmin ? (
+          <button
+            onClick={handleCommander}
+            disabled={loading || !form.nom_etablissement || !form.lien_maps}
+            className="w-full text-base py-3.5 font-medium rounded-full flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all bg-emerald-500 hover:bg-emerald-600 text-white"
+          >
+            {loading ? <><Spinner /> Envoi...</> : <><CheckCircle2 size={18} /> Créer {nb} avis gratuitement</>}
+          </button>
+        ) : (
+          <div className="space-y-2.5">
+            <button
+              onClick={handleCarte}
+              disabled={loading || !form.nom_etablissement || !form.lien_maps}
+              className="btn-primary w-full text-base py-3.5 font-medium rounded-full flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all"
+            >
+              {loading ? <><Spinner /> Redirection...</> : <><CreditCard size={18} /> Payer {total.toFixed(2)}€ par carte</>}
+            </button>
+            <button
+              onClick={handleCommander}
+              disabled={loading || !form.nom_etablissement || !form.lien_maps}
+              className="btn-secondary w-full text-sm py-3 rounded-full flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all"
+            >
+              <Wallet size={16} /> Payer par PayPal
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

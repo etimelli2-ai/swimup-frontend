@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
-import { Link } from 'react-router-dom'
-import { Star, ChevronDown, ChevronUp, Save, Loader2, Trash2, CalendarClock, Clock3, ShoppingBag, Wallet } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { Star, ChevronDown, ChevronUp, Save, Loader2, Trash2, CalendarClock, Clock3, ShoppingBag, Wallet, CheckCircle2 } from 'lucide-react'
 import { lienPaypal } from '../../lib/paypal'
 import { motion, AnimatePresence } from 'framer-motion'
 import { springSheet } from '../../lib/motion'
@@ -269,6 +269,8 @@ function CommandeCard({ commande, onAvisDeleted }) {
 export default function ClientCommandes() {
   const [commandes, setCommandes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [params, setParams] = useSearchParams()
+  const retourCarte = params.get('paiement') === 'ok'
 
   useEffect(() => {
     api.get('/stripe/commandes')
@@ -276,6 +278,28 @@ export default function ClientCommandes() {
       .catch(() => toast.error('Erreur chargement'))
       .finally(() => setLoading(false))
   }, [])
+
+  // Retour de Stripe : la commande est créée par la confirmation que Stripe
+  // envoie à notre serveur, ça prend quelques secondes. On recharge la liste
+  // tant qu'elle n'a pas bougé (3 essais), sans jamais se fier à l'adresse
+  // de retour pour considérer la commande comme payée.
+  useEffect(() => {
+    if (!retourCarte) return
+    let annule = false
+    const delais = [3000, 7000, 12000]
+    const timers = delais.map(d => setTimeout(() => {
+      api.get('/stripe/commandes')
+        .then(r => { if (!annule) setCommandes(r.data) })
+        .catch(() => {})
+    }, d))
+    return () => { annule = true; timers.forEach(clearTimeout) }
+  }, [retourCarte])
+
+  const fermerRetour = () => {
+    const p = new URLSearchParams(params)
+    p.delete('paiement')
+    setParams(p, { replace: true })
+  }
 
   // Un avis vient d'être supprimé dans une commande. Si le backend indique
   // que la commande ne contient plus rien, elle disparaît de la liste tout
@@ -308,6 +332,19 @@ export default function ClientCommandes() {
         <h1 className="page-title">Mes commandes</h1>
         <p className="text-muted mt-1">Suis tes avis et écris leurs textes pour que les membres puissent les publier</p>
       </div>
+
+      {retourCarte && (
+        <div className="card p-4 bg-emerald-50 dark:bg-emerald-900/20 flex items-start gap-2.5" role="status">
+          <CheckCircle2 size={18} className="text-emerald-500 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Paiement par carte reçu</p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-0.5">
+              Ta commande s'active en quelques secondes. Si elle n'apparaît pas encore, recharge la page dans une minute.
+            </p>
+          </div>
+          <button onClick={fermerRetour} className="text-xs text-emerald-600 dark:text-emerald-400 underline">Fermer</button>
+        </div>
+      )}
 
       {commandes.length === 0 ? (
         <div className="card p-10 text-center space-y-3">
