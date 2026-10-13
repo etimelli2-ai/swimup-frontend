@@ -17,6 +17,7 @@ import {
   ShoppingBag,
   ClipboardCheck,
   Crown,
+  Lock,
   QrCode,
   Search,
   TrendingUp,
@@ -97,13 +98,13 @@ export default function Layout() {
     { path: '/admin/business', label: 'Business', icon: BarChart3 },
     { path: '/profil',         label: 'Profil',       icon: User },
   ] : isClient ? [
-    // Menu court pour un compte gratuit : l'essentiel d'abord, le reste apparaît
-    // avec l'offre qui le débloque.
+    // Les outils payants restent visibles pour un compte gratuit, avec un cadenas :
+    // la page explique ce qu'ils apportent et propose de les débloquer.
     { path: '/client',           label: 'Accueil',       icon: LayoutDashboard },
     { path: '/client/outils',    label: 'Mes avis',      icon: QrCode },
     { path: '/client/reputation', label: 'Réputation',   icon: Star },
-    ...(user?.premium ? [{ path: '/client/campagnes', label: 'Campagnes', icon: Mail }] : []),
-    ...(user?.premium_offre === 'business' ? [{ path: '/client/equipe', label: 'Équipe', icon: Users }] : []),
+    { path: '/client/campagnes', label: 'Campagnes',     icon: Mail,  verrou: user?.premium ? null : 'Premium' },
+    { path: '/client/equipe',    label: 'Équipe',        icon: Users, verrou: user?.premium_offre === 'business' ? null : 'Business' },
     { path: '/client/payer',     label: 'Commander des avis', icon: CreditCard },
     { path: '/client/commandes', label: 'Mes commandes', icon: ShoppingBag },
     { path: '/client/stats',     label: 'Statistiques', icon: TrendingUp },
@@ -160,6 +161,11 @@ export default function Layout() {
         )}
         <Icon size={18} className={`relative ${active ? '' : 'text-slate-400 dark:text-slate-500'}`} style={active ? { color: accent } : undefined} />
         <span className="relative" style={active ? { color: accent } : undefined}>{item.label}</span>
+        {item.verrou && (
+          <span className="relative ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 dark:text-slate-500" title={`Débloquer avec ${item.verrou}`}>
+            <Lock size={11} /> {item.verrou}
+          </span>
+        )}
       </Link>
     )
   }

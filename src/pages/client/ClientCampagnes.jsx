@@ -87,8 +87,14 @@ export default function ClientCampagnes() {
             Envoie ta demande d'avis à toute ta clientèle d'un coup (jusqu'à {infos.destinataires_premium} adresses par campagne), avec ton propre texte, un envoi programmé et une relance.
             En Gratuit, tu peux déjà demander un avis à quelques clients par jour depuis <Link to="/client/outils" className="underline">Outils avis</Link>.
           </p>
-          <Link to="/client/premium" className="btn-primary w-full justify-center">Voir Premium</Link>
+          <Link to="/client/premium" className="btn-primary w-full justify-center"><Crown size={15} /> Débloquer avec Premium</Link>
         </div>
+      )}
+
+      {infos && !infos.premium && infos.config_ok !== undefined && (
+        <fieldset disabled className="opacity-60 select-none" aria-label="Aperçu des campagnes, disponible avec Premium">
+          <Formulaire infos={infos} annuler={() => {}} fait={() => {}} />
+        </fieldset>
       )}
 
       {infos && !infos.config_ok && infos.premium && (
@@ -137,7 +143,7 @@ function Formulaire({ infos, annuler, fait }) {
   const [attestation, setAttestation] = useState(false)
   const [problemes, setProblemes] = useState([])
   const [occupe, setOccupe] = useState(false)
-  const lim = infos.limites
+  const lim = { ...infos.limites, destinataires: infos.limites.destinataires || infos.destinataires_premium }
 
   const dest = useMemo(() => lireDestinataires(adresses), [adresses])
 
@@ -251,7 +257,7 @@ function Formulaire({ infos, annuler, fait }) {
         <div>
           <label className="text-sm font-medium flex items-center gap-1" htmlFor="camp-quand">Envoyer plus tard {!premium && <Crown size={12} className="text-amber-500" />}</label>
           <input id="camp-quand" type="datetime-local" className="input mt-1 w-full" value={quand} onChange={e => setQuand(e.target.value)} disabled={!premium} />
-          <p className="text-xs text-slate-500 mt-1">{premium ? 'Vide : l\'envoi démarre tout de suite.' : 'Réservé à Premium.'}</p>
+          <p className="text-xs text-slate-500 mt-1">{premium ? 'Vide : l\'envoi démarre tout de suite.' : 'Débloque-le avec Premium.'}</p>
         </div>
         <div>
           <label className="text-sm font-medium flex items-center gap-1" htmlFor="camp-relance">Relance unique {!premium && <Crown size={12} className="text-amber-500" />}</label>
@@ -260,7 +266,7 @@ function Formulaire({ infos, annuler, fait }) {
             {[3, 5, 7, 10, 14].filter(n => n >= lim.relance_min && n <= lim.relance_max).map(n => <option key={n} value={n}>Après {n} jours</option>)}
           </select>
           <p className="text-xs text-slate-500 mt-1">
-            {!premium ? 'Réservé à Premium.' : !infos.relance_disponible ? 'Pas disponible pour le moment.' : 'Un seul rappel, seulement à ceux qui n\'ont pas cliqué.'}
+            {!premium ? 'Débloque-le avec Premium.' : !infos.relance_disponible ? 'Pas disponible pour le moment.' : 'Un seul rappel, seulement à ceux qui n\'ont pas cliqué.'}
           </p>
         </div>
       </div>

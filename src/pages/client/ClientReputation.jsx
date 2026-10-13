@@ -497,9 +497,9 @@ function Rapport({ apercu }) {
     return (
       <div className="card text-center space-y-3 py-8">
         <Crown size={28} className="text-amber-500 mx-auto" />
-        <p className="font-semibold">Le rapport mensuel est réservé à Premium</p>
+        <p className="font-semibold">Rapport mensuel en PDF</p>
         <p className="text-sm text-slate-500 dark:text-slate-400">Un PDF avec ta note, tes nouveaux avis, tes passages sur le lien, les sujets qui reviennent et tes pistes en cours.</p>
-        <Link to="/client/premium" className="btn-primary inline-flex">Voir Premium</Link>
+        <Link to="/client/premium" className="btn-primary inline-flex">Débloquer avec Premium</Link>
       </div>
     )
   }
@@ -560,7 +560,7 @@ function ReglagesMotCle({ m, d, recharger }) {
           <select className="input mt-1 w-full" value={m.frequence} disabled={occupe || !d.premium} onChange={e => enregistrer({ frequence: e.target.value })}>
             {FREQUENCES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
-          {!d.premium && <span className="text-muted block mt-1">Réservé à Premium. Sans Premium, tu relèves à la main.</span>}
+          {!d.premium && <span className="text-muted block mt-1">Débloque-le avec Premium. Sans Premium, tu relèves à la main.</span>}
         </label>
       </div>
     </details>

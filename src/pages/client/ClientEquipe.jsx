@@ -110,12 +110,13 @@ function Equipe() {
           <p className="text-sm text-muted mt-1">Chaque personne garde son propre compte SwimUp et voit uniquement tes outils d'avis. Tu peux retirer un accès à tout moment.</p>
         </div>
 
-        {!d.business ? (
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-700/40 p-4 text-sm flex items-start gap-2">
-            <Crown size={16} className="text-indigo-500 mt-0.5 shrink-0" />
-            <p>Les accès d'équipe font partie de l'offre Business. <Link to="/client/premium" className="underline">Voir les offres</Link></p>
+        {!d.business && (
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-700/40 p-4 text-sm space-y-3">
+            <p className="flex items-start gap-2"><Crown size={16} className="text-indigo-500 mt-0.5 shrink-0" /> Les accès d'équipe font partie de l'offre Business : invite jusqu'à {d.limite_business} personnes, en lecture ou en édition.</p>
+            <Link to="/client/premium" className="btn-primary w-full justify-center">Débloquer avec Business</Link>
           </div>
-        ) : (
+        )}
+        <fieldset disabled={!d.business} className={d.business ? '' : 'opacity-60 select-none'}>
           <form onSubmit={inviter} className="space-y-3">
             <div className="flex flex-col sm:flex-row gap-2">
               <input className="input flex-1" type="email" required placeholder="Email du collaborateur" value={email} onChange={e => setEmail(e.target.value)} maxLength={200} aria-label="Email du collaborateur" />
@@ -124,9 +125,9 @@ function Equipe() {
               </select>
               <button className="btn-primary" disabled={occupe || plein || !email}><Mail size={15} /> Inviter</button>
             </div>
-            <p className="text-xs text-slate-500">{DESC_ROLES[role]} La personne doit avoir (ou créer) un compte client SwimUp avec cette adresse. {d.acces.length + d.invitations.length}/{d.limite} places utilisées.</p>
+            <p className="text-xs text-slate-500">{DESC_ROLES[role]} La personne doit avoir (ou créer) un compte client SwimUp avec cette adresse.{d.business && ` ${d.acces.length + d.invitations.length}/${d.limite} places utilisées.`}</p>
           </form>
-        )}
+        </fieldset>
 
         {d.invitations.length > 0 && (
           <div>
@@ -225,7 +226,8 @@ function Comparaison() {
     return (
       <div className="card text-sm space-y-2">
         <p className="font-medium flex items-center gap-2"><Crown size={15} className="text-indigo-500" /> La comparaison entre établissements fait partie de l'offre Business.</p>
-        <p className="text-muted">Tu vois ici la note, les avis et l'activité de chacun de tes établissements côte à côte, avec un rapport PDF groupé. <Link to="/client/premium" className="underline">Voir les offres</Link></p>
+        <p className="text-muted">Tu vois ici la note, les avis et l'activité de chacun de tes établissements côte à côte, avec un rapport PDF groupé. </p>
+        <Link to="/client/premium" className="btn-primary w-full justify-center">Débloquer avec Business</Link>
       </div>
     )
   }
