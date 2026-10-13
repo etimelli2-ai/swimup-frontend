@@ -156,6 +156,22 @@ export function AideCommercantsIndex() {
           </span>
           <ChevronRight size={18} className="ml-auto shrink-0 text-sky-500" />
         </Link>
+        <div className="mb-4 grid gap-3 sm:grid-cols-2">
+          <Link to="/outils/modeles-reponses-avis-google" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 hover:border-slate-300 transition-colors">
+            <span className="min-w-0">
+              <span className="block text-[15px] font-semibold tracking-tight text-slate-900">Modèles de réponses aux avis</span>
+              <span className="block mt-0.5 text-[13px] leading-snug text-slate-500">12 textes à copier et adapter. Gratuit.</span>
+            </span>
+            <ChevronRight size={16} className="ml-auto shrink-0 text-slate-400" />
+          </Link>
+          <Link to="/outils/diagnostic-fiche-google" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 hover:border-slate-300 transition-colors">
+            <span className="min-w-0">
+              <span className="block text-[15px] font-semibold tracking-tight text-slate-900">Diagnostic de ta fiche Google</span>
+              <span className="block mt-0.5 text-[13px] leading-snug text-slate-500">Une liste à cocher pour voir ce qu'il reste à faire.</span>
+            </span>
+            <ChevronRight size={16} className="ml-auto shrink-0 text-slate-400" />
+          </Link>
+        </div>
         <ul className="grid gap-4 sm:grid-cols-2">
           {GUIDES.map(g => {
             const Icone = ICONES[g.icone] || Star

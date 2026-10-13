@@ -12,6 +12,8 @@ export const PAGES = [
   '/aide-commercants',
   ...GUIDES.map(g => `/aide-commercants/${g.slug}`),
   '/outils/lien-avis-google',
+  '/outils/modeles-reponses-avis-google',
+  '/outils/diagnostic-fiche-google',
   '/inscription',
   '/confidentialite',
 ]

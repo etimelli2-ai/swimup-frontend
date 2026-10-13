@@ -85,6 +85,9 @@ export const GUIDES = [
         'Répondre à chaud, accuser le client de mentir, copier-coller exactement la même réponse sous chaque avis, ou donner des informations personnelles.',
         'Si l\'avis te semble faux ou hors sujet, ne te bats pas en public : voir le guide sur les avis injustes.',
       ] },
+      { t: 'Plus de modèles', type: 'lien', href: '/outils/modeles-reponses-avis-google', label: 'Voir les 12 modèles', p: [
+        'Quatre réponses aux avis positifs, cinq aux avis négatifs et trois aux avis faux ou injustes, avec le prénom du client et le nom de ton commerce qui se remplissent dans le texte. Gratuit, sans compte.',
+      ] },
       { t: 'Avec SwimUp', type: 'swimup', p: [
         'L\'outil « Répondre à un avis » de ton espace client te propose un brouillon à partir de l\'avis collé. Relis-le toujours et adapte-le avant de publier.',
       ] },
@@ -115,6 +118,9 @@ export const GUIDES = [
       { t: 'Avis et questions', p: [
         'Réponds aux avis régulièrement et surveille les questions posées par les internautes.',
         'Active les notifications pour ne pas laisser un avis sans réponse pendant des semaines.',
+      ] },
+      { t: 'Fais le point sur ta fiche', type: 'lien', href: '/outils/diagnostic-fiche-google', label: 'Ouvrir le diagnostic', p: [
+        'Notre diagnostic reprend ces points sous forme de liste à cocher et te montre ce qu\'il reste à faire en premier. Gratuit, sans compte, et le score compte seulement ce que tu as coché.',
       ] },
       { t: 'Vérifie régulièrement', p: [
         'Une fois par trimestre, relis ta fiche comme le ferait un nouveau client : horaires, téléphone, photos, liens. Les informations changent vite et les internautes peuvent proposer des modifications que tu dois valider.',

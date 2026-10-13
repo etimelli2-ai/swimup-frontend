@@ -48,6 +48,8 @@ import ZonesPrivees from './components/ZonesPrivees'
 import Mesure from './components/Mesure'
 const NotFound = lazy(() => import('./pages/NotFound'))
 const LienAvisGoogle = lazy(() => import('./pages/outils/LienAvisGoogle'))
+const ModelesReponsesAvis = lazy(() => import('./pages/outils/ModelesReponsesAvis'))
+const DiagnosticFiche = lazy(() => import('./pages/outils/DiagnosticFiche'))
 
 function PrivateRoute({ children, roles }) {
   const { user, loading } = useAuth()
@@ -105,6 +107,8 @@ export default function App() {
       <Route path="/aide-commercants" element={<AideCommercantsIndex />} />
       <Route path="/confidentialite" element={<Confidentialite />} />
       <Route path="/outils/lien-avis-google" element={<LienAvisGoogle />} />
+      <Route path="/outils/modeles-reponses-avis-google" element={<ModelesReponsesAvis />} />
+      <Route path="/outils/diagnostic-fiche-google" element={<DiagnosticFiche />} />
       <Route path="/aide-commercants/:slug" element={<AideCommercantsGuide />} />
       <Route path="/verifier-email" element={<VerifierEmail />} />
       <Route path="/verification-requise" element={
