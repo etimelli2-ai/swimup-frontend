@@ -37,24 +37,34 @@ const CANAUX = [
 const LABEL_CANAL = { ...Object.fromEntries(CANAUX), email: 'Email' }
 const estContacte = (p) => !!p.email_envoye || !!p.dernier_contact_at
 
-// On mène avec la valeur (pourquoi une bonne fiche Google compte) plutôt
-// qu'avec "on vend des avis" — le service n'arrive qu'ensuite, en douceur,
-// avec l'essai gratuit comme porte d'entrée sans engagement.
-const SUJET_DEFAUT = 'Votre visibilité sur Google Maps'
-const MESSAGE_DEFAUT = (nom) => `Bonjour,
+// Mail de démarchage : il dit ce qu'est SwimUp (outils gratuits + offres) et renvoie
+// vers la page des offres, où tout est expliqué avec les prix. Pas d'avis offert
+// dans le mail. Les chiffres cités (note, nombre d'avis) sont ceux de la fiche
+// du prospect, jamais inventés : sans donnée on ne cite rien.
+const SUJET_DEFAUT = 'Votre fiche Google Maps : ce qui peut jouer sur sa visibilité'
+const MESSAGE_DEFAUT = (p) => {
+  const note = p.note ? String(p.note).replace('.', ',') : null
+  const constat = note && p.nb_avis != null
+    ? `Votre fiche affiche ${note} sur 5 avec ${p.nb_avis} avis.`
+    : 'J\'ai regardé votre fiche.'
+  return `Bonjour,
 
-En regardant les fiches Google Maps du secteur, je suis tombé sur "${nom}".
+Je suis Enzo, je gère SwimUp. En regardant les fiches Google Maps du secteur, je suis tombé sur "${p.nom}". ${constat}
 
-Aujourd'hui, la fiche Google d'un établissement est souvent le tout premier réflexe d'un client avant de passer la porte — avant même le site web ou les réseaux sociaux. Une bonne note et une fiche active jouent directement sur le classement dans les recherches locales ("restaurant près de moi", etc.) et sur la confiance des gens qui hésitent encore entre plusieurs adresses du quartier.
+On a mis en ligne un diagnostic gratuit qui passe une fiche en revue et indique quoi corriger, en 2 minutes :
+https://swimup.net/outils/diagnostic-fiche-google
 
-Chez SwimUp, on accompagne des établissements comme le vôtre sur ce sujet : mise en valeur de la fiche, suivi de la réputation, et un vrai service autour des avis Google quand c'est utile pour donner un coup de pouce.
+Vous y trouverez aussi des modèles de réponse aux avis et un lien avec QR code pour que vos clients vous laissent plus facilement un avis.
 
-Si ça vous intéresse d'y jeter un œil, on vous offre un premier avis gratuit pour voir concrètement ce que ça peut changer, sans engagement de votre part. Il suffit de cliquer ici pour le réclamer :
+Si vous voulez aller plus loin, on propose aussi des outils de suivi de réputation et d'envoi de demandes d'avis à vos propres clients. Tout est détaillé ici, avec les prix :
+https://swimup.net/offres
 
-{{LIEN_ESSAI}}
+Si ça ne vous intéresse pas, répondez simplement « stop » et je ne vous écris plus.
 
 Bonne journée,
-L'équipe SwimUp`
+Enzo
+SwimUp`
+}
 
 export default function AdminProspection() {
   const [recherches, setRecherches] = useState([{ requete: '', ville: '', autre: false }])
@@ -67,7 +77,7 @@ export default function AdminProspection() {
   const [modal, setModal]           = useState(null) // prospect en cours d'envoi
   const [sujet, setSujet]           = useState(SUJET_DEFAUT)
   const [message, setMessage]       = useState('')
-  const [essaiGratuit, setEssaiGratuit] = useState(true)
+  const [essaiGratuit, setEssaiGratuit] = useState(false)
   const [msg, setMsg]               = useState(null)
   const [ajoutManuel, setAjoutManuel] = useState(false)
   const [formManuel, setFormManuel] = useState({ nom: '', email: '', telephone: '', site_web: '', adresse: '' })
@@ -127,7 +137,7 @@ export default function AdminProspection() {
   const ouvrirModal = (p) => {
     setModal(p)
     setSujet(SUJET_DEFAUT)
-    setMessage(MESSAGE_DEFAUT(p.nom))
+    setMessage(MESSAGE_DEFAUT(p))
     setEssaiGratuit(true)
   }
 
@@ -561,7 +571,7 @@ export default function AdminProspection() {
               <label className="block text-xs font-medium text-gray-600 mb-1">Message</label>
               <textarea rows={9} value={message} onChange={e => setMessage(e.target.value)} className="input text-sm" />
               <p className="text-[11px] text-gray-400 mt-1">
-                Le texte <code className="bg-gray-100 px-1 rounded">{'{{LIEN_ESSAI}}'}</code> sera remplacé par le vrai lien de réclamation à l'envoi.
+                Relis avant d'envoyer : ne garde que ce qui est vrai pour ce commerce. Si tu ajoutes <code className="bg-gray-100 px-1 rounded">{'{{LIEN_ESSAI}}'}</code>, il est remplacé par le lien d'essai (case ci-dessous).
               </p>
             </div>
             <label className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3 cursor-pointer">
