@@ -11,8 +11,8 @@
   /* Couleur d'accent par défaut (Action Blue) — surchargée en inline style
      sur le wrapper de Layout.jsx pour un client premium ayant choisi une
      autre couleur (voir ClientPremium.jsx). */
-  --accent: #0ea5e9;
-  --accent-hover: #0284c7;
+  --accent: #0066cc;
+  --accent-hover: #0058ab;
   /* Forme des boutons / cartes / champs — surchargée par Layout.jsx pour un
      client premium (forme "Arrondi" ou "Carré"). Valeurs par défaut = look
      actuel du site (pilules). */

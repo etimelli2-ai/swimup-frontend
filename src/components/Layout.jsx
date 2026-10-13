@@ -31,6 +31,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import SelecteurCompte from './SelecteurCompte'
 import React from 'react'
 import { springSheet, springSmooth } from '../lib/motion'
+import { LogoMarque } from './Logo'
 import { ACCENT_DEFAUT, couleurHover, ARRONDIS, TAILLES, ICONES } from '../lib/themePremium'
 
 const DiscordIcon = () => (
@@ -71,6 +72,8 @@ export default function Layout() {
   const forme = ARRONDIS[theme?.arrondi] || ARRONDIS.pilule
   const nomEspace = theme?.nom_espace || 'SwimUp'
   const { Icon: LogoIcon, plein: logoPlein } = ICONES[theme?.icone] || ICONES.etoile
+  // Sans personnalisation premium : logo SwimUp. Avec icône ou couleur choisie : la pastille du client.
+  const logoMarque = !(isClient && (theme?.icone || user?.theme_color))
   const taillePct = TAILLES[theme?.taille_texte]?.pct || null
 
   // La taille du texte se règle sur la racine (tout est en rem) ; on remet
@@ -180,10 +183,12 @@ export default function Layout() {
       <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 fixed h-full z-20">
         <div className="p-5 border-b border-slate-100 dark:border-slate-700">
           <Link to={isAdmin ? '/admin' : isClient ? '/client' : '/dashboard'} className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent }}>
-              <LogoIcon size={18} className={`text-white ${logoPlein ? 'fill-white' : ''}`} />
-            </div>
-            <span className="text-lg font-semibold text-slate-900 dark:text-slate-100 tracking-tight truncate">{nomEspace}</span>
+            {logoMarque
+              ? <LogoMarque size={36} />
+              : <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent }}>
+                  <LogoIcon size={18} className={`text-white ${logoPlein ? 'fill-white' : ''}`} />
+                </div>}
+            <span className="font-display text-lg font-extrabold text-slate-900 dark:text-slate-100 tracking-tight truncate">{nomEspace}</span>
           </Link>
         </div>
 
@@ -211,9 +216,11 @@ export default function Layout() {
           le contenu qui défile dessous au lieu d'une plaque opaque. */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-14 material-glass border-b border-slate-200/70 dark:border-slate-700/70 z-30 flex items-center justify-between px-4">
         <Link to={isAdmin ? '/admin' : isClient ? '/client' : '/dashboard'} className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent }}>
-            <LogoIcon size={15} className={`text-white ${logoPlein ? 'fill-white' : ''}`} />
-          </div>
+          {logoMarque
+            ? <LogoMarque size={32} />
+            : <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent }}>
+                <LogoIcon size={15} className={`text-white ${logoPlein ? 'fill-white' : ''}`} />
+              </div>}
           <span className="font-semibold text-slate-900 dark:text-slate-100 tracking-tight truncate max-w-[200px]">{nomEspace}</span>
         </Link>
         <button

@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react'
+import { LogoMarque } from './Logo'
 import { motion } from 'framer-motion'
 import { springSmooth, springSnappy } from '../lib/motion'
 
@@ -21,11 +21,11 @@ export default function AuthShell({ sousTitre, children, pied }) {
             initial={{ scale: 0.6, rotate: -8 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={springSnappy}
-            className="w-14 h-14 bg-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            className="w-14 h-14 mx-auto mb-4"
           >
-            <Star size={26} className="text-white fill-white" />
+            <LogoMarque size={56} titre="Logo SwimUp" />
           </motion.div>
-          <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">SwimUp</h1>
+          <h1 className="font-display text-[28px] font-extrabold text-slate-900 tracking-tight">SwimUp</h1>
           <p className="text-[15px] text-slate-500 mt-1">{sousTitre}</p>
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xl shadow-slate-200/50">

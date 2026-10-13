@@ -7,6 +7,7 @@ import Seo from '../components/Seo'
 import { organisationLd, filAriane, urlAbsolue } from '../lib/seo.mjs'
 import { springSmooth } from '../lib/motion'
 import { GUIDES, guideParSlug } from '../content/guidesCommercants'
+import Logo from '../components/Logo'
 
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
@@ -34,11 +35,8 @@ function Cadre({ children }) {
     <div className="min-h-screen bg-white text-slate-900">
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-sky-500 flex items-center justify-center">
-              <Star size={12} className="text-white fill-white" />
-            </div>
-            <span className="text-slate-900 text-[15px] font-semibold tracking-tight">SwimUp</span>
+          <Link to="/" aria-label="SwimUp, accueil">
+            <Logo taille={26} classeTexte="text-slate-900" />
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/aide-commercants" className="hidden sm:inline text-[13px] text-slate-500 hover:text-slate-700 font-medium transition-colors">

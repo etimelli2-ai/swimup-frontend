@@ -1,7 +1,7 @@
 // En-tête et pied de page des pages publiques « ressources » (outils gratuits).
 // Même grammaire visuelle que les guides ; ne dépend ni de la connexion ni de l'API.
 import { Link } from 'react-router-dom'
-import { Star } from 'lucide-react'
+import Logo from './Logo'
 
 export default function CadrePublic({ children, large = false }) {
   const largeur = large ? 'max-w-4xl' : 'max-w-2xl'
@@ -9,9 +9,8 @@ export default function CadrePublic({ children, large = false }) {
     <div className="min-h-screen bg-white text-slate-900">
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 print:hidden">
         <div className={`${largeur} mx-auto px-4 h-12 flex items-center justify-between`}>
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-sky-500 flex items-center justify-center"><Star size={12} className="text-white fill-white" /></div>
-            <span className="text-slate-900 text-[15px] font-semibold tracking-tight">SwimUp</span>
+          <Link to="/" aria-label="SwimUp, accueil">
+            <Logo taille={26} classeTexte="text-slate-900" />
           </Link>
           <nav className="flex items-center gap-4" aria-label="Navigation">
             <Link to="/aide-commercants" className="hidden sm:inline text-[13px] text-slate-500 hover:text-slate-700 font-medium">Guides</Link>

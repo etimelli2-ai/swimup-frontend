@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ArrowRight, AlertCircle, Loader2, Check, Lock, Star, ChevronDown, MessageCircle } from 'lucide-react'
+import { ArrowRight, AlertCircle, Loader2, Check, Lock, ChevronDown, MessageCircle } from 'lucide-react'
 import axios from 'axios'
+import Logo from '../components/Logo'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.swimup.net/api'
 const PRIX_UNITAIRE = 4
@@ -57,10 +58,7 @@ export default function PublicCommander() {
       <header className="border-b border-slate-200/80">
         <div className="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2" aria-label="SwimUp">
-            <span className="w-7 h-7 rounded-lg bg-[#0369A1] flex items-center justify-center">
-              <Star size={13} className="text-white fill-white" />
-            </span>
-            <span className="font-display text-[17px] font-bold tracking-tight">SwimUp</span>
+            <Logo taille={30} classeTexte="text-[#0B1F33]" />
           </a>
           <nav className="flex items-center gap-5 text-[14px]">
             <a href="/inscription" className="hidden sm:inline text-slate-600 hover:text-[#0B1F33]">Créer un compte gratuit</a>

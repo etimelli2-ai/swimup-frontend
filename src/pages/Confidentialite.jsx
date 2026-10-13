@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Star } from 'lucide-react'
 import api from '../lib/api'
 import Seo from '../components/Seo'
+import Logo from '../components/Logo'
 
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
@@ -29,9 +29,8 @@ export default function Confidentialite() {
       <Seo title="Confidentialité" description="Quelles données SwimUp garde pour les outils des entreprises, combien de temps, et comment les télécharger ou les effacer." path="/confidentialite" />
       <header className="border-b border-slate-200">
         <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-sky-500 flex items-center justify-center"><Star size={12} className="text-white fill-white" /></div>
-            <span className="text-[15px] font-semibold tracking-tight">SwimUp</span>
+          <Link to="/" aria-label="SwimUp, accueil">
+            <Logo taille={26} classeTexte="text-slate-900" />
           </Link>
           <a href="/login" className="text-[13px] text-sky-600 hover:text-sky-700 font-medium">Se connecter</a>
         </div>

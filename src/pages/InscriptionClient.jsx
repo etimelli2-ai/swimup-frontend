@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, Eye, EyeOff, ArrowRight, AlertCircle, Check } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight, AlertCircle, Check } from 'lucide-react'
 import Seo from '../components/Seo'
 import { mesure } from '../lib/mesure.mjs'
 import { useAuth } from '../hooks/useAuth'
 import { springSmooth, springSnappy, springSheet } from '../lib/motion'
 import toast from 'react-hot-toast'
 import { retenirOffreSouhaitee } from '../lib/offreSouhaitee'
+import { LogoMarque } from '../components/Logo'
 
 // Création d'un compte CLIENT : email + mot de passe, rien d'autre.
 // Les comptes membres ont leur propre page (/register), jamais proposée ici.
@@ -65,8 +66,8 @@ export default function InscriptionClient() {
       <motion.div initial={{ opacity: 0, y: 24, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={springSmooth} className="relative w-full max-w-sm">
         <div className="text-center mb-7">
           <motion.div initial={{ scale: 0.6, rotate: -8 }} animate={{ scale: 1, rotate: 0 }} transition={springSnappy}
-            className="w-14 h-14 bg-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Star size={26} className="text-white fill-white" />
+            className="w-14 h-14 mx-auto mb-4">
+            <LogoMarque size={56} titre="Logo SwimUp" />
           </motion.div>
           <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">Crée ton compte gratuit</h1>
           <p className="text-[15px] text-slate-500 mt-1">

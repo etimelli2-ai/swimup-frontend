@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
-import { Star } from 'lucide-react'
 import Seo from '../components/Seo'
+import { LogoMarque } from '../components/Logo'
 
 // Remplace l'ancienne redirection silencieuse vers l'accueil : une adresse inconnue
 // affiche une vraie page « introuvable », en noindex.
@@ -9,7 +9,7 @@ export default function NotFound() {
     <div className="min-h-screen bg-white flex items-center justify-center p-6">
       <Seo title="Page introuvable" noindex />
       <div className="max-w-sm text-center space-y-4">
-        <div className="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center mx-auto"><Star size={22} className="text-white fill-white" /></div>
+        <div className="mx-auto w-12"><LogoMarque size={48} titre="Logo SwimUp" /></div>
         <h1 className="text-[24px] font-semibold tracking-tight text-slate-900">Cette page n'existe pas</h1>
         <p className="text-[15px] text-slate-500">L'adresse est peut-être mal écrite, ou la page a changé de place.</p>
         <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">

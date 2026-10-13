@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Star, MailWarning, LogOut } from 'lucide-react'
+import { MailWarning, LogOut } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api from '../lib/api'
+import { LogoMarque } from '../components/Logo'
 
 export default function VerificationRequise() {
   const { user, logout } = useAuth()
@@ -36,10 +37,10 @@ export default function VerificationRequise() {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Star size={26} className="text-white fill-white" />
+          <div className="w-14 h-14 mx-auto mb-4">
+            <LogoMarque size={56} titre="Logo SwimUp" />
           </div>
-          <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">SwimUp</h1>
+          <h1 className="font-display text-[28px] font-extrabold text-slate-900 tracking-tight">SwimUp</h1>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-6 text-center space-y-4">

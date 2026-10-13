@@ -4,6 +4,7 @@ import { CheckCircle2, Clock, AlertCircle, Package, Star, MapPin, Mail, Copy, Ch
 import { motion } from 'framer-motion'
 import axios from 'axios'
 import { TONS, TYPES, EtoilesPicker, genererTexteIA } from '../lib/avisPublicShared'
+import Logo from '../components/Logo'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.swimup.net/api'
 
@@ -321,10 +322,7 @@ export default function PublicSuivi() {
       <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
           <Link to="/commander" className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-sky-500 flex items-center justify-center">
-              <Star size={12} className="text-white fill-white" />
-            </div>
-            <span className="text-slate-900 text-[15px] font-semibold tracking-tight">SwimUp</span>
+            <Logo taille={26} classeTexte="text-slate-900" />
           </Link>
           <span className="text-[12px] text-slate-400 font-mono">#{order.id}</span>
         </div>

@@ -6,8 +6,9 @@ import usePageTitle from '../hooks/usePageTitle'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { Star, Eye, EyeOff, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { LogoMarque } from '../components/Logo'
 import { springSmooth, springSnappy, springSheet } from '../lib/motion'
 
 export default function Login() {
@@ -77,11 +78,11 @@ export default function Login() {
             initial={{ scale: 0.6, rotate: -8 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={springSnappy}
-            className="w-14 h-14 bg-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            className="w-14 h-14 mx-auto mb-4"
           >
-            <Star size={26} className="text-white fill-white" />
+            <LogoMarque size={56} titre="Logo SwimUp" />
           </motion.div>
-          <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">SwimUp</h1>
+          <h1 className="font-display text-[28px] font-extrabold text-slate-900 tracking-tight">SwimUp</h1>
           <p className="text-[15px] text-slate-500 mt-1">Connecte-toi à ton compte</p>
         </div>
 
