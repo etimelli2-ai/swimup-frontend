@@ -197,8 +197,8 @@ export default function Login() {
 
         <p className="text-center text-sm text-slate-500 mt-6">
           Pas encore de compte ?{' '}
-          <Link to="/register" className="font-semibold text-sky-600 hover:text-sky-700">
-            S'inscrire
+          <Link to="/inscription" className="font-semibold text-sky-600 hover:text-sky-700">
+            Créer un compte gratuit
           </Link>
         </p>
       </motion.div>

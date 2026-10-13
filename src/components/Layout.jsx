@@ -97,15 +97,17 @@ export default function Layout() {
     { path: '/admin/business', label: 'Business', icon: BarChart3 },
     { path: '/profil',         label: 'Profil',       icon: User },
   ] : isClient ? [
-    { path: '/client',           label: 'Dashboard',    icon: LayoutDashboard },
-    { path: '/client/payer',     label: 'Commander',    icon: CreditCard },
+    // Menu court pour un compte gratuit : l'essentiel d'abord, le reste apparaît
+    // avec l'offre qui le débloque.
+    { path: '/client',           label: 'Accueil',       icon: LayoutDashboard },
+    { path: '/client/outils',    label: 'Mes avis',      icon: QrCode },
+    { path: '/client/reputation', label: 'Réputation',   icon: Star },
+    ...(user?.premium ? [{ path: '/client/campagnes', label: 'Campagnes', icon: Mail }] : []),
+    ...(user?.premium_offre === 'business' ? [{ path: '/client/equipe', label: 'Équipe', icon: Users }] : []),
+    { path: '/client/payer',     label: 'Commander des avis', icon: CreditCard },
     { path: '/client/commandes', label: 'Mes commandes', icon: ShoppingBag },
     { path: '/client/stats',     label: 'Statistiques', icon: TrendingUp },
-    { path: '/client/outils',    label: 'Outils avis',  icon: QrCode },
-    { path: '/client/campagnes',  label: 'Campagnes',   icon: Mail },
-    { path: '/client/equipe',     label: 'Équipe',      icon: Users },
-    { path: '/client/reputation', label: 'Réputation',  icon: Star },
-    { path: '/client/premium',   label: 'Premium',      icon: Crown },
+    { path: '/client/premium',   label: user?.premium ? 'Mon abonnement' : 'Passer Premium', icon: Crown },
     { path: '/profil',           label: 'Profil',       icon: User },
   ] : [
     { path: '/dashboard',    label: 'Tableau de bord',  icon: LayoutDashboard },

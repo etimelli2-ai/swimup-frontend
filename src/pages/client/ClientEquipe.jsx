@@ -110,10 +110,10 @@ function Equipe() {
           <p className="text-sm text-muted mt-1">Chaque personne garde son propre compte SwimUp et voit uniquement tes outils d'avis. Tu peux retirer un accès à tout moment.</p>
         </div>
 
-        {!d.premium ? (
+        {!d.business ? (
           <div className="rounded-xl bg-slate-50 dark:bg-slate-700/40 p-4 text-sm flex items-start gap-2">
-            <Crown size={16} className="text-amber-500 mt-0.5 shrink-0" />
-            <p>Les accès d'équipe sont inclus dans l'offre Premium (jusqu'à 5 personnes). <Link to="/client/premium" className="underline">Voir Premium</Link></p>
+            <Crown size={16} className="text-indigo-500 mt-0.5 shrink-0" />
+            <p>Les accès d'équipe font partie de l'offre Business. <Link to="/client/premium" className="underline">Voir les offres</Link></p>
           </div>
         ) : (
           <form onSubmit={inviter} className="space-y-3">
@@ -205,7 +205,8 @@ function Comparaison() {
 
   useEffect(() => {
     setS(null)
-    api.get('/client/equipe/groupe/synthese', { params: { jours } }).then(r => setS(r.data)).catch(() => toast.error('Chargement impossible'))
+    api.get('/client/equipe/groupe/synthese', { params: { jours } }).then(r => setS(r.data))
+      .catch(e => { if (e.response?.status === 403) setS({ reserve: true }); else toast.error('Chargement impossible') })
   }, [jours])
 
   const telecharger = async () => {
@@ -220,6 +221,14 @@ function Comparaison() {
   }
 
   if (!s) return <div className="card animate-pulse h-32" />
+  if (s.reserve) {
+    return (
+      <div className="card text-sm space-y-2">
+        <p className="font-medium flex items-center gap-2"><Crown size={15} className="text-indigo-500" /> La comparaison entre établissements fait partie de l'offre Business.</p>
+        <p className="text-muted">Tu vois ici la note, les avis et l'activité de chacun de tes établissements côte à côte, avec un rapport PDF groupé. <Link to="/client/premium" className="underline">Voir les offres</Link></p>
+      </div>
+    )
+  }
   const t = s.totaux
 
   return (
@@ -235,8 +244,8 @@ function Comparaison() {
 
       {s.lignes.length === 0 ? (
         <div className="card text-sm space-y-2">
-          <p className="font-medium flex items-center gap-2"><Crown size={15} className="text-amber-500" /> La comparaison est réservée aux établissements Premium.</p>
-          <p className="text-muted">Passe ton compte en Premium, ou demande un accès à un compte Premium, pour voir ici la note, les avis et l'activité de chaque établissement côte à côte.</p>
+          <p className="font-medium flex items-center gap-2"><Crown size={15} className="text-amber-500" /> Aucun établissement Premium à comparer pour l'instant.</p>
+          <p className="text-muted">Dès que tes établissements sont en Premium, tu verras ici la note, les avis et l'activité de chaque établissement côte à côte.</p>
         </div>
       ) : (
         <>

@@ -119,7 +119,7 @@ export default function Register() {
           </motion.div>
           <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">SwimUp</h1>
           <p className="text-[15px] text-slate-500 mt-1">
-            {commandeToken ? 'Crée ton compte client' : 'Crée ton compte'}
+            {commandeToken ? 'Crée ton compte client' : 'Crée ton compte membre'}
           </p>
         </div>
 

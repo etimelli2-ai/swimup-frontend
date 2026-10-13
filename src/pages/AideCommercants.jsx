@@ -42,7 +42,7 @@ function Cadre({ children }) {
         <div className="max-w-2xl mx-auto px-4 py-8 space-y-2">
           <div className="flex items-center justify-between text-[12px] text-slate-400 flex-wrap gap-2">
             <span>© 2025 SwimUp</span>
-            <a href="/login" className="text-sky-500 hover:underline">Espace membres</a>
+            <a href="/login" className="text-sky-500 hover:underline">Connexion</a>
           </div>
           <p className="text-[11px] text-slate-400">
             Conseils pratiques, pas des conseils juridiques. Les règles de Google peuvent changer : vérifie toujours l'aide officielle.

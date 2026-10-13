@@ -225,12 +225,14 @@ export default function ClientDashboard() {
           <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 rounded-xl flex items-center justify-center mb-3 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/50 transition-colors">
             <Crown size={24} className="text-amber-500" />
           </div>
-          <h3 className="font-bold text-slate-900 dark:text-white">Abonnement premium</h3>
+          <h3 className="font-bold text-slate-900 dark:text-white">{user?.premium ? 'Mon abonnement' : 'Passer Premium'}</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            -10% sur tes commandes et statut premium — 5€/mois
+            {user?.premium
+              ? 'Gère ton offre, ta carte et tes factures'
+              : 'Campagnes d\'emails, suivi Google Maps, -10 % sur les commandes — dès 9,90 € par mois'}
           </p>
           <div className="mt-3 flex items-center gap-1 text-amber-600 dark:text-amber-400 text-sm font-medium">
-            {user?.premium ? 'Actif ✓' : 'Découvrir'}
+            {user?.premium ? (user?.premium_offre === 'business' ? 'Business ✓' : 'Premium ✓') : 'Voir les offres'}
           </div>
         </Link>
 

@@ -102,7 +102,7 @@ export default function AdminCommandes() {
       </div>
 
       <div className="flex bg-slate-100 dark:bg-slate-700 rounded-xl p-1 gap-1">
-        {[['commandes', 'Commandes'], ['abonnements', 'Abonnements premium']].map(([v, l]) => (
+        {[['commandes', 'Commandes'], ['abonnements', 'Abonnements']].map(([v, l]) => (
           <button key={v} onClick={() => setOnglet(v)}
             className={`flex-1 py-2 text-xs font-medium rounded-full transition-all ${
               onglet === v ? 'bg-white dark:bg-slate-600 text-sky-700 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
@@ -199,7 +199,7 @@ export default function AdminCommandes() {
                 <div>
                   <p className="font-semibold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
                     <Crown size={15} className="text-amber-500" />
-                    Abonnement premium — {parseFloat(a.montant).toFixed(2)}€/mois
+                    Abonnement {a.offre === 'business' ? 'Business' : 'Premium'} — {parseFloat(a.montant).toFixed(2)}€/mois
                   </p>
                   <p className="text-sm text-slate-500 dark:text-slate-400">{a.nom_societe || a.client_email}</p>
                   <p className="text-xs text-slate-400">{a.client_email}</p>

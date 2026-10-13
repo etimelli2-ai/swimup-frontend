@@ -71,6 +71,13 @@ export function AuthProvider({ children }) {
     return r.data.user
   }, [ouvrirSession])
 
+  // Inscription libre d'un compte client : email + mot de passe, sans lien ni code.
+  const registerClient = useCallback(async (email, password) => {
+    const r = await api.post('/auth/register-client', { email, password })
+    await ouvrirSession(r.data.user)
+    return r.data.user
+  }, [ouvrirSession])
+
   const logout = useCallback(() => {
     // Le cookie httpOnly ne peut pas être supprimé en JS : il faut demander
     // au backend de le faire via un Set-Cookie expiré.
@@ -84,7 +91,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthCtx.Provider value={{ user, updateUser, login, loginAvec2fa, register, logout, loading }}>
+    <AuthCtx.Provider value={{ user, updateUser, login, loginAvec2fa, register, registerClient, logout, loading }}>
       {children}
     </AuthCtx.Provider>
   )

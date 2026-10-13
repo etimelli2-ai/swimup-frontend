@@ -73,14 +73,25 @@ export default function ClientCampagnes() {
           <h1 className="page-title">Campagnes d'avis</h1>
           <p className="text-muted mt-1">Demande un avis à tes clients par email, en plusieurs envois, avec le suivi de ce qui part.</p>
         </div>
-        {infos && !creation && infos.config_ok && (
+        {infos && !creation && infos.config_ok && infos.premium && (
           <button className="btn-primary shrink-0" onClick={() => setCreation(true)}><Plus size={15} /> Nouvelle</button>
         )}
       </div>
 
       {erreur && <div className="card text-center text-sm text-red-500 py-8">Impossible de charger cette page. Recharge-la dans un instant.</div>}
 
-      {infos && !infos.config_ok && (
+      {infos && !infos.premium && (
+        <div className="card space-y-3">
+          <p className="font-medium flex items-center gap-2"><Crown size={16} className="text-amber-500" /> Les campagnes d'emails font partie de Premium</p>
+          <p className="text-sm text-muted">
+            Envoie ta demande d'avis à toute ta clientèle d'un coup (jusqu'à {infos.destinataires_premium} adresses par campagne), avec ton propre texte, un envoi programmé et une relance.
+            En Gratuit, tu peux déjà demander un avis à quelques clients par jour depuis <Link to="/client/outils" className="underline">Outils avis</Link>.
+          </p>
+          <Link to="/client/premium" className="btn-primary w-full justify-center">Voir Premium</Link>
+        </div>
+      )}
+
+      {infos && !infos.config_ok && infos.premium && (
         <div className="card text-sm space-y-2">
           <p className="font-medium">Il manque le nom de ton commerce ou ton lien d'avis.</p>
           <p className="text-muted">Renseigne-les dans <Link to="/client/outils" className="underline">Outils avis</Link>, puis reviens ici.</p>
@@ -94,7 +105,7 @@ export default function ClientCampagnes() {
         <Formulaire infos={infos} annuler={() => setCreation(false)} fait={() => { setCreation(false); charger() }} />
       )}
 
-      {campagnes && campagnes.length === 0 && !creation && infos?.config_ok && (
+      {campagnes && campagnes.length === 0 && !creation && infos?.config_ok && infos.premium && (
         <div className="card text-center py-10 space-y-3">
           <Mail size={28} className="mx-auto text-slate-400" />
           <p className="font-medium">Aucune campagne pour l'instant</p>

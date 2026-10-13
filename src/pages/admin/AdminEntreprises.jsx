@@ -221,14 +221,15 @@ function PremiumManuel({ id, actif, apres }) {
   const [ouvert, setOuvert] = useState(false)
   const [action, setAction] = useState(actif ? 'retirer' : 'activer')
   const [jours, setJours] = useState(30)
+  const [offre, setOffre] = useState('premium')
   const [motif, setMotif] = useState('')
   const [envoi, setEnvoi] = useState(false)
 
   const valider = async () => {
     setEnvoi(true)
     try {
-      const r = await api.post(`/admin/entreprises/${id}/premium`, { action, jours: action === 'activer' ? Number(jours) : undefined, motif })
-      toast.success(action === 'activer' ? 'Premium activé' : 'Premium retiré')
+      const r = await api.post(`/admin/entreprises/${id}/premium`, { action, jours: action === 'activer' ? Number(jours) : undefined, offre: action === 'activer' ? offre : undefined, motif })
+      toast.success(action === 'activer' ? `${offre === 'business' ? 'Business' : 'Premium'} activé` : 'Offre retirée')
       if (r.data?.avertissement) toast(r.data.avertissement, { duration: 9000 })
       setMotif(''); setOuvert(false); apres()
     } catch (e) {
@@ -251,6 +252,14 @@ function PremiumManuel({ id, actif, apres }) {
             className={`flex-1 py-2 text-xs font-medium rounded-full ${action === v ? 'bg-white dark:bg-slate-700 text-sky-700 dark:text-sky-300' : 'text-gray-500'}`}>{l}</button>
         ))}
       </div>
+      {action === 'activer' && (
+        <label className="block text-sm">Offre
+          <select className="input mt-1" value={offre} onChange={e => setOffre(e.target.value)}>
+            <option value="premium">Premium</option>
+            <option value="business">Business</option>
+          </select>
+        </label>
+      )}
       {action === 'activer' && (
         <label className="block text-sm">Durée en jours
           <input type="number" min={1} max={365} className="input mt-1" value={jours} onChange={e => setJours(e.target.value)} />

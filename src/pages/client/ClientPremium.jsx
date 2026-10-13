@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
-import { Crown, CheckCircle2, ArrowRight, Percent, Sparkles, Zap, Check, MessageCircle, RotateCcw, CreditCard, Minus, ExternalLink } from 'lucide-react'
+import { Crown, CheckCircle2, ArrowRight, Sparkles, Check, MessageCircle, RotateCcw, CreditCard, Minus, ExternalLink, Building2, ChevronDown } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { springSmooth } from '../../lib/motion'
 import toast from 'react-hot-toast'
+import { lireOffreSouhaitee, oublierOffreSouhaitee } from '../../lib/offreSouhaitee'
 import { PALETTE, ARRONDIS, TAILLES, ICONES, ACCENT_DEFAUT, NOM_ESPACE_MAX, couleurTropClaire } from '../../lib/themePremium'
 
 function Spinner() {
@@ -51,11 +52,11 @@ export default function ClientPremium() {
     return () => clearInterval(timer)
   }, [])
 
-  const lancerAction = async (cle, chemin, { confirmation, succes } = {}) => {
+  const lancerAction = async (cle, chemin, { confirmation, succes, corps } = {}) => {
     if (confirmation && !confirm(confirmation)) return
     setCarteEnvoi(cle)
     try {
-      const r = await api.post(chemin)
+      const r = await api.post(chemin, corps)
       if (r.data?.url) { window.location.href = r.data.url; return }
       if (succes) toast.success(succes)
       await load()
@@ -105,10 +106,10 @@ export default function ClientPremium() {
     setTicketEnvoi(false)
   }
 
-  const demander = async () => {
+  const demander = async (offre) => {
     setEnvoi(true)
     try {
-      await api.post('/client/abonnement')
+      await api.post('/client/abonnement', { offre })
       toast.success('Demande envoyée !')
       load()
     } catch (e) {
@@ -119,18 +120,24 @@ export default function ClientPremium() {
 
   if (loading) return null
 
-  const montant = statut?.montant || 5
+  const prixOffre = (o) => statut?.offres?.[o]?.prix ?? (o === 'business' ? 24.9 : 9.9)
+  const offreActuelle = statut?.offre || 'gratuit'
+  const offreEnAttente = statut?.demande_en_attente?.offre === 'business' ? 'business' : 'premium'
+  const montant = statut?.demande_en_attente ? prixOffre(offreEnAttente) : prixOffre('premium')
   const lienPaypal = `${PAYPAL_ME}/${montant.toFixed(2)}EUR`
+  const nomOffre = { gratuit: 'Gratuit', premium: 'Premium', business: 'Business' }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div>
         <h1 className="page-title flex items-center gap-2">
           <Crown size={22} className="text-amber-500" />
-          Abonnement premium
+          {statut?.premium ? 'Mon abonnement' : 'Choisis ton offre'}
         </h1>
         <p className="text-muted mt-1">
-          {montant.toFixed(2)}€/mois — -10% sur toutes tes commandes et le statut premium
+          {statut?.premium
+            ? `Offre ${nomOffre[offreActuelle]}`
+            : 'Sans engagement : tu résilies quand tu veux, directement ici.'}
         </p>
       </div>
 
@@ -145,7 +152,7 @@ export default function ClientPremium() {
             <Crown size={26} className="text-white" />
           </div>
           <div>
-            <p className="font-semibold text-slate-900 dark:text-white text-lg">Tu es premium !</p>
+            <p className="font-semibold text-slate-900 dark:text-white text-lg">Tu es en {nomOffre[offreActuelle]} !</p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Actif jusqu'au {new Date(String(statut.premium_expire_at).replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR')}
             </p>
@@ -371,31 +378,19 @@ export default function ClientPremium() {
       )}
 
       {!statut?.premium && !statut?.demande_en_attente && (
-        <>
-          <Comparatif lignes={statut?.offres?.comparatif || []} prix={montant} />
+        <ChoixOffre statut={statut} prixOffre={prixOffre} occupe={carteEnvoi} envoiPaypal={envoi}
+          payer={(offre) => lancerAction('payer', '/client/abonnement/carte', { corps: { offre } })}
+          paypal={demander} />
+      )}
 
-          <div className="card p-5 space-y-3">
-            <button
-              onClick={() => lancerAction('payer', '/client/abonnement/carte')}
-              disabled={!!carteEnvoi || !statut?.carte_disponible}
-              className="btn-primary w-full text-base py-3.5"
-            >
-              {carteEnvoi === 'payer' ? <><Spinner /> Redirection…</> : <><CreditCard size={18} /> S'abonner par carte ({montant.toFixed(2)} €/mois)</>}
-            </button>
-            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
-              Paiement sécurisé par Stripe, activation automatique. Tu peux résilier quand tu veux, l'abonnement va alors jusqu'à la fin du mois payé.
-            </p>
-            <div className="flex items-center gap-3 text-xs text-slate-400">
-              <span className="flex-1 h-px bg-slate-200 dark:bg-slate-700" /> ou <span className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-            </div>
-            <button onClick={demander} disabled={envoi} className="btn-secondary w-full">
-              {envoi ? <><Spinner /> Envoi…</> : <>Payer par PayPal (30 jours, validé à la main)</>}
-            </button>
-            <p className="text-xs text-slate-400 text-center">
-              Avec PayPal tu règles {montant.toFixed(2)} € et l'admin active ton Premium dès qu'il voit le paiement. Pas de renouvellement automatique.
-            </p>
-          </div>
-        </>
+      {statut?.premium && offreActuelle === 'premium' && (
+        <PasserBusiness statut={statut} prix={prixOffre('business')} occupe={carteEnvoi} envoiPaypal={envoi}
+          changer={() => lancerAction('changer', '/client/abonnement/changer', {
+            corps: { offre: 'business' },
+            confirmation: `Passer à Business à ${prixOffre('business').toFixed(2).replace('.', ',')} € par mois ? Stripe ne te fait payer que la différence pour le reste du mois en cours.`,
+            succes: 'Tu es en Business !',
+          })}
+          paypal={() => demander('business')} />
       )}
     </div>
   )
@@ -408,24 +403,136 @@ function formaterValeur(v) {
   return <span className="text-[13px] font-medium text-slate-700 dark:text-slate-200">{v}</span>
 }
 
+const eur = (n) => `${Number(n).toFixed(2).replace('.', ',')} €`
+
+// Colonnes du tableau : Gratuit | Premium | Business. `colonnes` limite l'affichage.
 function Comparatif({ lignes, prix }) {
   if (!lignes.length) return null
+  const grille = 'grid-cols-[1fr_3.5rem_4.5rem_4.5rem] sm:grid-cols-[1fr_6rem_7rem_7rem]'
   return (
     <div className="card overflow-hidden">
-      <div className="grid grid-cols-[1fr_4rem_5rem] sm:grid-cols-[1fr_8rem_9rem] items-end px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700">
+      <div className={`grid ${grille} items-end px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700`}>
         <span />
-        <span className="text-center text-sm font-semibold text-slate-600 dark:text-slate-300">Gratuit</span>
-        <span className="text-center text-sm font-semibold text-amber-600 dark:text-amber-400">Premium<br /><span className="text-xs font-normal text-slate-400">{prix.toFixed(2)} €/mois</span></span>
+        <span className="text-center text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">Gratuit</span>
+        <span className="text-center text-xs sm:text-sm font-semibold text-amber-600 dark:text-amber-400">Premium<br /><span className="text-[11px] font-normal text-slate-400">{eur(prix.premium)}</span></span>
+        <span className="text-center text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400">Business<br /><span className="text-[11px] font-normal text-slate-400">{eur(prix.business)}</span></span>
       </div>
       <ul>
         {lignes.map(l => (
-          <li key={l.cle} className="grid grid-cols-[1fr_4rem_5rem] sm:grid-cols-[1fr_8rem_9rem] items-center px-4 py-2.5 gap-2 border-b last:border-b-0 border-slate-50 dark:border-slate-700/50">
-            <span className="text-[13px] text-slate-600 dark:text-slate-300 leading-snug">{l.libelle}</span>
+          <li key={l.cle} className={`grid ${grille} items-center px-4 py-2.5 gap-1 border-b last:border-b-0 border-slate-50 dark:border-slate-700/50`}>
+            <span className="text-[13px] text-slate-600 dark:text-slate-300 leading-snug pr-2">{l.libelle}</span>
             <span className="text-center">{formaterValeur(l.gratuit)}</span>
             <span className="text-center bg-amber-50/60 dark:bg-amber-900/10 -my-2.5 py-2.5">{formaterValeur(l.premium)}</span>
+            <span className="text-center bg-indigo-50/60 dark:bg-indigo-900/10 -my-2.5 py-2.5">{formaterValeur(l.business)}</span>
           </li>
         ))}
       </ul>
+    </div>
+  )
+}
+
+// Les quelques choses qui font décider : les chiffres viennent du comparatif du serveur,
+// donc ils sont toujours ceux qui sont réellement appliqués.
+const valeurDe = (lignes, cle, offre) => lignes.find(l => l.cle === cle)?.[offre]
+function atoutsPremium(lignes, remise) {
+  return [
+    `Campagnes d'emails d'avis, jusqu'à ${valeurDe(lignes, 'campagnes', 'premium')} adresses`,
+    `${valeurDe(lignes, 'emails', 'premium')} demandes d'avis par email et ${valeurDe(lignes, 'ia', 'premium')} réponses IA par jour`,
+    `Suivi de ${valeurDe(lignes, 'visibilite', 'premium')} mots-clés sur Google Maps, rapport mensuel PDF`,
+    `${remise} sur les commandes d'avis`,
+  ].filter(a => !a.includes('undefined'))
+}
+function atoutsBusiness(lignes) {
+  return [
+    'Tout Premium',
+    `Jusqu'à ${valeurDe(lignes, 'equipe', 'business')} personnes dans ton équipe`,
+    'Comparaison entre tes établissements',
+    'Rapport groupé en PDF',
+  ].filter(a => !a.includes('undefined'))
+}
+
+function CarteOffre({ nom, couleur, prix, atouts, vedette, choisie, bouton }) {
+  return (
+    <div className={`card p-5 flex flex-col gap-4 ${vedette ? 'ring-2 ring-amber-400' : ''} ${choisie ? 'ring-2 ring-sky-500' : ''}`}>
+      <div>
+        <div className="flex items-center justify-between">
+          <h3 className={`text-lg font-semibold ${couleur}`}>{nom}</h3>
+          {vedette && <span className="text-[11px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 rounded-full px-2.5 py-0.5">Le plus choisi</span>}
+        </div>
+        <p className="mt-1"><span className="text-3xl font-bold text-slate-900 dark:text-white">{eur(prix)}</span> <span className="text-sm text-slate-500">par mois</span></p>
+      </div>
+      <ul className="space-y-2 flex-1">
+        {atouts.map(a => (
+          <li key={a} className="flex items-start gap-2 text-[13.5px] text-slate-600 dark:text-slate-300">
+            <Check size={15} className="text-emerald-500 mt-0.5 shrink-0" /> {a}
+          </li>
+        ))}
+      </ul>
+      {bouton}
+    </div>
+  )
+}
+
+function ChoixOffre({ statut, prixOffre, occupe, envoiPaypal, payer, paypal }) {
+  const [tableau, setTableau] = useState(false)
+  const [souhaitee] = useState(() => lireOffreSouhaitee())
+  const carte = !!statut?.carte_disponible
+  const bouton = (offre) => (
+    <div className="space-y-2">
+      <button onClick={() => { oublierOffreSouhaitee(); payer(offre) }} disabled={!!occupe || !carte} className="btn-primary w-full text-base py-3.5">
+        {occupe === 'payer' ? <><Spinner /> Redirection…</> : <><CreditCard size={18} /> Payer {eur(prixOffre(offre))} par carte</>}
+      </button>
+      <button onClick={() => paypal(offre)} disabled={envoiPaypal} className="w-full text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 underline underline-offset-4">
+        {envoiPaypal ? 'Envoi…' : 'Payer plutôt par PayPal (30 jours, activé à la main)'}
+      </button>
+    </div>
+  )
+  return (
+    <>
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        Tu es en <strong className="text-slate-700 dark:text-slate-200">Gratuit</strong> : ton QR code, ton affiche et quelques demandes d'avis par jour.
+        Les offres payantes ajoutent les campagnes d'emails, le suivi Google Maps et bien plus de volume.
+      </p>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <CarteOffre nom="Premium" couleur="text-amber-600 dark:text-amber-400" prix={prixOffre('premium')} atouts={atoutsPremium(statut?.offres?.comparatif || [], valeurDe(statut?.offres?.comparatif || [], 'remise', 'premium') || '-10 %')}
+          vedette choisie={souhaitee === 'premium'} bouton={bouton('premium')} />
+        <CarteOffre nom="Business" couleur="text-indigo-600 dark:text-indigo-400" prix={prixOffre('business')} atouts={atoutsBusiness(statut?.offres?.comparatif || [])}
+          choisie={souhaitee === 'business'} bouton={bouton('business')} />
+      </div>
+      {!carte && (
+        <p className="text-xs text-amber-600 dark:text-amber-400">Le paiement par carte n'est pas disponible pour le moment, utilise PayPal.</p>
+      )}
+      <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+        Paiement sécurisé par Stripe, activation tout de suite. Tu résilies en un clic, l'offre reste active jusqu'à la fin du mois payé.
+      </p>
+      <button onClick={() => setTableau(t => !t)} className="w-full flex items-center justify-center gap-1.5 text-sm text-sky-600 hover:text-sky-700" aria-expanded={tableau}>
+        {tableau ? 'Masquer le détail' : 'Voir toutes les différences'} <ChevronDown size={16} className={`transition-transform ${tableau ? 'rotate-180' : ''}`} />
+      </button>
+      {tableau && <Comparatif lignes={statut?.offres?.comparatif || []} prix={{ premium: prixOffre('premium'), business: prixOffre('business') }} />}
+    </>
+  )
+}
+
+function PasserBusiness({ statut, prix, occupe, envoiPaypal, changer, paypal }) {
+  const parCarte = statut.premium_source === 'stripe' && statut.carte && statut.carte.statut !== 'termine'
+  const enAttente = statut.demande_en_attente
+  return (
+    <div className="card p-5 space-y-3">
+      <h2 className="section-title flex items-center gap-2"><Building2 size={17} className="text-indigo-500" /> Plusieurs établissements ou une équipe ?</h2>
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        Business, c'est Premium plus l'accès d'équipe, la comparaison entre établissements et le rapport groupé. {eur(prix)} par mois.
+      </p>
+      {enAttente ? (
+        <p className="text-sm rounded-xl p-3 bg-sky-50 text-sky-800 dark:bg-sky-900/20 dark:text-sky-300">
+          Ta demande est en attente : règle {eur(prix)} via PayPal et elle sera validée dès réception.
+        </p>
+      ) : parCarte ? (
+        statut.carte.resiliation_prevue
+          ? <p className="text-sm text-slate-500">Reprends d'abord ton abonnement pour pouvoir changer d'offre.</p>
+          : <button onClick={changer} disabled={!!occupe} className="btn-primary w-full">{occupe === 'changer' ? <><Spinner /> Changement…</> : <>Passer à Business</>}</button>
+      ) : (
+        <button onClick={paypal} disabled={envoiPaypal} className="btn-secondary w-full">{envoiPaypal ? 'Envoi…' : 'Demander Business par PayPal'}</button>
+      )}
     </div>
   )
 }
@@ -442,19 +549,19 @@ function MonAbonnement({ statut, occupe, lancer }) {
       <h2 className="section-title">Mon abonnement</h2>
       <dl className="text-sm grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
         <dt className="text-slate-400">Paiement</dt>
-        <dd className="text-slate-700 dark:text-slate-200">{SOURCES[statut.premium_source] || 'Premium actif'}</dd>
+        <dd className="text-slate-700 dark:text-slate-200">{SOURCES[statut.premium_source] || 'Offre active'}</dd>
         <dt className="text-slate-400">{parCarte && !carte.resiliation_prevue ? 'Prochain renouvellement' : 'Actif jusqu\'au'}</dt>
         <dd className="text-slate-700 dark:text-slate-200">{dateTxt}</dd>
       </dl>
 
       {parCarte && carte.statut === 'impaye' && (
         <p className="text-sm rounded-xl p-3 bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-          Le dernier prélèvement a été refusé. Mets ta carte à jour pour garder Premium après le {dateTxt}.
+          Le dernier prélèvement a été refusé. Mets ta carte à jour pour garder ton offre après le {dateTxt}.
         </p>
       )}
       {parCarte && carte.resiliation_prevue && (
         <p className="text-sm rounded-xl p-3 bg-slate-50 text-slate-600 dark:bg-slate-700/50 dark:text-slate-300">
-          Abonnement résilié : Premium reste actif jusqu'au {dateTxt}, puis s'arrête sans autre prélèvement.
+          Abonnement résilié : Ton offre reste active jusqu'au {dateTxt}, puis s'arrête sans autre prélèvement.
         </p>
       )}
 
@@ -470,7 +577,7 @@ function MonAbonnement({ statut, occupe, lancer }) {
           ) : (
             <button
               onClick={() => lancer('resilier', '/client/abonnement/resilier', {
-                confirmation: `Résilier ? Premium reste actif jusqu'au ${dateTxt}, puis s'arrête.`,
+                confirmation: `Résilier ? Ton offre reste active jusqu'au ${dateTxt}, puis s'arrête.`,
                 succes: 'Résiliation enregistrée.',
               })}
               disabled={!!occupe}

@@ -63,7 +63,7 @@ export default function PublicCommander() {
             <span className="font-display text-[17px] font-bold tracking-tight">SwimUp</span>
           </a>
           <nav className="flex items-center gap-5 text-[14px]">
-            <a href="/register" className="hidden sm:inline text-slate-600 hover:text-[#0B1F33]">Gagner de l'argent avec des avis</a>
+            <a href="/inscription" className="hidden sm:inline text-slate-600 hover:text-[#0B1F33]">Créer un compte gratuit</a>
             <a href="/login" className="font-semibold text-[#0369A1] hover:underline underline-offset-4">Se connecter</a>
           </nav>
         </div>
@@ -180,8 +180,9 @@ export default function PublicCommander() {
         </div>
 
         <p className="max-w-5xl mx-auto px-5 pb-6 text-[13.5px] text-slate-500">
-          Vous voulez écrire des avis et être payé ?{' '}
-          <a href="/register" className="font-semibold text-[#0369A1] underline underline-offset-4">Créez un compte membre, c'est gratuit</a>.
+          Votre propre fiche à soigner ?{' '}
+          <a href="/inscription" className="font-semibold text-[#0369A1] underline underline-offset-4">Créez un compte gratuit</a>
+          {' '}: QR code, affiche et réponses aux avis, sans carte bancaire.
         </p>
       </section>
 
@@ -241,7 +242,7 @@ export default function PublicCommander() {
           <span className="flex items-center gap-5">
             <a href="/aide-commercants" className="hover:text-[#0B1F33]">Aide aux commerçants</a>
             <a href="/confidentialite" className="hover:text-[#0B1F33]">Confidentialité</a>
-            <a href="/login" className="hover:text-[#0B1F33]">Espace membres</a>
+            <a href="/login" className="hover:text-[#0B1F33]">Connexion</a>
           </span>
         </div>
       </footer>

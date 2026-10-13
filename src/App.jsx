@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import InscriptionClient from './pages/InscriptionClient'
 import Dashboard from './pages/Dashboard'
 const Avis = lazy(() => import('./pages/Avis'))
 const Profil = lazy(() => import('./pages/Profil'))
@@ -104,6 +105,8 @@ export default function App() {
       <Route path="/login"    element={<Login />} />
       <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
       <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
+      <Route path="/inscription" element={<InscriptionClient />} />
+      {/* Comptes membres : uniquement via ce lien, jamais proposé aux clients */}
       <Route path="/register" element={<Register />} />
 
       {/* Routes membres */}

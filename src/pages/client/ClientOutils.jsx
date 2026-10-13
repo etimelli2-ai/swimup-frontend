@@ -308,14 +308,20 @@ export default function ClientOutils() {
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <button type="button" className="btn-secondary text-xs" disabled={!!pdfEnCours} onClick={telechargerCartes}>
-                    <Download size={14} /> {pdfEnCours === 'cartes' ? '…' : 'Cartes'}
-                  </button>
+                  {data.premium ? (
+                    <button type="button" className="btn-secondary text-xs" disabled={!!pdfEnCours} onClick={telechargerCartes}>
+                      <Download size={14} /> {pdfEnCours === 'cartes' ? '…' : 'Cartes'}
+                    </button>
+                  ) : (
+                    <Link to="/client/premium" className="btn-secondary text-xs" title="Les cartes de visite sont incluses avec Premium">
+                      <Crown size={14} className="text-amber-500" /> Cartes
+                    </Link>
+                  )}
                   <button type="button" className="btn-secondary text-xs" disabled={!!pdfEnCours} onClick={telechargerQr}>
                     <ImageDown size={14} /> {pdfEnCours === 'qr' ? '…' : 'QR PNG'}
                   </button>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 text-center">Affiche pour ton comptoir, planche de 10 cartes 85 × 55 mm, ou le QR code seul pour un autocollant ou un menu.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 text-center">Affiche pour ton comptoir, QR code seul pour un autocollant ou un menu{data.premium ? ', planche de 10 cartes 85 × 55 mm' : ' (les cartes de visite sont incluses avec Premium)'}.</p>
               </>
             ) : (
               <p className="text-xs text-slate-500 dark:text-slate-400 text-center">Enregistre ton lien pour obtenir ton QR code et ton affiche.</p>
