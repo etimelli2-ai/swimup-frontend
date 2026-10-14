@@ -25,10 +25,10 @@ const SOUS_TRAITANTS = [
   ['Turso', 'Héberge la base de données.', 'Irlande'],
   ['Resend', "Envoie les emails (service, demandes d'avis, campagnes).", 'États-Unis ; certifié Data Privacy Framework'],
   ['Stripe', "Encaisse les paiements par carte et les abonnements. SwimUp ne voit jamais ton numéro de carte.", 'États-Unis ; certifié Data Privacy Framework, avec clauses contractuelles types en secours'],
-  ['PayPal', "Reçoit des paiements de clients et verse les gains des membres.", '[À VÉRIFIER : conditions de transfert de PayPal]'],
-  ['Google (Places)', "Fournit les derniers avis d'une fiche, les résultats de recherche locale et les fiches utilisées pour la prospection.", '[À VÉRIFIER : garantie de transfert de Google pour l\'API Places]'],
+  ['PayPal', "Reçoit des paiements de clients et verse les gains des membres.", "Luxembourg (PayPal (Europe) S.à r.l. et Cie, S.C.A.). PayPal agit comme responsable de traitement indépendant : ses transferts éventuels hors UE relèvent de sa propre politique de confidentialité"],
+  ['Google (Places)', "Fournit les derniers avis d'une fiche, les résultats de recherche locale et les fiches utilisées pour la prospection.", 'États-Unis ; certifié Data Privacy Framework, avec clauses contractuelles types en secours'],
   ['Groq', "Rédige les brouillons de réponse aux avis et les résumés d'analyse. Il reçoit le texte de l'avis pour travailler.", 'États-Unis ; clauses contractuelles types de l\'UE'],
-  ['Umami', "Compte les visites des pages publiques, sans cookie, sans profil et sans adresse IP.", '[À VÉRIFIER : lieu d\'hébergement et accord de traitement d\'Umami Cloud]'],
+  ['Umami', "Compte les visites des pages publiques, sans cookie, sans profil et sans adresse IP.", 'États-Unis (Umami Software, Inc.) ; clauses contractuelles types de l\'UE, accord de traitement accepté à l\'inscription'],
   ['Discord', "Aide et échanges avec les membres, si tu rejoins le serveur.", 'Discord décide seul de l\'usage de tes données sur son serveur'],
 ]
 
