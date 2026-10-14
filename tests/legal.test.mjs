@@ -28,7 +28,7 @@ test('les liens légaux sont dans tous les pieds de page publics et dans l\'espa
 
 test('aucune information légale inventée : adresse, SIRET et RCS restent marqués [À REMPLIR] tant qu\'ils ne sont pas fournis', () => {
   // Quand tu remplis un champ de src/lib/legal.mjs, retire-le de cette liste.
-  for (const k of ['adresse', 'siret', 'rcs']) {
+  for (const k of ['siret', 'rcs']) {
     assert.match(EDITEUR[k], /^\[À REMPLIR/, k)
   }
 })

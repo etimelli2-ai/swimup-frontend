@@ -16,8 +16,8 @@ const TRAITEMENTS = [
   ['Fournir les outils des entreprises', 'Configuration du lien d\'avis, historiques, analyses, campagnes (voir plus bas pour leurs durées)', 'Contrat', 'Voir la liste des durées plus bas'],
   ['Envoyer des emails du service', 'Email, contenu du message (vérification, commande, rappels, mot de passe oublié)', 'Contrat', 'Suivi technique d\'envoi : ' + DUREE],
   ['Contacter des commerçants pour leur présenter SwimUp (prospection entre professionnels)', 'Nom, adresse, téléphone, site web et email professionnels de la fiche Google, note et nombre d\'avis', 'Intérêt légitime (démarcher des professionnels pour une offre liée à leur activité)', 'Jusqu\'à opposition, et ' + DUREE + ' après le dernier échange'],
-  ['Compter les visites des pages publiques', 'Page visitée, sans adresse IP ni cookie', 'Intérêt légitime (savoir quelles pages sont lues)', 'Statistiques agrégées : ' + DUREE],
-  ['Aider les utilisateurs', 'Messages, tickets, erreurs techniques', 'Contrat et intérêt légitime', 'Erreurs techniques : 30 jours. Tickets : ' + DUREE],
+  ['Compter les visites des pages publiques', 'Page visitée, sans adresse IP ni cookie', 'Intérêt légitime (savoir quelles pages sont lues)', 'Statistiques agrégées : 1 an'],
+  ['Aider les utilisateurs', 'Messages, tickets, erreurs techniques', 'Contrat et intérêt légitime', 'Erreurs techniques : 30 jours. Tickets : 30 jours'],
 ]
 
 const SOUS_TRAITANTS = [

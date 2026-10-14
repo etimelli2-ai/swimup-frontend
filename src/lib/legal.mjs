@@ -8,7 +8,7 @@ export const DATE_MAJ = '14 octobre 2026'
 export const EDITEUR = {
   nom: 'Enzo TIMELLI',
   statut: 'Entrepreneur individuel (micro-entrepreneur)',
-  adresse: '[À REMPLIR : adresse postale (siège social pour une société)]',
+  adresse: 'Adresse privée, non communiquée publiquement',
   telephone: 'Aucun : contact uniquement par email',
   email: 'noreply@swimup.net',
   siret: '[À REMPLIR : numéro SIRET de ton entreprise (14 chiffres), fourni à l\'inscription de ta micro-entreprise]',
