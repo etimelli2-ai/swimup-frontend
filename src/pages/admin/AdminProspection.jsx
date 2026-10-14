@@ -82,6 +82,7 @@ export default function AdminProspection() {
   const [essaiGratuit, setEssaiGratuit] = useState(false)
   const [msg, setMsg]               = useState(null)
   const [ajoutManuel, setAjoutManuel] = useState(false)
+  const [emailEnEdition, setEmailEnEdition] = useState(null) // id du prospect dont on corrige l'email
   const [formManuel, setFormManuel] = useState({ nom: '', email: '', telephone: '', site_web: '', adresse: '' })
   const [loadingManuel, setLM]      = useState(false)
   const [objectif, setObjectif]     = useState({ objectif: 0, fait: 0 })
@@ -157,12 +158,14 @@ export default function AdminProspection() {
   }
 
   const sauverEmail = async (id) => {
-    const email = editEmail[id]
+    const email = String(editEmail[id] ?? '').trim()
     if (!email) return
     setLA(`email_${id}`)
     try {
       await api.put(`/admin/prospection/${id}/email`, { email })
       showMsg('success', '✅ Email enregistré')
+      setEmailEnEdition(null)
+      setEditEmail(e => { const { [id]: _, ...reste } = e; return reste })
       load()
     } catch (e) {
       showMsg('error', e.response?.data?.error || 'Email invalide')
@@ -463,9 +466,36 @@ export default function AdminProspection() {
               )}
             </div>
 
-            {p.email ? (
+            {p.email && emailEnEdition === p.id ? (
+              <form
+                className="flex items-center gap-2"
+                onSubmit={e => { e.preventDefault(); sauverEmail(p.id) }}
+              >
+                <input
+                  type="email" aria-label={`Email de ${p.nom}`} autoFocus required
+                  value={editEmail[p.id] ?? p.email}
+                  onChange={e => setEditEmail({ ...editEmail, [p.id]: e.target.value })}
+                  className="input text-xs flex-1 py-2"
+                />
+                <button type="submit" disabled={loadingAction === `email_${p.id}`}
+                  className="bg-sky-500 text-white px-3 py-2 rounded-lg text-xs font-medium shrink-0 disabled:opacity-70">
+                  Enregistrer
+                </button>
+                <button type="button" onClick={() => setEmailEnEdition(null)}
+                  className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-xs font-medium shrink-0">
+                  Annuler
+                </button>
+              </form>
+            ) : p.email ? (
               <div className="flex items-center justify-between gap-2 bg-slate-50 rounded-lg p-2">
-                <span className="text-xs text-gray-700 flex items-center gap-1 truncate"><Mail size={12} className="shrink-0" /> {p.email}</span>
+                <span className="text-xs text-gray-700 flex items-center gap-1 min-w-0">
+                  <Mail size={12} className="shrink-0" /> <span className="truncate">{p.email}</span>
+                  <button type="button" onClick={() => { setEditEmail({ ...editEmail, [p.id]: p.email }); setEmailEnEdition(p.id) }}
+                    aria-label={`Modifier l'email de ${p.nom}`} title="Modifier l'email"
+                    className="text-gray-500 hover:text-sky-600 shrink-0 p-1">
+                    <Pencil size={12} />
+                  </button>
+                </span>
                 {!p.email_envoye && (
                   <button
                     onClick={() => ouvrirModal(p)}
