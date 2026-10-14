@@ -59,9 +59,10 @@ Vous y trouverez aussi des modèles de réponse aux avis et un lien avec QR code
 Si vous voulez aller plus loin, on propose aussi des outils de suivi de réputation et d'envoi de demandes d'avis à vos propres clients. Tout est détaillé ici, avec les prix :
 https://swimup.net/offres
 
-Si ça ne vous intéresse pas, répondez simplement « stop » et je ne vous écris plus.
+Si ça ne vous intéresse pas, ignorez simplement ce mail.
 
-Vous recevez ce message parce que les coordonnées de votre entreprise sont publiques sur sa fiche Google Maps. Vous pouvez vous opposer à tout moment à être recontacté en répondant « stop ». Comment sont utilisées vos données : https://swimup.net/confidentialite
+Vous recevez ce message parce que les coordonnées de votre entreprise sont publiques sur sa fiche Google Maps. Vous pouvez vous opposer à tout moment à être recontacté : {{LIEN_STOP}}
+Comment sont utilisées vos données : https://swimup.net/confidentialite
 
 Bonne journée,
 Enzo
@@ -153,6 +154,21 @@ export default function AdminProspection() {
       load()
     } catch (e) {
       showMsg('error', e.response?.data?.error || "Erreur lors de l'envoi")
+    }
+    setLA(null)
+  }
+
+  // Il a répondu « stop » par un autre moyen que le lien du mail : on le note,
+  // l'adresse ne recevra plus rien (ni relance, ni envoi manuel).
+  const direStop = async (p) => {
+    if (!confirm(`Noter que ${p.nom} ne veut plus être contacté ? Son adresse ne recevra plus aucun mail de prospection.`)) return
+    setLA(`stop_${p.id}`)
+    try {
+      await api.post(`/admin/prospection/${p.id}/stop`)
+      showMsg('success', 'Noté : plus aucun mail ne partira vers cette adresse.')
+      load()
+    } catch (e) {
+      showMsg('error', e.response?.data?.error || 'Erreur')
     }
     setLA(null)
   }
@@ -457,7 +473,9 @@ export default function AdminProspection() {
                   </a>
                 )}
               </div>
-              {estContacte(p) ? (
+              {p.a_dit_stop ? (
+                <span className="text-xs font-medium shrink-0 bg-red-50 text-red-700 border border-red-200 rounded-full px-2 py-0.5">🚫 A dit stop</span>
+              ) : estContacte(p) ? (
                 <span className="badge-green text-xs shrink-0">✅ Contacté</span>
               ) : (
                 <button onClick={() => supprimer(p.id)} disabled={loadingAction === `suppr_${p.id}`} className="text-gray-300 hover:text-red-400 shrink-0">
@@ -496,7 +514,17 @@ export default function AdminProspection() {
                     <Pencil size={12} />
                   </button>
                 </span>
-                {!p.email_envoye && (
+                {p.a_dit_stop ? (
+                  <span className="text-xs text-red-700 shrink-0">Plus aucun envoi</span>
+                ) : (
+                  <button
+                    onClick={() => direStop(p)} disabled={loadingAction === `stop_${p.id}`}
+                    className="text-xs text-gray-500 underline hover:text-red-600 shrink-0 disabled:opacity-50"
+                  >
+                    A dit stop
+                  </button>
+                )}
+                {!p.email_envoye && !p.a_dit_stop && (
                   <button
                     onClick={() => ouvrirModal(p)}
                     className="bg-sky-500 text-white text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-1 active:scale-95 transition-all shrink-0"
@@ -603,7 +631,7 @@ export default function AdminProspection() {
               <label className="block text-xs font-medium text-gray-600 mb-1">Message</label>
               <textarea rows={9} value={message} onChange={e => setMessage(e.target.value)} className="input text-sm" />
               <p className="text-[11px] text-gray-400 mt-1">
-                Relis avant d'envoyer : ne garde que ce qui est vrai pour ce commerce. Si tu ajoutes <code className="bg-gray-100 px-1 rounded">{'{{LIEN_ESSAI}}'}</code>, il est remplacé par le lien d'essai (case ci-dessous).
+                Relis avant d'envoyer : ne garde que ce qui est vrai pour ce commerce. Si tu ajoutes <code className="bg-gray-100 px-1 rounded">{'{{LIEN_ESSAI}}'}</code>, il est remplacé par le lien d'essai (case ci-dessous). <code className="bg-gray-100 px-1 rounded">{'{{LIEN_STOP}}'}</code> devient le bouton « Me désinscrire » : il est ajouté tout seul s'il manque, et la personne qui clique n'est plus jamais contactée.
               </p>
             </div>
             <label className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3 cursor-pointer">
