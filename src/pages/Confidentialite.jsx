@@ -5,7 +5,6 @@ import PageLegale, { Titre, Champ, ARemplir } from '../components/PageLegale'
 import { EDITEUR, CNIL } from '../lib/legal.mjs'
 
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
-const DUREE = '[À REMPLIR : durée]'
 
 // Finalité, données, base légale, durée. Les durées de la dernière colonne viennent du fonctionnement réel quand il est connu.
 const TRAITEMENTS = [
@@ -14,8 +13,8 @@ const TRAITEMENTS = [
   ['Traiter les commandes d\'avis et les paiements', 'Email, lien de la fiche, nom et type d\'établissement, consignes de l\'avis, montant, identifiant de paiement Stripe ou PayPal', 'Contrat (CGV) et obligation légale (comptabilité)', 'Pièces comptables : 10 ans (obligation légale). Le reste : tant que ton compte existe'],
   ['Rémunérer les membres', 'Email PayPal, solde, historique des gains et des retraits, identifiant Discord (aide et vérification)', 'Contrat (CGU) et obligation légale (comptabilité)', 'Gains et retraits : 10 ans (comptabilité). Email PayPal et identifiant Discord : tant que ton compte existe'],
   ['Fournir les outils des entreprises', 'Configuration du lien d\'avis, historiques, analyses, campagnes (voir plus bas pour leurs durées)', 'Contrat', 'Voir la liste des durées plus bas'],
-  ['Envoyer des emails du service', 'Email, contenu du message (vérification, commande, rappels, mot de passe oublié)', 'Contrat', 'Suivi technique d\'envoi : ' + DUREE],
-  ['Contacter des commerçants pour leur présenter SwimUp (prospection entre professionnels)', 'Nom, adresse, téléphone, site web et email professionnels de la fiche Google, note et nombre d\'avis', 'Intérêt légitime (démarcher des professionnels pour une offre liée à leur activité)', 'Jusqu\'à opposition, et ' + DUREE + ' après le dernier échange'],
+  ['Envoyer des emails du service', 'Email, contenu du message (vérification, commande, rappels, mot de passe oublié)', 'Contrat', 'Suivi technique d\'envoi : 6 mois'],
+  ['Contacter des commerçants pour leur présenter SwimUp (prospection entre professionnels)', 'Nom, adresse, téléphone, site web et email professionnels de la fiche Google, note et nombre d\'avis', 'Intérêt légitime (démarcher des professionnels pour une offre liée à leur activité)', 'Jusqu\'à opposition, et 3 mois après le dernier échange'],
   ['Compter les visites des pages publiques', 'Page visitée, sans adresse IP ni cookie', 'Intérêt légitime (savoir quelles pages sont lues)', 'Statistiques agrégées : 1 an'],
   ['Aider les utilisateurs', 'Messages, tickets, erreurs techniques', 'Contrat et intérêt légitime', 'Erreurs techniques : 30 jours. Tickets : 30 jours'],
 ]

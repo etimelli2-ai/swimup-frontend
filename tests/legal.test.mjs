@@ -26,10 +26,10 @@ test('les liens légaux sont dans tous les pieds de page publics et dans l\'espa
   }
 })
 
-test('aucune information légale inventée : adresse, SIRET et RCS restent marqués [À REMPLIR] tant qu\'ils ne sont pas fournis', () => {
-  // Quand tu remplis un champ de src/lib/legal.mjs, retire-le de cette liste.
-  for (const k of ['siret', 'rcs']) {
-    assert.match(EDITEUR[k], /^\[À REMPLIR/, k)
+test('plus aucun champ [À REMPLIR] ni [À VÉRIFIER] affiché sur les pages légales', () => {
+  for (const f of ['src/lib/legal.mjs', 'src/pages/MentionsLegales.jsx', 'src/pages/Confidentialite.jsx', 'src/pages/Cgu.jsx', 'src/pages/Cgv.jsx', 'src/pages/Retractation.jsx', 'src/pages/Cookies.jsx']) {
+    const code = lire(f).split('\n').filter((l) => !l.trim().startsWith('//') && !l.includes('includes(')).join('\n')
+    assert.doesNotMatch(code, /\[À (REMPLIR|VÉRIFIER)/, f)
   }
 })
 

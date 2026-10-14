@@ -15,7 +15,6 @@ export default function MentionsLegales() {
         <li><strong className="text-slate-900">Téléphone :</strong> <Champ v={EDITEUR.telephone} /></li>
         <li><strong className="text-slate-900">Email :</strong> <Champ v={EDITEUR.email} /></li>
         <li><strong className="text-slate-900">SIRET :</strong> <Champ v={EDITEUR.siret} /></li>
-        <li><strong className="text-slate-900">RCS ou RM :</strong> <Champ v={EDITEUR.rcs} /></li>
         <li><strong className="text-slate-900">Capital social :</strong> <Champ v={EDITEUR.capital} /></li>
         <li><strong className="text-slate-900">TVA :</strong> <Champ v={EDITEUR.tva} /></li>
       </ul>
