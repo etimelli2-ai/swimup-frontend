@@ -85,7 +85,7 @@ export default function ClientCampagnes() {
         <div className="card space-y-3">
           <p className="font-medium flex items-center gap-2"><Crown size={16} className="text-amber-500" /> Les campagnes d'emails font partie de Premium</p>
           <p className="text-sm text-muted">
-            Envoie ta demande d'avis à toute ta clientèle d'un coup (jusqu'à {infos.destinataires_premium} adresses par campagne), avec ton propre texte, un envoi programmé et une relance.
+            Envoie ta demande d'avis à toute ta clientèle d'un coup (jusqu'à {infos.destinataires_premium} adresses par campagne), avec ton propre texte. L'offre Business ajoute l'envoi programmé et la relance automatique.
             En Gratuit, tu peux déjà demander un avis à quelques clients par jour depuis <Link to="/client/outils" className="underline">Outils avis</Link>.
           </p>
           <Link to="/client/premium" className="btn-primary w-full justify-center"><Crown size={15} /> Débloquer avec Premium</Link>
@@ -178,7 +178,7 @@ function Formulaire({ infos, annuler, fait }) {
     try {
       const body = {
         nom, ...corpsEnvoi(), destinataires: dest.valides, attestation,
-        ...(premium && quand ? { planifiee_at: new Date(quand).toISOString() } : {}),
+        ...(infos.peut_planifier && quand ? { planifiee_at: new Date(quand).toISOString() } : {}),
         ...(premium && relance ? { relance_jours: Number(relance) } : {}),
       }
       const r = await api.post('/client/campagnes', body)
@@ -216,7 +216,7 @@ function Formulaire({ infos, annuler, fait }) {
           <p className="text-xs text-slate-500 mt-1">{infos.modeles.find(x => x.cle === modele).remarque}</p>
         )}
         {!premium && (
-          <p className="text-xs text-slate-500 mt-1 flex items-center gap-1"><Crown size={12} className="text-amber-500" /> Avec Premium, tu peux modifier le texte, planifier l'envoi et programmer une relance.</p>
+          <p className="text-xs text-slate-500 mt-1 flex items-center gap-1"><Crown size={12} className="text-amber-500" /> Avec Premium, tu peux modifier le texte. L'offre Business ajoute l'envoi planifié et la relance automatique.</p>
         )}
       </div>
 
@@ -256,18 +256,18 @@ function Formulaire({ infos, annuler, fait }) {
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium flex items-center gap-1" htmlFor="camp-quand">Envoyer plus tard {!premium && <Crown size={12} className="text-amber-500" />}</label>
-          <input id="camp-quand" type="datetime-local" className="input mt-1 w-full" value={quand} onChange={e => setQuand(e.target.value)} disabled={!premium} />
-          <p className="text-xs text-slate-500 mt-1">{premium ? 'Vide : l\'envoi démarre tout de suite.' : 'Débloque-le avec Premium.'}</p>
+          <label className="text-sm font-medium flex items-center gap-1" htmlFor="camp-quand">Envoyer plus tard {!infos.peut_planifier && <Crown size={12} className="text-amber-500" />}</label>
+          <input id="camp-quand" type="datetime-local" className="input mt-1 w-full" value={quand} onChange={e => setQuand(e.target.value)} disabled={!infos.peut_planifier} />
+          <p className="text-xs text-slate-500 mt-1">{infos.peut_planifier ? 'Vide : l\'envoi démarre tout de suite.' : 'Réservé à l\'offre Business.'}</p>
         </div>
         <div>
-          <label className="text-sm font-medium flex items-center gap-1" htmlFor="camp-relance">Relance unique {!premium && <Crown size={12} className="text-amber-500" />}</label>
+          <label className="text-sm font-medium flex items-center gap-1" htmlFor="camp-relance">Relance unique {!infos.peut_planifier && <Crown size={12} className="text-amber-500" />}</label>
           <select id="camp-relance" className="input mt-1 w-full" value={relance} onChange={e => setRelance(e.target.value)} disabled={!infos.relance_disponible}>
             <option value="">Aucune relance</option>
             {[3, 5, 7, 10, 14].filter(n => n >= lim.relance_min && n <= lim.relance_max).map(n => <option key={n} value={n}>Après {n} jours</option>)}
           </select>
           <p className="text-xs text-slate-500 mt-1">
-            {!premium ? 'Débloque-le avec Premium.' : !infos.relance_disponible ? 'Pas disponible pour le moment.' : 'Un seul rappel, seulement à ceux qui n\'ont pas cliqué.'}
+            {!infos.peut_planifier ? 'Réservée à l\'offre Business.' : !infos.relance_disponible ? 'Pas disponible pour le moment.' : 'Un seul rappel, seulement à ceux qui n\'ont pas cliqué.'}
           </p>
         </div>
       </div>
@@ -287,7 +287,7 @@ function Formulaire({ infos, annuler, fait }) {
         <button className="btn-ghost" onClick={annuler} disabled={occupe}>Annuler</button>
         <button className="btn-secondary" onClick={essai} disabled={occupe || !sujet || !corps || problemes.length > 0}>M'envoyer un essai</button>
         <button className="btn-primary" onClick={lancer} disabled={occupe || !pret}>
-          <Send size={15} /> {premium && quand ? 'Planifier' : 'Lancer la campagne'}
+          <Send size={15} /> {infos.peut_planifier && quand ? 'Planifier' : 'Lancer la campagne'}
         </button>
       </div>
     </div>

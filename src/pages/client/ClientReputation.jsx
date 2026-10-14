@@ -60,6 +60,33 @@ export default function ClientReputation() {
   }, [])
   useEffect(() => { chargerApercu() }, [chargerApercu])
 
+  // Tant que la fiche Google n'est pas reliée, les 8 onglets ne montreraient que des écrans vides : une seule étape à faire.
+  const sansFiche = !!apercu && !apercu.etablissement?.configure && onglet !== 'reglages'
+
+  if (sansFiche) {
+    return (
+      <div className="max-w-xl mx-auto space-y-5 animate-fade-in">
+        <div>
+          <h1 className="page-title">Réputation</h1>
+          <p className="text-muted mt-1">Relie ta fiche Google, et tout le reste se remplit tout seul.</p>
+        </div>
+        <ul className="grid sm:grid-cols-3 gap-2 text-[13px] text-slate-700 dark:text-slate-300">
+          {[['Tes derniers avis', 'les plus récents, à marquer comme traités'], ['Ta note dans le temps', 'pour voir si elle monte'], ['Ta place sur Google Maps', 'pour les mots-clés que tu choisis']].map(([t, d]) => (
+            <li key={t} className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+              <span className="font-semibold block text-slate-900 dark:text-slate-100">{t}</span>{d}
+            </li>
+          ))}
+        </ul>
+        <Etablissement apres={chargerApercu} titre="Retrouve ta fiche Google" />
+        {!delegue && (
+          <p className="text-center text-sm">
+            <button type="button" className="text-slate-600 dark:text-slate-400 underline underline-offset-4 hover:text-slate-900" onClick={() => setOnglet('reglages')}>Réglages et mes données</button>
+          </p>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
       <div>
@@ -94,8 +121,6 @@ export default function ClientReputation() {
   )
 }
 
-// ---------- Avis Google ----------
-
 function Etablissement({ apres, titre = 'Indique ton établissement' }) {
   const [saisie, setSaisie] = useState('')
   const [nom, setNom] = useState('')
@@ -117,39 +142,52 @@ function Etablissement({ apres, titre = 'Indique ton établissement' }) {
   }
 
   return (
-    <div className="card space-y-4">
+    <div className="card space-y-5 p-5 sm:p-6">
       <div>
         <h2 className="section-title">{titre}</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Pour récupérer tes avis, SwimUp a besoin de retrouver ta fiche Google.</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">SwimUp a besoin de retrouver ta fiche pour récupérer tes avis. Deux façons de faire, une seule suffit.</p>
       </div>
-      <div className="space-y-2">
-        <p className="text-sm font-medium">Cherche-le par son nom</p>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <input className="input flex-1" placeholder="Nom du commerce" value={nom} onChange={e => setNom(e.target.value)} maxLength={100} />
-          <input className="input sm:w-40" placeholder="Ville" value={ville} onChange={e => setVille(e.target.value)} maxLength={60} />
-          <button className="btn-primary" onClick={chercher} disabled={occupe || nom.trim().length < 2}><Search size={15} /> Chercher</button>
+
+      <form className="space-y-3" onSubmit={e => { e.preventDefault(); if (!occupe && nom.trim().length >= 2) chercher() }}>
+        <p className="text-sm font-semibold">Par son nom</p>
+        <div className="grid sm:grid-cols-[1fr_9rem] gap-3">
+          <div>
+            <label htmlFor="rep-nom" className="block text-sm text-slate-700 dark:text-slate-300 mb-1">Nom du commerce</label>
+            <input id="rep-nom" className="input w-full" placeholder="Ex : Boulangerie Martin" value={nom} onChange={e => setNom(e.target.value)} maxLength={100} />
+          </div>
+          <div>
+            <label htmlFor="rep-ville" className="block text-sm text-slate-700 dark:text-slate-300 mb-1">Ville</label>
+            <input id="rep-ville" className="input w-full" placeholder="Ex : Ajaccio" value={ville} onChange={e => setVille(e.target.value)} maxLength={60} />
+          </div>
         </div>
+        <button type="submit" className="btn-primary w-full sm:w-auto" disabled={occupe || nom.trim().length < 2}><Search size={15} /> Chercher ma fiche</button>
         {lieux && (lieux.length === 0
-          ? <p className="text-sm text-slate-500">Aucun résultat, essaie avec la ville ou colle ton lien ci-dessous.</p>
-          : <ul className="divide-y divide-slate-100 dark:divide-slate-700">
+          ? <p className="text-sm text-slate-600 dark:text-slate-400">Aucun résultat. Essaie en ajoutant la ville, ou colle ton lien ci-dessous.</p>
+          : <ul className="space-y-2" aria-label="Résultats de la recherche">
               {lieux.map(l => (
-                <li key={l.place_id} className="py-2 flex items-center justify-between gap-3">
-                  <span className="text-sm min-w-0"><span className="font-medium">{l.nom}</span><br /><span className="text-xs text-muted">{l.adresse}</span></span>
-                  <button className="btn-secondary px-3 py-1.5 text-xs shrink-0" onClick={() => choisir(l.place_id)} disabled={occupe}>C'est lui</button>
+                <li key={l.place_id} className="rounded-xl border border-slate-200 dark:border-slate-700 p-3 flex items-center justify-between gap-3">
+                  <span className="text-sm min-w-0"><span className="font-medium block">{l.nom}</span><span className="text-xs text-slate-600 dark:text-slate-400">{l.adresse}</span></span>
+                  <button type="button" className="btn-secondary px-3 py-1.5 text-xs shrink-0" onClick={() => choisir(l.place_id)} disabled={occupe}>C'est elle</button>
                 </li>
               ))}
             </ul>)}
-      </div>
-      <div className="space-y-2">
-        <p className="text-sm font-medium">Ou colle ton lien « Demander des avis »</p>
+      </form>
+
+      <div className="flex items-center gap-3 text-xs text-slate-500" aria-hidden="true"><span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />ou<span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" /></div>
+
+      <form className="space-y-2" onSubmit={e => { e.preventDefault(); if (!occupe && saisie.trim()) choisir(saisie) }}>
+        <label htmlFor="rep-lien" className="text-sm font-semibold block">Avec ton lien « Demander des avis »</label>
         <div className="flex gap-2">
-          <input className="input flex-1" placeholder="Lien contenant placeid=… ou identifiant" value={saisie} onChange={e => setSaisie(e.target.value)} />
-          <button className="btn-secondary" onClick={() => choisir(saisie)} disabled={occupe || !saisie.trim()}>Valider</button>
+          <input id="rep-lien" className="input flex-1 min-w-0" placeholder="Lien contenant placeid=… ou identifiant" value={saisie} onChange={e => setSaisie(e.target.value)} />
+          <button type="submit" className="btn-secondary" disabled={occupe || !saisie.trim()}>Valider</button>
         </div>
-      </div>
+        <p className="text-xs text-slate-600 dark:text-slate-400">Tu le trouves dans Google Business Profile, bouton « Demander des avis ».</p>
+      </form>
     </div>
   )
 }
+
+// ---------- Avis Google ----------
 
 function AvisGoogle({ apercu, rafraichir }) {
   const [filtres, setFiltres] = useState({ q: '', note: '', traite: '', tri: 'recent' })
@@ -507,13 +545,13 @@ function Rapport({ apercu }) {
   const [choix, setChoix] = useState(mois[0].valeur)
   const [occupe, setOccupe] = useState(false)
 
-  if (!apercu.premium) {
+  if (!apercu.business) {
     return (
       <div className="card text-center space-y-3 py-8">
         <Crown size={28} className="text-amber-500 mx-auto" />
         <p className="font-semibold">Rapport mensuel en PDF</p>
         <p className="text-sm text-slate-500 dark:text-slate-400">Un PDF avec ta note, tes nouveaux avis, tes passages sur le lien, les sujets qui reviennent et tes pistes en cours.</p>
-        <Link to="/client/premium" className="btn-primary inline-flex">Débloquer avec Premium</Link>
+        <Link to="/client/premium" className="btn-primary inline-flex">Débloquer avec Business</Link>
       </div>
     )
   }
@@ -570,7 +608,7 @@ function ReglagesMotCle({ m, d, recharger }) {
           <button className="btn-secondary text-xs" disabled={occupe} onClick={() => enregistrer({ concurrents: noms.map(x => x.trim()).filter(Boolean) })}>Enregistrer les concurrents</button>
         </div>
         <label className="block text-xs">
-          <span className="text-muted flex items-center gap-1">Relevé automatique{!d.premium && <Crown size={12} className="text-amber-500" />}</span>
+          <span className="text-muted flex items-center gap-1">Relevé automatique{!d.releve_auto && <Crown size={12} className="text-amber-500" />}</span>
           <select className="input mt-1 w-full" value={m.frequence} disabled={occupe || !d.premium} onChange={e => enregistrer({ frequence: e.target.value })}>
             {FREQUENCES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
@@ -635,7 +673,7 @@ function Visibilite() {
         </div>
         <p className="text-xs text-muted">
           {d.mots_cles.length} / {d.max_mots_cles} mots-clés · {d.quota.restant} relevé{d.quota.restant > 1 ? 's' : ''} possible{d.quota.restant > 1 ? 's' : ''} aujourd'hui
-          {d.releve_auto ? ' · relevé automatique selon la fréquence choisie pour chaque mot-clé' : ' · relevé automatique avec Premium'}
+          {d.releve_auto ? ' · relevé automatique selon la fréquence choisie pour chaque mot-clé' : ' · relevé automatique avec Business'}
         </p>
       </div>
 
