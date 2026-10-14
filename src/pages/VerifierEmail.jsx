@@ -3,11 +3,15 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import api from '../lib/api'
+import { useAuth } from '../hooks/useAuth'
+import { prochaineEtape } from '../lib/parcoursClient.mjs'
+import { lireOffreSouhaitee } from '../lib/offreSouhaitee'
 import { LogoMarque } from '../components/Logo'
 
 export default function VerifierEmail() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
+  const { user, updateUser, loading } = useAuth()
   const [statut, setStatut] = useState('chargement') // chargement | succes | erreur
   const [message, setMessage] = useState('')
 
@@ -27,6 +31,11 @@ export default function VerifierEmail() {
         setMessage(err.response?.data?.error || 'Lien de vérification invalide ou expiré.')
       })
   }, [token])
+
+  // Le profil peut finir de charger après la confirmation : on le met à jour pour que l'étape suivante ne renvoie pas ici.
+  useEffect(() => {
+    if (statut === 'succes' && user && user.email_verifie === false) updateUser({ email_verifie: true })
+  }, [statut, user, updateUser])
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -54,9 +63,15 @@ export default function VerifierEmail() {
             <>
               <CheckCircle2 size={32} className="text-emerald-500 mx-auto" />
               <p className="font-semibold text-slate-900">{message}</p>
-              <Link to="/dashboard" className="btn-primary w-full justify-center mt-2">
-                Aller à mon tableau de bord
-              </Link>
+              {loading ? null : user?.role === 'client' ? (
+                <Link to={prochaineEtape(lireOffreSouhaitee())} className="btn-primary w-full justify-center mt-2">
+                  {['premium', 'business'].includes(lireOffreSouhaitee()) ? 'Choisir mon offre' : 'Commander mon premier avis'}
+                </Link>
+              ) : (
+                <Link to={user ? '/dashboard' : '/login'} className="btn-primary w-full justify-center mt-2">
+                  {user ? 'Aller à mon tableau de bord' : 'Me connecter'}
+                </Link>
+              )}
             </>
           )}
           {statut === 'erreur' && (

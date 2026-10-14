@@ -48,8 +48,8 @@ export default function InscriptionClient() {
       await registerClient(email.trim(), password)
       mesure('compte-cree')
       if (offre) retenirOffreSouhaitee(offre)
-      toast.success('Compte créé ! Confirme ton adresse avec le mail que tu viens de recevoir.', { duration: 6000 })
-      navigate('/client')
+      toast.success('Compte créé !')
+      navigate('/verification-requise')
     } catch (err) {
       setEmailExiste(err.response?.data?.code === 'EMAIL_DEJA_UTILISE')
       setErreur(err.response?.data?.error || err.response?.data?.errors?.[0]?.message || "L'inscription n'a pas abouti, réessaie.")
@@ -73,7 +73,7 @@ export default function InscriptionClient() {
           </motion.div>
           <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">Crée ton compte gratuit</h1>
           <p className="text-[15px] text-slate-500 mt-1">
-            {offre ? 'Deux champs, puis tu choisis ton offre.' : 'Sans carte bancaire, en 20 secondes.'}
+            {offre ? 'Deux champs, puis tu confirmes ton email et tu choisis ton offre.' : 'Sans carte bancaire, en 20 secondes.'}
           </p>
         </div>
 
