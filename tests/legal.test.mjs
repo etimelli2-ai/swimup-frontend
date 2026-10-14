@@ -26,9 +26,9 @@ test('les liens légaux sont dans tous les pieds de page publics et dans l\'espa
   }
 })
 
-test('aucune information légale inventée : chaque champ non fourni reste marqué [À REMPLIR]', () => {
+test('aucune information légale inventée : adresse, SIRET et RCS restent marqués [À REMPLIR] tant qu\'ils ne sont pas fournis', () => {
   // Quand tu remplis un champ de src/lib/legal.mjs, retire-le de cette liste.
-  for (const k of ['nom', 'statut', 'adresse', 'telephone', 'email', 'siret', 'rcs', 'capital', 'tva', 'directeurPublication']) {
+  for (const k of ['adresse', 'siret', 'rcs']) {
     assert.match(EDITEUR[k], /^\[À REMPLIR/, k)
   }
 })

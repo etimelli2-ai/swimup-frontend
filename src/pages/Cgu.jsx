@@ -12,7 +12,7 @@ export default function Cgu() {
 
       <Titre>2. Créer un compte</Titre>
       <ul className="list-disc pl-5 space-y-1">
-        <li>Il faut avoir au moins 18 ans <Champ v="[À CONFIRMER : âge minimum que tu veux imposer]" />.</li>
+        <li>Il faut avoir au moins 18 ans.</li>
         <li>Les informations données à l'inscription doivent être vraies. Une adresse email valide est obligatoire et doit être vérifiée.</li>
         <li>Un compte est personnel. Une personne = un compte : les doublons peuvent être détectés (voir la politique de confidentialité) et bloqués.</li>
         <li>Tu es responsable de ton mot de passe. Active la double authentification si elle t'est proposée. Si tu penses que ton compte est piraté, préviens-nous vite.</li>

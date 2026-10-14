@@ -6,26 +6,25 @@
 export const DATE_MAJ = '14 octobre 2026'
 
 export const EDITEUR = {
-  nom: '[À REMPLIR : nom et prénom (particulier ou micro-entrepreneur) ou raison sociale (société)]',
-  statut: '[À REMPLIR : particulier, micro-entrepreneur ou société (forme juridique)]',
+  nom: 'Enzo TIMELLI',
+  statut: 'Entrepreneur individuel (micro-entrepreneur)',
   adresse: '[À REMPLIR : adresse postale (siège social pour une société)]',
-  telephone: '[À REMPLIR : numéro de téléphone]',
-  email: '[À REMPLIR : adresse email de contact]',
-  siret: '[À REMPLIR : numéro SIRET, ou « sans objet » si tu n\'es pas inscrit]',
-  rcs: '[À REMPLIR : RCS ou RM et ville, si inscrit]',
-  capital: '[À REMPLIR : capital social, société uniquement]',
-  tva: '[À REMPLIR : numéro de TVA intracommunautaire, ou mention « TVA non applicable, art. 293 B du CGI » si tu es en franchise]',
-  directeurPublication: '[À REMPLIR : nom du directeur ou de la directrice de la publication]',
+  telephone: 'Aucun : contact uniquement par email',
+  email: 'noreply@swimup.net',
+  siret: '[À REMPLIR : numéro SIRET de ton entreprise (14 chiffres), fourni à l\'inscription de ta micro-entreprise]',
+  rcs: '[À REMPLIR : numéro d\'immatriculation (RCS ou RM) s\'il y en a un sur ton attestation d\'inscription, sinon retire cette ligne]',
+  capital: 'Sans objet (entreprise individuelle)',
+  tva: 'TVA non applicable, art. 293 B du CGI',
+  directeurPublication: 'Enzo TIMELLI',
 }
 
 // Hébergement : le nom vient du projet (le site et l'API tournent sur Railway). L'adresse est à copier depuis leur site.
 export const HEBERGEUR = {
   nom: 'Railway',
-  details: '[À REMPLIR : raison sociale exacte, adresse et contact de l\'hébergeur, à copier depuis railway.com]',
+  details: 'Railway Corporation, 548 Market St PMB 68956, San Francisco, CA 94104, États-Unis. Contact : team@railway.com.',
 }
 
-export const MEDIATEUR = '[À REMPLIR : nom et coordonnées du médiateur de la consommation auquel tu adhères (obligatoire si tu vends à des particuliers)]'
-export const LOI_ET_TRIBUNAL = '[À REMPLIR : juridiction compétente, à valider avec un juriste]'
+export const LOI_ET_TRIBUNAL = "À défaut d'accord amiable, les tribunaux français du ressort du domicile de l'éditeur sont compétents."
 
 export const CNIL = { nom: 'CNIL', adresse: '3 place de Fontenoy, TSA 80715, 75334 Paris Cedex 07', plainte: 'https://www.cnil.fr/fr/plaintes' }
 

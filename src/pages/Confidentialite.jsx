@@ -9,10 +9,10 @@ const DUREE = '[À REMPLIR : durée]'
 
 // Finalité, données, base légale, durée. Les durées de la dernière colonne viennent du fonctionnement réel quand il est connu.
 const TRAITEMENTS = [
-  ['Créer et gérer ton compte, te connecter', 'Email, mot de passe (haché), rôle, date de dernière connexion, double authentification si activée', 'Contrat (CGU)', 'Tant que le compte existe, puis ' + DUREE],
-  ['Prévenir la fraude et les comptes en double', 'Adresse IP à l\'inscription et à la connexion', 'Intérêt légitime (protéger le service et la rémunération des membres)', DUREE],
-  ['Traiter les commandes d\'avis et les paiements', 'Email, lien de la fiche, nom et type d\'établissement, consignes de l\'avis, montant, identifiant de paiement Stripe ou PayPal', 'Contrat (CGV) et obligation légale (comptabilité)', 'Écritures comptables : ' + DUREE + ' (la loi impose une durée minimale)'],
-  ['Rémunérer les membres', 'Email PayPal, solde, historique des gains et des retraits, identifiant Discord (aide et vérification)', 'Contrat (CGU) et obligation légale (comptabilité)', DUREE],
+  ['Créer et gérer ton compte, te connecter', 'Email, mot de passe (haché), rôle, date de dernière connexion, double authentification si activée', 'Contrat (CGU)', 'Tant que ton compte existe, puis suppression à ta demande'],
+  ['Prévenir la fraude et les comptes en double', 'Adresse IP à l\'inscription et à la connexion', 'Intérêt légitime (protéger le service et la rémunération des membres)', 'Tant que ton compte existe (elle est mise à jour à chaque connexion)'],
+  ['Traiter les commandes d\'avis et les paiements', 'Email, lien de la fiche, nom et type d\'établissement, consignes de l\'avis, montant, identifiant de paiement Stripe ou PayPal', 'Contrat (CGV) et obligation légale (comptabilité)', 'Pièces comptables : 10 ans (obligation légale). Le reste : tant que ton compte existe'],
+  ['Rémunérer les membres', 'Email PayPal, solde, historique des gains et des retraits, identifiant Discord (aide et vérification)', 'Contrat (CGU) et obligation légale (comptabilité)', 'Gains et retraits : 10 ans (comptabilité). Email PayPal et identifiant Discord : tant que ton compte existe'],
   ['Fournir les outils des entreprises', 'Configuration du lien d\'avis, historiques, analyses, campagnes (voir plus bas pour leurs durées)', 'Contrat', 'Voir la liste des durées plus bas'],
   ['Envoyer des emails du service', 'Email, contenu du message (vérification, commande, rappels, mot de passe oublié)', 'Contrat', 'Suivi technique d\'envoi : ' + DUREE],
   ['Contacter des commerçants pour leur présenter SwimUp (prospection entre professionnels)', 'Nom, adresse, téléphone, site web et email professionnels de la fiche Google, note et nombre d\'avis', 'Intérêt légitime (démarcher des professionnels pour une offre liée à leur activité)', 'Jusqu\'à opposition, et ' + DUREE + ' après le dernier échange'],
@@ -21,15 +21,15 @@ const TRAITEMENTS = [
 ]
 
 const SOUS_TRAITANTS = [
-  ['Railway', "Héberge le site et l'API.", 'États-Unis possible'],
-  ['Turso', 'Héberge la base de données.', '[À REMPLIR : région choisie]'],
-  ['Resend', "Envoie les emails (service, demandes d'avis, campagnes).", 'États-Unis possible'],
-  ['Stripe', "Encaisse les paiements par carte et les abonnements. SwimUp ne voit jamais ton numéro de carte.", 'Selon Stripe'],
-  ['PayPal', "Reçoit des paiements de clients et verse les gains des membres.", 'Selon PayPal'],
-  ['Google (Places)', "Fournit les derniers avis d'une fiche, les résultats de recherche locale et les fiches utilisées pour la prospection.", 'États-Unis possible'],
-  ['Groq', "Rédige les brouillons de réponse aux avis et les résumés d'analyse. Il reçoit le texte de l'avis pour travailler.", 'États-Unis'],
-  ['Umami', "Compte les visites des pages publiques, sans cookie, sans profil et sans adresse IP.", 'Selon Umami'],
-  ['Discord', "Aide et échanges avec les membres, si tu rejoins le serveur.", 'Selon Discord'],
+  ['Railway', "Héberge le site et l'API.", 'États-Unis ; Data Privacy Framework ou clauses contractuelles types selon leur accord de traitement (section 9.2)'],
+  ['Turso', 'Héberge la base de données.', 'Irlande'],
+  ['Resend', "Envoie les emails (service, demandes d'avis, campagnes).", 'États-Unis ; certifié Data Privacy Framework'],
+  ['Stripe', "Encaisse les paiements par carte et les abonnements. SwimUp ne voit jamais ton numéro de carte.", 'États-Unis ; certifié Data Privacy Framework, avec clauses contractuelles types en secours'],
+  ['PayPal', "Reçoit des paiements de clients et verse les gains des membres.", '[À VÉRIFIER : conditions de transfert de PayPal]'],
+  ['Google (Places)', "Fournit les derniers avis d'une fiche, les résultats de recherche locale et les fiches utilisées pour la prospection.", '[À VÉRIFIER : garantie de transfert de Google pour l\'API Places]'],
+  ['Groq', "Rédige les brouillons de réponse aux avis et les résumés d'analyse. Il reçoit le texte de l'avis pour travailler.", 'États-Unis ; clauses contractuelles types de l\'UE'],
+  ['Umami', "Compte les visites des pages publiques, sans cookie, sans profil et sans adresse IP.", '[À VÉRIFIER : lieu d\'hébergement et accord de traitement d\'Umami Cloud]'],
+  ['Discord', "Aide et échanges avec les membres, si tu rejoins le serveur.", 'Discord décide seul de l\'usage de tes données sur son serveur'],
 ]
 
 export default function Confidentialite() {
@@ -41,7 +41,7 @@ export default function Confidentialite() {
       <p className="mt-3">Cette page explique quelles données personnelles SwimUp utilise, pourquoi, combien de temps elles sont gardées, qui les reçoit et comment tu gardes la main. Elle s'applique aux visiteurs, aux clients et aux membres.</p>
 
       <Titre>1. Qui est responsable</Titre>
-      <p>Le responsable du traitement est <Champ v={EDITEUR.nom} /> (<Champ v={EDITEUR.statut} />), <Champ v={EDITEUR.adresse} />. Contact : <Champ v={EDITEUR.email} />. Il n'y a pas de délégué à la protection des données <ARemplir>[À CONFIRMER]</ARemplir>.</p>
+      <p>Le responsable du traitement est <Champ v={EDITEUR.nom} /> (<Champ v={EDITEUR.statut} />), <Champ v={EDITEUR.adresse} />. Contact : <Champ v={EDITEUR.email} />. Il n'y a pas de délégué à la protection des données : l'adresse de contact ci-dessus sert pour toutes les demandes.</p>
 
       <Titre>2. Ce qu'on fait avec tes données</Titre>
       <div className="overflow-x-auto">
@@ -79,10 +79,10 @@ export default function Confidentialite() {
       <p>Seules les personnes qui administrent SwimUp y ont accès. Nous faisons appel à ces prestataires, qui traitent des données pour notre compte :</p>
       <ul className="mt-2 space-y-2">
         {SOUS_TRAITANTS.map(([nom, role, lieu]) => (
-          <li key={nom}><strong className="text-slate-900">{nom}</strong> : {role} Localisation des données : {lieu.startsWith('[') ? <ARemplir>{lieu}</ARemplir> : lieu}.</li>
+          <li key={nom}><strong className="text-slate-900">{nom}</strong> : {role} Localisation et garantie de transfert : {lieu.startsWith('[') ? <ARemplir>{lieu}</ARemplir> : lieu}.</li>
         ))}
       </ul>
-      <p className="mt-2">Plusieurs de ces prestataires sont situés hors de l'Union européenne, surtout aux États-Unis. Dans ce cas, le transfert doit reposer sur un cadre reconnu (décision d'adéquation, clauses contractuelles types). <ARemplir>[À VÉRIFIER : garantie utilisée par chaque prestataire, dans leur contrat de traitement des données]</ARemplir> Les autorités et les administrations peuvent aussi recevoir des données quand la loi l'impose.</p>
+      <p className="mt-2">Plusieurs de ces prestataires sont situés hors de l'Union européenne, surtout aux États-Unis. Les transferts reposent alors sur le Data Privacy Framework entre l'UE et les États-Unis ou sur des clauses contractuelles types, comme indiqué ci-dessus. Les autorités et les administrations peuvent aussi recevoir des données quand la loi l'impose.</p>
 
       <Titre>6. Combien de temps pour les outils des entreprises</Titre>
       {conservation === null && <p className="text-slate-600">Chargement…</p>}

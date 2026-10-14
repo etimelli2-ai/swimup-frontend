@@ -55,8 +55,8 @@ export function InfoAvantPaiement({ className = '', abonnement = false }) {
     <p className={`text-xs leading-relaxed text-slate-600 dark:text-slate-400 ${className}`}>
       En payant, tu commandes avec obligation de paiement et les <Link to="/cgv" className="underline">conditions de vente</Link> s'appliquent.{' '}
       {abonnement && "L'abonnement est mensuel et se renouvelle automatiquement jusqu'à ta résiliation. "}
-      Si tu achètes en tant que particulier, tu as 14 jours pour te rétracter, sauf si le service a déjà été exécuté à ta demande.
-      Détails, remboursement et formulaire type : <Link to="/retractation" className="underline">rétractation et remboursement</Link>.
+      Ce service est réservé aux professionnels : le droit de rétractation des consommateurs ne s'applique pas.
+      Remboursement et garantie : <Link to="/retractation" className="underline">rétractation et remboursement</Link>.
     </p>
   )
 }
