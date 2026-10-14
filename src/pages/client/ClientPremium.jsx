@@ -439,16 +439,17 @@ function atoutsPremium(lignes, remise) {
   return [
     `Campagnes d'emails d'avis, jusqu'à ${valeurDe(lignes, 'campagnes', 'premium')} adresses`,
     `${valeurDe(lignes, 'emails', 'premium')} demandes d'avis par email et ${valeurDe(lignes, 'ia', 'premium')} réponses IA par jour`,
-    `Suivi de ${valeurDe(lignes, 'visibilite', 'premium')} mots-clés sur Google Maps, rapport mensuel PDF`,
+    `Suivi de ${valeurDe(lignes, 'visibilite', 'premium')} mots-clés sur Google Maps`,
     `${remise} sur les commandes d'avis`,
   ].filter(a => !a.includes('undefined'))
 }
 function atoutsBusiness(lignes) {
   return [
-    'Tout Premium',
-    `Jusqu'à ${valeurDe(lignes, 'equipe', 'business')} personnes dans ton équipe`,
-    'Comparaison entre tes établissements',
-    'Rapport groupé en PDF',
+    `Tout Premium, avec le double de volume : ${valeurDe(lignes, 'emails', 'business')} emails et ${valeurDe(lignes, 'ia', 'business')} réponses IA par jour, ${valeurDe(lignes, 'visibilite', 'business')} mots-clés`,
+    'Relevé automatique de ta position et rapport mensuel en PDF',
+    'Campagnes planifiées, avec relance automatique',
+    `${valeurDe(lignes, 'etablissements', 'business')} entreprises et jusqu'à ${valeurDe(lignes, 'equipe', 'business')} personnes dans ton équipe`,
+    'Comparaison entre établissements et rapport groupé',
   ].filter(a => !a.includes('undefined'))
 }
 
@@ -522,7 +523,7 @@ function PasserBusiness({ statut, prix, occupe, envoiPaypal, changer, paypal }) 
     <div className="card p-5 space-y-3">
       <h2 className="section-title flex items-center gap-2"><Building2 size={17} className="text-indigo-500" /> Plusieurs établissements ou une équipe ?</h2>
       <p className="text-sm text-slate-500 dark:text-slate-400">
-        Business, c'est Premium plus l'accès d'équipe, la comparaison entre établissements et le rapport groupé. {eur(prix)} par mois.
+        Business, c'est le double de volume, le relevé automatique, le rapport mensuel, les campagnes planifiées, l'accès d'équipe et la comparaison entre établissements. {eur(prix)} par mois.
       </p>
       {enAttente ? (
         <p className="text-sm rounded-xl p-3 bg-sky-50 text-sky-800 dark:bg-sky-900/20 dark:text-sky-300">

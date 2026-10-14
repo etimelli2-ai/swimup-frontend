@@ -57,6 +57,12 @@ export default function ClientOutils() {
   const [form, setForm] = useState({ lien_avis: '', nom_commerce: '', message_perso: '' })
   const [sauvegarde, setSauvegarde] = useState(false)
   const [pdfEnCours, setPdfEnCours] = useState(null)
+  const [onglet, setOnglet] = useState('lien')
+  // Les étapes de démarrage pointent vers une section : on ouvre le bon onglet puis on y descend.
+  const aller = (ancre) => {
+    setOnglet(ancre === 't-mail' ? 'mail' : ancre === 't-ia' ? 'ia' : 'lien')
+    setTimeout(() => document.getElementById(ancre)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+  }
 
   const [texteMails, setTexteMails] = useState('')
   const [attestation, setAttestation] = useState(false)
@@ -79,7 +85,7 @@ export default function ClientOutils() {
     setData(r.data)
     setForm({
       lien_avis: r.data.config.lien_avis || '',
-      nom_commerce: r.data.config.nom_commerce || r.data.nom_societe || '',
+      nom_commerce: r.data.config.nom_commerce || (String(r.data.nom_societe || '').includes('@') ? '' : r.data.nom_societe) || '',
       message_perso: r.data.config.message_perso || '',
     })
     setPrefs(p => ({ ...p, ...r.data.ia_preferences }))
@@ -223,35 +229,47 @@ export default function ClientOutils() {
         const requises = data.etapes.filter(x => !x.optionnelle)
         const faites = requises.filter(x => x.fait).length
         if (faites === requises.length) return null
+        const courante = requises.find(x => !x.fait)?.cle
         return (
-          <section className="card p-5" aria-labelledby="t-demarrage">
-            <div className="flex items-center justify-between gap-3">
-              <h2 id="t-demarrage" className="font-semibold text-slate-900 dark:text-slate-100">Pour bien démarrer</h2>
-              <span className="text-sm text-slate-500 dark:text-slate-400 tabular-nums">{faites}/{requises.length}</span>
-            </div>
-            <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 mt-3 overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={requises.length} aria-valuenow={faites} aria-label="Étapes de démarrage terminées">
-              <div className="h-full bg-brand-500 transition-all" style={{ width: `${(faites / requises.length) * 100}%` }} />
-            </div>
-            <ul className="mt-3 space-y-1.5">
-              {data.etapes.map(x => (
-                <li key={x.cle} className="flex items-center gap-2 text-sm">
-                  {x.fait
-                    ? <Check size={16} className="text-emerald-600 shrink-0" aria-label="Fait" />
-                    : <Circle size={16} className="text-slate-300 dark:text-slate-600 shrink-0" aria-label="À faire" />}
-                  {x.fait ? (
-                    <span className="text-slate-500 dark:text-slate-400">{x.titre}</span>
-                  ) : x.lien ? (
-                    <Link to={x.lien} className="text-slate-800 dark:text-slate-100 underline decoration-slate-300 hover:decoration-slate-500">{x.titre}{x.optionnelle ? ' (facultatif)' : ''}</Link>
-                  ) : (
-                    <a href={`#${x.ancre}`} className="text-slate-800 dark:text-slate-100 underline decoration-slate-300 hover:decoration-slate-500">{x.titre}</a>
-                  )}
+          <nav aria-label="Pour bien démarrer" className="card p-4">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">
+              Pour bien démarrer <span className="font-normal text-slate-600 dark:text-slate-400 tabular-nums">· {faites} sur {requises.length}</span>
+            </p>
+            <ol className="grid sm:grid-cols-4 gap-2">
+              {requises.map((x, i) => (
+                <li key={x.cle}>
+                  <button type="button" onClick={() => aller(x.ancre)} aria-current={x.cle === courante ? 'step' : undefined}
+                    className={`w-full h-full text-left rounded-xl border px-3 py-2.5 flex items-start gap-2.5 transition-colors ${
+                      x.fait ? 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-900/10'
+                        : x.cle === courante ? 'border-sky-300 bg-sky-50 dark:border-sky-700 dark:bg-sky-900/20'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'}`}>
+                    <span className={`w-5 h-5 rounded-full shrink-0 mt-0.5 flex items-center justify-center text-[11px] font-semibold ${
+                      x.fait ? 'bg-emerald-500 text-white' : x.cle === courante ? 'bg-sky-500 text-white' : 'border border-slate-300 text-slate-600 dark:text-slate-300'}`}>
+                      {x.fait ? <Check size={12} aria-label="Fait" /> : i + 1}
+                    </span>
+                    <span className={`text-[13px] leading-snug ${x.fait ? 'text-slate-600 dark:text-slate-400' : 'text-slate-900 dark:text-slate-100 font-medium'}`}>{x.titre}</span>
+                  </button>
                 </li>
               ))}
-            </ul>
-          </section>
+            </ol>
+          </nav>
         )
       })()}
 
+      {/* Un seul bloc à la fois : moins de défilement, on sait où l'on est */}
+      <div role="tablist" aria-label="Outils avis" className="flex gap-1 border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
+        {[['lien', 'Mon lien et mon affiche', QrCode], ['mail', 'Demander des avis', Mail], ['ia', 'Répondre aux avis', Sparkles]].map(([cle, nom, Icone]) => (
+          <button key={cle} type="button" role="tab" id={`onglet-${cle}`} aria-selected={onglet === cle} aria-controls={`panneau-${cle}`}
+            onClick={() => setOnglet(cle)}
+            className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap flex items-center gap-2 -mb-px border-b-2 transition-colors ${
+              onglet === cle ? 'border-sky-500 text-sky-700 dark:text-sky-300' : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}`}>
+            <Icone size={16} aria-hidden="true" /> {nom}
+          </button>
+        ))}
+      </div>
+
+      {onglet === 'lien' && (
+      <div role="tabpanel" id="panneau-lien" aria-labelledby="onglet-lien" className="space-y-6">
       {/* 1. Lien, QR, affiche */}
       <section className="card p-5 space-y-4" aria-labelledby="t-lien">
         <h2 id="t-lien" className="font-semibold text-slate-900 dark:text-slate-100">Ton lien d'avis et ton affiche</h2>
@@ -374,6 +392,11 @@ export default function ClientOutils() {
         </section>
       )}
 
+      </div>
+      )}
+
+      {onglet === 'mail' && (
+      <div role="tabpanel" id="panneau-mail" aria-labelledby="onglet-mail" className="space-y-6">
       {/* 2. Demandes par email */}
       <section className="card p-5 space-y-3" aria-labelledby="t-mail">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -414,6 +437,11 @@ export default function ClientOutils() {
         )}
       </section>
 
+      </div>
+      )}
+
+      {onglet === 'ia' && (
+      <div role="tabpanel" id="panneau-ia" aria-labelledby="onglet-ia" className="space-y-6">
       {/* 3. Réponses IA */}
       <section className="card p-5 space-y-3" aria-labelledby="t-ia">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -520,6 +548,8 @@ export default function ClientOutils() {
           </details>
         )}
       </section>
+      </div>
+      )}
     </div>
   )
 }

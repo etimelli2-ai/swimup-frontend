@@ -23,14 +23,15 @@ function atouts(offre, lignes) {
   ] : offre === 'premium' ? [
     `Campagnes d'emails d'avis, jusqu'à ${v('campagnes')} adresses`,
     `${v('emails')} demandes d'avis par email et ${v('ia')} réponses IA par jour`,
-    `Suivi de ${v('visibilite')} mots-clés sur Google Maps, rapport mensuel PDF`,
+    `Suivi de ${v('visibilite')} mots-clés sur Google Maps`,
     `${v('remise')} sur les commandes d'avis`,
     `${v('etablissements')} entreprises avec le même abonnement`,
   ] : [
-    'Tout Premium',
-    `${v('etablissements')} entreprises avec le même abonnement`,
-    `Jusqu'à ${v('equipe')} personnes dans ton équipe`,
-    'Comparaison entre tes établissements et rapport groupé en PDF',
+    `Tout Premium, avec le double de volume : ${v('emails')} emails et ${v('ia')} réponses IA par jour, ${v('visibilite')} mots-clés`,
+    'Relevé automatique de ta position et rapport mensuel en PDF',
+    'Campagnes planifiées, avec relance automatique',
+    `${v('etablissements')} entreprises et jusqu'à ${v('equipe')} personnes dans ton équipe`,
+    'Comparaison entre établissements et rapport groupé',
   ]
   return liste.filter(a => !a.includes('undefined') && !a.includes('false'))
 }
