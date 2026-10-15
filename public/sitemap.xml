@@ -89,4 +89,39 @@
     <lastmod>2026-10-14</lastmod>
     <priority>0.2</priority>
   </url>
+  <url>
+    <loc>https://swimup.net/avis-google</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/avis-google/restaurant</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/avis-google/coiffeur</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/avis-google/artisan-batiment</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/avis-google/garage-automobile</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/avis-google/boulangerie</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/avis-google/institut-de-beaute</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
 </urlset>

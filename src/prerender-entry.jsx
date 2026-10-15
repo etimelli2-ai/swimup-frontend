@@ -5,6 +5,7 @@ import { renderToPipeableStream } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom'
 import Racine from './Racine'
 import { GUIDES } from './content/guidesCommercants'
+import { METIERS } from './content/metiersAvis.mjs'
 
 // Pages publiques prérendues. La commande (/, /commander), le suivi, l'espace connecté, l'admin,
 // la connexion et les pages membres n'en font pas partie : elles restent servies comme avant.
@@ -14,6 +15,8 @@ export const PAGES = [
   '/outils/lien-avis-google',
   '/outils/modeles-reponses-avis-google',
   '/outils/diagnostic-fiche-google',
+  '/avis-google',
+  ...METIERS.map(m => `/avis-google/${m.slug}`),
   '/inscription',
   '/confidentialite',
   '/mentions-legales',

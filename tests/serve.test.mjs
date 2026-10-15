@@ -15,7 +15,7 @@ test('chaque route absolue de App.jsx est servie (rewrite) ou prérendue', () =>
   const chemins = [...app.matchAll(/path="(\/[^"*]*)"/g)].map(m => m[1].replace(/\/:[^/]+/g, ''))
   assert.ok(chemins.length > 10)
   // pages publiques prérendues : le fichier .html existe après le build
-  const prerendues = ['/aide-commercants', '/outils/lien-avis-google', '/outils/modeles-reponses-avis-google', '/outils/diagnostic-fiche-google', '/inscription', '/confidentialite', '/mentions-legales', '/cookies', '/cgu', '/cgv', '/retractation']
+  const prerendues = ['/aide-commercants', '/outils/lien-avis-google', '/outils/modeles-reponses-avis-google', '/outils/diagnostic-fiche-google', '/avis-google', '/inscription', '/confidentialite', '/mentions-legales', '/cookies', '/cgu', '/cgv', '/retractation']
   for (const p of prerendues.filter(p => p !== '/aide-commercants')) assert.ok(prerendu.includes(`'${p}'`), p)
   const manquantes = chemins.filter(c => !couvert(c) && !prerendues.includes(c))
   assert.deepEqual(manquantes, [])

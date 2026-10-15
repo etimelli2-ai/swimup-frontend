@@ -110,6 +110,7 @@ export default function ModelesReponsesAvis() {
             <li>Si un avis te met en colère, attends un peu avant de répondre.</li>
           </ul>
           <p className="mt-4 text-[14px] leading-relaxed text-slate-500">
+            Tu cherches des exemples pour ton activité ? <Link to="/avis-google" className="underline text-sky-600">Avis Google métier par métier</Link> : restaurant, coiffeur, artisan, garage, boulangerie, institut.<br />
             Plus de conseils dans nos guides : <Link to="/aide-commercants/repondre-aux-avis" className="underline text-sky-600">répondre aux avis Google</Link> et <Link to="/aide-commercants/avis-injuste-ou-faux" className="underline text-sky-600">avis injuste ou faux, que faire</Link>.
           </p>
         </section>

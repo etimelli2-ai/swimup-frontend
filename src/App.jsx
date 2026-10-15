@@ -52,6 +52,8 @@ const LienAvisGoogle = lazy(() => import('./pages/outils/LienAvisGoogle'))
 const ModelesReponsesAvis = lazy(() => import('./pages/outils/ModelesReponsesAvis'))
 const DiagnosticFiche = lazy(() => import('./pages/outils/DiagnosticFiche'))
 const Offres = lazy(() => import('./pages/Offres'))
+const MetierAvis = lazy(() => import('./pages/MetierAvis'))
+const AvisGoogleIndex = lazy(() => import('./pages/MetierAvis').then(m => ({ default: m.AvisGoogleIndex })))
 
 function PrivateRoute({ children, roles }) {
   const { user, loading } = useAuth()
@@ -127,6 +129,8 @@ export default function App() {
       <Route path="/outils/modeles-reponses-avis-google" element={<ModelesReponsesAvis />} />
       <Route path="/outils/diagnostic-fiche-google" element={<DiagnosticFiche />} />
       <Route path="/aide-commercants/:slug" element={<AideCommercantsGuide />} />
+      <Route path="/avis-google" element={<AvisGoogleIndex />} />
+      <Route path="/avis-google/:metier" element={<MetierAvis />} />
       <Route path="/verifier-email" element={<VerifierEmail />} />
       <Route path="/verification-requise" element={
         <RouteConnecteSeulement><VerificationRequise /></RouteConnecteSeulement>
