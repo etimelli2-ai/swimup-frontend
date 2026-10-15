@@ -33,7 +33,9 @@ export function rendre(url) {
     flux.on('end', () => {
       const seo = globalThis.__SEO_COLLECTE
       globalThis.__SEO_COLLECTE = null
-      erreur ? reject(erreur) : resolve({ html, seo })
+      // React insère parfois un caractère nul (\0) à la frontière de deux morceaux de rendu, à côté d'un
+      // caractère accentué (« gard\0ées ») : on le retire, sinon il s'affiche comme un carré « � ».
+      erreur ? reject(erreur) : resolve({ html: html.replace(/\0/g, ''), seo })
     })
     const { pipe, abort } = renderToPipeableStream(
       <Racine Routeur={StaticRouter} routeurProps={{ location: url }} />,
