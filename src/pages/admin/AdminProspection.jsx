@@ -52,12 +52,12 @@ const MESSAGE_DEFAUT = (p) => {
 Je suis Enzo, je gère SwimUp. En regardant les fiches Google Maps du secteur, je suis tombé sur "${p.nom}". ${constat}
 
 On a mis en ligne un diagnostic gratuit qui passe une fiche en revue et indique quoi corriger, en 2 minutes :
-https://swimup.net/outils/diagnostic-fiche-google
+https://swimup.net/outils/diagnostic-fiche-google?src=mail
 
 Vous y trouverez aussi des modèles de réponse aux avis et un lien avec QR code pour que vos clients vous laissent plus facilement un avis.
 
 Si vous voulez aller plus loin, on propose aussi des outils de suivi de réputation et d'envoi de demandes d'avis à vos propres clients. Tout est détaillé ici, avec les prix :
-https://swimup.net/offres
+https://swimup.net/offres?src=mail
 
 Si ça ne vous intéresse pas, ignorez simplement ce mail.
 

@@ -45,3 +45,14 @@ export function mesure(nom, donnees) {
   if (typeof window === 'undefined' || !window.umami) return
   try { window.umami.track(nom, donnees) } catch { /* mesure facultative */ }
 }
+
+// Origine d'une visite (?src=mail, ?src=guide...) : lettres minuscules, chiffres, tiret et underscore, 40 signes max.
+// Tout le reste est ignoré, pour qu'une adresse trafiquée ne puisse pas envoyer de texte libre à la mesure.
+export function sourceDepuisRecherche(search) {
+  try {
+    const v = new URLSearchParams(search || '').get('src')
+    if (!v) return null
+    const propre = v.trim().toLowerCase().slice(0, 40)
+    return /^[a-z0-9_-]+$/.test(propre) ? propre : null
+  } catch { return null }
+}
