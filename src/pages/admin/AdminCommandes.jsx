@@ -199,7 +199,7 @@ export default function AdminCommandes() {
                 <div>
                   <p className="font-semibold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
                     <Crown size={15} className="text-amber-500" />
-                    Abonnement {a.offre === 'business' ? 'Business' : 'Premium'} — {parseFloat(a.montant).toFixed(2)}€/mois
+                    Abonnement {a.offre === 'agence' ? 'Agence' : a.offre === 'business' ? 'Business' : 'Premium'} — {parseFloat(a.montant).toFixed(2)}€/mois
                   </p>
                   <p className="text-sm text-slate-500 dark:text-slate-400">{a.nom_societe || a.client_email}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">{a.client_email}</p>

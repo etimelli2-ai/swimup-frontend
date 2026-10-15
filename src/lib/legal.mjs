@@ -33,6 +33,7 @@ export const PRIX = {
   avisAvecCompte: 3,
   premiumMois: 9.9,
   businessMois: 24.9,
+  agenceMois: 49.9,
   remisePremiumPourcent: 10,
 }
 

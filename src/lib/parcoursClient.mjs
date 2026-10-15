@@ -22,5 +22,5 @@ export function lienMessagerie(email) {
 
 // Où envoyer le client une fois son email confirmé : la page de l'offre qu'il regardait, sinon la commande.
 export function prochaineEtape(offreSouhaitee) {
-  return ['premium', 'business'].includes(offreSouhaitee) ? '/client/premium' : '/client/payer'
+  return ['premium', 'business', 'agence'].includes(offreSouhaitee) ? '/client/premium' : '/client/payer'
 }

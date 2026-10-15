@@ -27,7 +27,7 @@ export default function InscriptionClient() {
   // Lu après l'affichage : la page est prérendue sans paramètres d'adresse, un premier rendu qui en dépend
   // ne correspondrait pas au HTML déjà présent (erreur d'hydratation).
   const [offre, setOffre] = useState(null)
-  useEffect(() => { setOffre(['premium', 'business'].includes(params.get('offre')) ? params.get('offre') : null) }, [params])
+  useEffect(() => { setOffre(['premium', 'business', 'agence'].includes(params.get('offre')) ? params.get('offre') : null) }, [params])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

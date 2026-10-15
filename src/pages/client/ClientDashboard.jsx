@@ -232,7 +232,7 @@ export default function ClientDashboard() {
               : 'Campagnes d\'emails, suivi Google Maps, -10 % sur les commandes — dès 9,90 € par mois'}
           </p>
           <div className="mt-3 flex items-center gap-1 text-amber-600 dark:text-amber-400 text-sm font-medium">
-            {user?.premium ? (user?.premium_offre === 'business' ? 'Business ✓' : 'Premium ✓') : 'Voir les offres'}
+            {user?.premium ? (user?.premium_offre === 'agence' ? 'Agence ✓' : user?.premium_offre === 'business' ? 'Business ✓' : 'Premium ✓') : 'Voir les offres'}
           </div>
         </Link>
 

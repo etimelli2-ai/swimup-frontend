@@ -15,7 +15,7 @@ export default function Cgv() {
       <Titre>2. Ce qui est vendu</Titre>
       <ul className="list-disc pl-5 space-y-2">
         <li><strong className="text-slate-900">Commande d'avis Google Maps.</strong> Des membres de SwimUp rédigent et publient des avis sur la fiche que tu indiques, et sont rémunérés pour cela. Ce ne sont pas des avis spontanés de tes clients. Tu choisis le nombre d'avis, tu paies, puis tu suis la commande depuis un lien privé.</li>
-        <li><strong className="text-slate-900">Abonnements Premium et Business.</strong> Accès à des outils supplémentaires pour gérer tes avis et ta visibilité (contenu détaillé sur la page <Link to="/offres" className="text-sky-600 underline">Offres</Link>).</li>
+        <li><strong className="text-slate-900">Abonnements Premium, Business et Agence.</strong> Accès à des outils supplémentaires pour gérer tes avis et ta visibilité (contenu détaillé sur la page <Link to="/offres" className="text-sky-600 underline">Offres</Link>).</li>
         <li><strong className="text-slate-900">Outils gratuits.</strong> Ils ne sont pas facturés.</li>
       </ul>
       <p className="mt-2">Aucune commande ne garantit une note, un classement ou le maintien d'un avis par Google. Tu restes responsable de l'usage des avis sur ta fiche, au regard des règles de Google et de la loi.</p>
@@ -24,7 +24,7 @@ export default function Cgv() {
       <ul className="list-disc pl-5 space-y-1">
         <li>Avis commandé sans compte : {eur(PRIX.avisSansCompte)} par avis.</li>
         <li>Avis commandé avec un compte client : {eur(PRIX.avisAvecCompte)} par avis, et {PRIX.remisePremiumPourcent} % de remise en plus avec Premium actif. Un avis offert est ajouté tous les 10 avis commandés.</li>
-        <li>Premium : {eur(PRIX.premiumMois)} par mois. Business : {eur(PRIX.businessMois)} par mois.</li>
+        <li>Premium : {eur(PRIX.premiumMois)} par mois. Business : {eur(PRIX.businessMois)} par mois. Agence : {eur(PRIX.agenceMois)} par mois.</li>
       </ul>
       <p className="mt-2">Les prix sont en euros. <Champ v={EDITEUR.tva} />. Le prix payé est celui affiché au moment de la commande.</p>
 
@@ -44,7 +44,7 @@ export default function Cgv() {
       <p>Les cas de remboursement (avis non publiés, commande qui ne peut pas être réalisée) sont décrits sur la page <Link to="/retractation" className="text-sky-600 underline">rétractation et remboursement</Link>.</p>
 
       <Titre>9. Service client et réclamations</Titre>
-      <p>Pour toute question ou réclamation : <Champ v={EDITEUR.email} />. Les abonnés Premium et Business peuvent aussi ouvrir un ticket depuis leur espace.</p>
+      <p>Pour toute question ou réclamation : <Champ v={EDITEUR.email} />. Les abonnés Premium, Business et Agence peuvent aussi ouvrir un ticket depuis leur espace.</p>
 
       <Titre>10. Données personnelles</Titre>
       <p>Les données utilisées pour la commande et le paiement sont décrites dans la <Link to="/confidentialite" className="text-sky-600 underline">politique de confidentialité</Link>. Les écritures de paiement sont conservées pour répondre aux obligations comptables.</p>

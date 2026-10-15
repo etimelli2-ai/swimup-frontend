@@ -121,12 +121,12 @@ export default function ClientPremium() {
 
   if (loading) return null
 
-  const prixOffre = (o) => statut?.offres?.[o]?.prix ?? (o === 'business' ? 24.9 : 9.9)
+  const prixOffre = (o) => statut?.offres?.[o]?.prix ?? (o === 'agence' ? 49.9 : o === 'business' ? 24.9 : 9.9)
   const offreActuelle = statut?.offre || 'gratuit'
-  const offreEnAttente = statut?.demande_en_attente?.offre === 'business' ? 'business' : 'premium'
+  const offreEnAttente = ['business', 'agence'].includes(statut?.demande_en_attente?.offre) ? statut.demande_en_attente.offre : 'premium'
   const montant = statut?.demande_en_attente ? prixOffre(offreEnAttente) : prixOffre('premium')
   const lienPaypal = `${PAYPAL_ME}/${montant.toFixed(2)}EUR`
-  const nomOffre = { gratuit: 'Gratuit', premium: 'Premium', business: 'Business' }
+  const nomOffre = { gratuit: 'Gratuit', premium: 'Premium', business: 'Business', agence: 'Agence' }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
@@ -385,13 +385,27 @@ export default function ClientPremium() {
       )}
 
       {statut?.premium && offreActuelle === 'premium' && (
-        <PasserBusiness statut={statut} prix={prixOffre('business')} occupe={carteEnvoi} envoiPaypal={envoi}
+        <PasserNiveau niveau="business" statut={statut} prix={prixOffre('business')} occupe={carteEnvoi} envoiPaypal={envoi}
+          titre="Plusieurs établissements ou une équipe ?"
+          texte="Business, c'est le double de volume, le relevé automatique, le rapport mensuel, les campagnes planifiées, l'accès d'équipe et la comparaison entre établissements."
           changer={() => lancerAction('changer', '/client/abonnement/changer', {
             corps: { offre: 'business' },
             confirmation: `Passer à Business à ${prixOffre('business').toFixed(2).replace('.', ',')} € par mois ? Stripe ne te fait payer que la différence pour le reste du mois en cours.`,
             succes: 'Tu es en Business !',
           })}
           paypal={() => demander('business')} />
+      )}
+
+      {statut?.premium && ['premium', 'business'].includes(offreActuelle) && statut?.offres?.agence && (
+        <PasserNiveau niveau="agence" statut={statut} prix={prixOffre('agence')} occupe={carteEnvoi} envoiPaypal={envoi}
+          titre="Tu gères les fiches de plusieurs clients ?"
+          texte={`Agence, c'est tout Business avec ${valeurDe(statut.offres.comparatif || [], 'etablissements', 'agence')} entreprises et jusqu'à ${valeurDe(statut.offres.comparatif || [], 'equipe', 'agence')} personnes dans ton équipe.`}
+          changer={() => lancerAction('changer', '/client/abonnement/changer', {
+            corps: { offre: 'agence' },
+            confirmation: `Passer à Agence à ${prixOffre('agence').toFixed(2).replace('.', ',')} € par mois ? Stripe ne te fait payer que la différence pour le reste du mois en cours.`,
+            succes: 'Tu es en Agence !',
+          })}
+          paypal={() => demander('agence')} />
       )}
     </div>
   )
@@ -406,10 +420,11 @@ function formaterValeur(v) {
 
 const eur = (n) => `${Number(n).toFixed(2).replace('.', ',')} €`
 
-// Colonnes du tableau : Gratuit | Premium | Business. `colonnes` limite l'affichage.
+// Colonnes du tableau : Gratuit | Premium | Business | Agence (Agence seulement si le serveur la propose).
 function Comparatif({ lignes, prix }) {
   if (!lignes.length) return null
-  const grille = 'grid-cols-[1fr_3.5rem_4.5rem_4.5rem] sm:grid-cols-[1fr_6rem_7rem_7rem]'
+  const agence = prix.agence != null
+  const grille = agence ? 'grid-cols-[1fr_3rem_3.75rem_3.75rem_3.75rem] sm:grid-cols-[1fr_5rem_5.5rem_5.5rem_5.5rem]' : 'grid-cols-[1fr_3.5rem_4.5rem_4.5rem] sm:grid-cols-[1fr_6rem_7rem_7rem]'
   return (
     <div className="card overflow-hidden">
       <div className={`grid ${grille} items-end px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700`}>
@@ -417,6 +432,7 @@ function Comparatif({ lignes, prix }) {
         <span className="text-center text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">Gratuit</span>
         <span className="text-center text-xs sm:text-sm font-semibold text-amber-600 dark:text-amber-400">Premium<br /><span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{eur(prix.premium)}</span></span>
         <span className="text-center text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400">Business<br /><span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{eur(prix.business)}</span></span>
+        {agence && <span className="text-center text-xs sm:text-sm font-semibold text-violet-600 dark:text-violet-400">Agence<br /><span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{eur(prix.agence)}</span></span>}
       </div>
       <ul>
         {lignes.map(l => (
@@ -425,6 +441,7 @@ function Comparatif({ lignes, prix }) {
             <span className="text-center">{formaterValeur(l.gratuit)}</span>
             <span className="text-center bg-amber-50/60 dark:bg-amber-900/10 -my-2.5 py-2.5">{formaterValeur(l.premium)}</span>
             <span className="text-center bg-indigo-50/60 dark:bg-indigo-900/10 -my-2.5 py-2.5">{formaterValeur(l.business)}</span>
+            {agence && <span className="text-center bg-violet-50/60 dark:bg-violet-900/10 -my-2.5 py-2.5">{formaterValeur(l.agence)}</span>}
           </li>
         ))}
       </ul>
@@ -453,13 +470,22 @@ function atoutsBusiness(lignes) {
   ].filter(a => !a.includes('undefined'))
 }
 
+function atoutsAgence(lignes) {
+  return [
+    'Tout Business : mêmes volumes, relevé automatique, rapport mensuel, campagnes planifiées',
+    `${valeurDe(lignes, 'etablissements', 'agence')} entreprises avec le même abonnement`,
+    `Jusqu'à ${valeurDe(lignes, 'equipe', 'agence')} personnes dans ton équipe`,
+    'Comparaison entre établissements et rapport groupé',
+  ].filter(a => !a.includes('undefined'))
+}
+
 function CarteOffre({ nom, couleur, prix, atouts, vedette, choisie, bouton }) {
   return (
     <div className={`card p-5 flex flex-col gap-4 ${vedette ? 'ring-2 ring-amber-400' : ''} ${choisie ? 'ring-2 ring-sky-500' : ''}`}>
       <div>
         <div className="flex items-center justify-between">
           <h3 className={`text-lg font-semibold ${couleur}`}>{nom}</h3>
-          {vedette && <span className="text-[11px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 rounded-full px-2.5 py-0.5">Le plus choisi</span>}
+          {vedette && <span className="text-[11px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 rounded-full px-2.5 py-0.5">Pour démarrer</span>}
         </div>
         <p className="mt-1"><span className="text-3xl font-bold text-slate-900 dark:text-white">{eur(prix)}</span> <span className="text-sm text-slate-500">par mois</span></p>
       </div>
@@ -500,6 +526,12 @@ function ChoixOffre({ statut, prixOffre, occupe, envoiPaypal, payer, paypal }) {
           vedette choisie={souhaitee === 'premium'} bouton={bouton('premium')} />
         <CarteOffre nom="Business" couleur="text-indigo-600 dark:text-indigo-400" prix={prixOffre('business')} atouts={atoutsBusiness(statut?.offres?.comparatif || [])}
           choisie={souhaitee === 'business'} bouton={bouton('business')} />
+        {statut?.offres?.agence && (
+          <div className="sm:col-span-2">
+            <CarteOffre nom="Agence" couleur="text-violet-600 dark:text-violet-400" prix={prixOffre('agence')} atouts={atoutsAgence(statut?.offres?.comparatif || [])}
+              choisie={souhaitee === 'agence'} bouton={bouton('agence')} />
+          </div>
+        )}
       </div>
       {!carte && (
         <p className="text-xs text-amber-600 dark:text-amber-400">Le paiement par carte n'est pas disponible pour le moment, utilise PayPal.</p>
@@ -511,30 +543,31 @@ function ChoixOffre({ statut, prixOffre, occupe, envoiPaypal, payer, paypal }) {
       <button onClick={() => setTableau(t => !t)} className="w-full flex items-center justify-center gap-1.5 text-sm text-sky-600 hover:text-sky-700" aria-expanded={tableau}>
         {tableau ? 'Masquer le détail' : 'Voir toutes les différences'} <ChevronDown size={16} className={`transition-transform ${tableau ? 'rotate-180' : ''}`} />
       </button>
-      {tableau && <Comparatif lignes={statut?.offres?.comparatif || []} prix={{ premium: prixOffre('premium'), business: prixOffre('business') }} />}
+      {tableau && <Comparatif lignes={statut?.offres?.comparatif || []} prix={{ premium: prixOffre('premium'), business: prixOffre('business'), ...(statut?.offres?.agence ? { agence: prixOffre('agence') } : {}) }} />}
     </>
   )
 }
 
-function PasserBusiness({ statut, prix, occupe, envoiPaypal, changer, paypal }) {
+function PasserNiveau({ niveau, titre, texte, statut, prix, occupe, envoiPaypal, changer, paypal }) {
+  const nom = niveau === 'agence' ? 'Agence' : 'Business'
   const parCarte = statut.premium_source === 'stripe' && statut.carte && statut.carte.statut !== 'termine'
   const enAttente = statut.demande_en_attente
   return (
     <div className="card p-5 space-y-3">
-      <h2 className="section-title flex items-center gap-2"><Building2 size={17} className="text-indigo-500" /> Plusieurs établissements ou une équipe ?</h2>
+      <h2 className="section-title flex items-center gap-2"><Building2 size={17} className={niveau === 'agence' ? 'text-violet-500' : 'text-indigo-500'} /> {titre}</h2>
       <p className="text-sm text-slate-500 dark:text-slate-400">
-        Business, c'est le double de volume, le relevé automatique, le rapport mensuel, les campagnes planifiées, l'accès d'équipe et la comparaison entre établissements. {eur(prix)} par mois.
+        {texte} {eur(prix)} par mois.
       </p>
       {enAttente ? (
         <p className="text-sm rounded-xl p-3 bg-sky-50 text-sky-800 dark:bg-sky-900/20 dark:text-sky-300">
-          Ta demande est en attente : règle {eur(prix)} via PayPal et elle sera validée dès réception.
+          Ta demande est en attente : règle {eur(enAttente.offre && statut.offres?.[enAttente.offre]?.prix != null ? statut.offres[enAttente.offre].prix : prix)} via PayPal et elle sera validée dès réception.
         </p>
       ) : parCarte ? (
         statut.carte.resiliation_prevue
           ? <p className="text-sm text-slate-500">Reprends d'abord ton abonnement pour pouvoir changer d'offre.</p>
-          : <button onClick={changer} disabled={!!occupe} className="btn-primary w-full">{occupe === 'changer' ? <><Spinner /> Changement…</> : <>Passer à Business</>}</button>
+          : <button onClick={changer} disabled={!!occupe} className="btn-primary w-full">{occupe === 'changer' ? <><Spinner /> Changement…</> : <>Passer à {nom}</>}</button>
       ) : (
-        <button onClick={paypal} disabled={envoiPaypal} className="btn-secondary w-full">{envoiPaypal ? 'Envoi…' : 'Demander Business par PayPal'}</button>
+        <button onClick={paypal} disabled={envoiPaypal} className="btn-secondary w-full">{envoiPaypal ? 'Envoi…' : `Demander ${nom} par PayPal`}</button>
       )}
     </div>
   )

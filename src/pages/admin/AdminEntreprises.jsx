@@ -229,7 +229,7 @@ function PremiumManuel({ id, actif, apres }) {
     setEnvoi(true)
     try {
       const r = await api.post(`/admin/entreprises/${id}/premium`, { action, jours: action === 'activer' ? Number(jours) : undefined, offre: action === 'activer' ? offre : undefined, motif })
-      toast.success(action === 'activer' ? `${offre === 'business' ? 'Business' : 'Premium'} activé` : 'Offre retirée')
+      toast.success(action === 'activer' ? `${offre === 'agence' ? 'Agence' : offre === 'business' ? 'Business' : 'Premium'} activé` : 'Offre retirée')
       if (r.data?.avertissement) toast(r.data.avertissement, { duration: 9000 })
       setMotif(''); setOuvert(false); apres()
     } catch (e) {
@@ -257,6 +257,7 @@ function PremiumManuel({ id, actif, apres }) {
           <select className="input mt-1" value={offre} onChange={e => setOffre(e.target.value)}>
             <option value="premium">Premium</option>
             <option value="business">Business</option>
+            <option value="agence">Agence</option>
           </select>
         </label>
       )}

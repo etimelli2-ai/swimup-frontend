@@ -65,7 +65,7 @@ export default function VerifierEmail() {
               <p className="font-semibold text-slate-900">{message}</p>
               {loading ? null : user?.role === 'client' ? (
                 <Link to={prochaineEtape(lireOffreSouhaitee())} className="btn-primary w-full justify-center mt-2">
-                  {['premium', 'business'].includes(lireOffreSouhaitee()) ? 'Choisir mon offre' : 'Commander mon premier avis'}
+                  {['premium', 'business', 'agence'].includes(lireOffreSouhaitee()) ? 'Choisir mon offre' : 'Commander mon premier avis'}
                 </Link>
               ) : (
                 <Link to={user ? '/dashboard' : '/login'} className="btn-primary w-full justify-center mt-2">

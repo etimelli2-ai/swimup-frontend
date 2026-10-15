@@ -212,7 +212,9 @@ function MesEntreprises({ d, recharger }) {
       {!verrouille && plein && (
         d.offre === 'premium'
           ? <p className="text-sm flex items-start gap-2"><Crown size={15} className="text-indigo-500 mt-0.5 shrink-0" /> Tu as atteint les {d.limite} entreprises de Premium. <Link to="/client/premium" className="underline font-medium">Business en permet {d.limites.business}.</Link></p>
-          : <p className="text-sm text-muted">Tu as atteint les {d.limite} entreprises de ton offre.</p>
+          : d.offre === 'business' && d.limites?.agence
+            ? <p className="text-sm flex items-start gap-2"><Crown size={15} className="text-violet-500 mt-0.5 shrink-0" /> Tu as atteint les {d.limite} entreprises de Business. <Link to="/client/premium" className="underline font-medium">Agence en permet {d.limites.agence}.</Link></p>
+            : <p className="text-sm text-muted">Tu as atteint les {d.limite} entreprises de ton offre.</p>
       )}
     </div>
   )
