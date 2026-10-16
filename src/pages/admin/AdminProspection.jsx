@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
+import { lienOutilPrepare } from '../../lib/lienAvis.mjs'
 import { Search, Mail, Phone, Globe, Star, Trash2, Send, Pencil, ExternalLink, Plus } from 'lucide-react'
 
 function Spinner() {
@@ -47,14 +48,19 @@ const MESSAGE_DEFAUT = (p) => {
   const constat = note && p.nb_avis != null
     ? `Votre fiche affiche ${note} sur 5 avec ${p.nb_avis} avis.`
     : 'J\'ai regardé votre fiche.'
+  const lienOutil = lienOutilPrepare(p, 'mail')
+  const intro = lienOutil.includes('id=')
+    ? `J'ai préparé pour "${p.nom}" le lien direct vers votre formulaire d'avis Google, son QR code et une affiche à imprimer. C'est gratuit, sans inscription, vous pouvez le tester tout de suite :`
+    : 'On a mis en ligne un outil gratuit qui crée le lien direct vers le formulaire d\'avis Google de votre établissement, son QR code et une affiche à imprimer :'
   return `Bonjour,
 
 Je suis Enzo, je gère SwimUp. En regardant les fiches Google Maps du secteur, je suis tombé sur "${p.nom}". ${constat}
 
-On a mis en ligne un diagnostic gratuit qui passe une fiche en revue et indique quoi corriger, en 2 minutes :
-https://swimup.net/outils/diagnostic-fiche-google?src=mail
+${intro}
+${lienOutil}
 
-Vous y trouverez aussi des modèles de réponse aux avis et un lien avec QR code pour que vos clients vous laissent plus facilement un avis.
+On a aussi un diagnostic gratuit qui passe votre fiche en revue et indique quoi corriger, en 2 minutes :
+https://swimup.net/outils/diagnostic-fiche-google?src=mail
 
 Si vous voulez aller plus loin, on propose aussi des outils de suivi de réputation et d'envoi de demandes d'avis à vos propres clients. Tout est détaillé ici, avec les prix :
 https://swimup.net/offres?src=mail

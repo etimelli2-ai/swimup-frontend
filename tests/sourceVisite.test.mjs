@@ -30,3 +30,28 @@ test('offre Agence : prix dans les CGV, option admin, niveau reconnu côté espa
   assert.ok(!lire('src/pages/Offres.jsx').includes('Le plus choisi'), 'pas de mention « le plus choisi » sans données')
   assert.ok(!lire('src/pages/client/ClientPremium.jsx').includes('Le plus choisi'))
 })
+
+test('mail de prospection : lien de l\'outil prérempli avec l\'identifiant de lieu et le nom', async () => {
+  const { lienOutilPrepare, prepareDepuisRecherche, nettoyerNomAffiche } = await import('../src/lib/lienAvis.mjs')
+  const id = 'ChIJabcdefghijklmnop123'
+  const l = lienOutilPrepare({ place_id: id, nom: 'Chez Marcel & Fils' })
+  assert.ok(l.startsWith('https://swimup.net/outils/lien-avis-google?src=mail'))
+  const retour = prepareDepuisRecherche(new URL(l).search)
+  assert.deepEqual(retour, { id, nom: 'Chez Marcel & Fils' })
+  // prospect ajouté à la main (identifiant synthétique) : outil vide, jamais d'identifiant bidon dans le lien
+  const manuel = lienOutilPrepare({ place_id: 'manuel-123', nom: 'X' })
+  assert.equal(manuel, 'https://swimup.net/outils/lien-avis-google?src=mail')
+  assert.equal(prepareDepuisRecherche('?id=n-importe-quoi'), null)
+  assert.equal(prepareDepuisRecherche(''), null)
+  assert.equal(nettoyerNomAffiche('  Salon\n\tJo  '), 'Salon Jo')
+  assert.ok(nettoyerNomAffiche('x'.repeat(200)).length === 60)
+  assert.ok(!/[<>]/.test(nettoyerNomAffiche('<script>')))
+})
+
+test('l\'outil lit l\'adresse après l\'affichage et propose le compte gratuit aux prospects', () => {
+  const lire = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
+  const outil = lire('src/pages/outils/LienAvisGoogle.jsx')
+  assert.ok(outil.includes('prepareDepuisRecherche(window.location.search)'))
+  assert.ok(outil.includes('/inscription?src=mail-fiche'))
+  assert.ok(lire('src/pages/admin/AdminProspection.jsx').includes('lienOutilPrepare(p'))
+})

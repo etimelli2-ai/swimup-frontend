@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import Seo from '../../components/Seo'
 import { mesure } from '../../lib/mesure.mjs'
 import CadrePublic from '../../components/CadrePublic'
-import { analyserLien } from '../../lib/lienAvis.mjs'
+import { analyserLien, prepareDepuisRecherche } from '../../lib/lienAvis.mjs'
 import { filAriane, urlAbsolue } from '../../lib/seo.mjs'
 
 const CHEMIN = '/outils/lien-avis-google'
@@ -64,6 +64,18 @@ export default function LienAvisGoogle() {
   const [nom, setNom] = useState('')
   const [message, setMessage] = useState(MESSAGE_DEFAUT)
   const [copie, setCopie] = useState(false)
+  const [prepare, setPrepare] = useState(false)
+  // Arrivée depuis un mail de prospection : l'identifiant et le nom viennent de l'adresse (?id=…&nom=…).
+  // Lu après l'affichage : la page est prérendue sans paramètres, un premier rendu qui en dépend ne
+  // correspondrait pas au HTML déjà présent. Rien n'est envoyé à un serveur.
+  useEffect(() => {
+    const p = prepareDepuisRecherche(window.location.search)
+    if (!p) return
+    setSaisie(p.id)
+    if (p.nom) setNom(p.nom)
+    setPrepare(true)
+    mesure('outil-prerempli')
+  }, [])
   const r = useMemo(() => analyserLien(saisie), [saisie])
   const lien = r.ok ? r.lien : null
   const qr = useQr(lien)
@@ -110,6 +122,11 @@ export default function LienAvisGoogle() {
       </section>
 
       <main id="contenu" className="max-w-4xl mx-auto px-4 pb-16">
+        {prepare && lien && (
+          <p className="mb-6 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-[15px] leading-relaxed px-4 py-3 print:hidden" role="status">
+            Ton lien d'avis, ton QR code et ton affiche{nom.trim() ? <> pour <strong>{nom.trim()}</strong></> : ''} sont prêts. Teste le lien avec ton téléphone, change le petit mot si tu veux, puis télécharge ou imprime.
+          </p>
+        )}
         <div className="grid lg:grid-cols-[1.1fr_1fr] gap-8 items-start">
           <div className="space-y-6 print:hidden">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xl shadow-slate-200/60">
@@ -177,6 +194,16 @@ export default function LienAvisGoogle() {
               </div>
               {!lien && <p className="text-[13px] text-slate-500">Le QR code et l'impression se débloquent dès que ton lien est reconnu.</p>}
             </div>
+
+            {prepare && lien && (
+              <div className="rounded-2xl border border-sky-200 bg-sky-50/60 p-5 sm:p-6 space-y-3">
+                <p className="text-[15px] font-semibold text-slate-900">Tu veux savoir si ton QR code est scanné ?</p>
+                <p className="text-[14.5px] leading-relaxed text-slate-600">
+                  Avec un compte gratuit SwimUp, tu gardes ton lien et ton QR code au même endroit et tu vois combien de personnes scannent ou cliquent. Deux champs, pas de carte bancaire.
+                </p>
+                <a href="/inscription?src=mail-fiche" className="inline-flex items-center rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[14px] font-semibold px-6 py-2.5">Créer mon compte gratuit</a>
+              </div>
+            )}
           </div>
 
           <div className="lg:sticky lg:top-20">

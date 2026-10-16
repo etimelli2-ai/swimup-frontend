@@ -9,6 +9,7 @@
 // Un lien vers la fiche (Maps, maps.app.goo.gl) ne mène PAS au formulaire d'avis : on l'explique.
 
 const ID_LIEU = /^(ChIJ|GhIJ)[A-Za-z0-9_-]{10,200}$/
+const BASE_OUTIL = 'https://swimup.net/outils/lien-avis-google'
 const CODE_GPAGE = /^[A-Za-z0-9_-]{4,64}$/
 const HOTES_GOOGLE = /^(www\.)?google\.[a-z.]{2,6}$|^search\.google\.com$/
 
@@ -53,4 +54,31 @@ export function analyserLien(brut) {
     return { ok: false, code: 'fiche', erreur: ERREURS.fiche }
   }
   return { ok: false, code: 'inconnu', erreur: ERREURS.inconnu }
+}
+
+// Nom d'établissement venant d'une adresse : sans caractères de contrôle ni chevrons, espaces regroupés, 60 signes.
+export function nettoyerNomAffiche(n) {
+  return String(n ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60)
+}
+
+// Lien de l'outil gratuit déjà rempli pour un prospect (identifiant de lieu + nom), pour le mail de prospection.
+// Sans identifiant de lieu valide (prospect ajouté à la main), on renvoie l'outil vide : jamais de lien cassé.
+export function lienOutilPrepare({ place_id, nom } = {}, src = 'mail') {
+  const q = new URLSearchParams({ src })
+  if (ID_LIEU.test(String(place_id || ''))) {
+    q.set('id', place_id)
+    const n = nettoyerNomAffiche(nom)
+    if (n) q.set('nom', n)
+  }
+  return `${BASE_OUTIL}?${q.toString()}`
+}
+
+// Ce que l'outil reprend de l'adresse : un identifiant valide et un nom propre, sinon rien.
+export function prepareDepuisRecherche(search) {
+  try {
+    const q = new URLSearchParams(search || '')
+    const id = (q.get('id') || '').trim()
+    if (!ID_LIEU.test(id)) return null
+    return { id, nom: nettoyerNomAffiche(q.get('nom')) }
+  } catch { return null }
 }
