@@ -29,6 +29,7 @@ const ClientCampagnes = lazy(() => import('./pages/client/ClientCampagnes'))
 const ClientEquipe = lazy(() => import('./pages/client/ClientEquipe'))
 const Parrainage = lazy(() => import('./pages/Parrainage'))
 const Apporteur = lazy(() => import('./pages/Apporteur'))
+const ApporteurGuide = lazy(() => import('./pages/ApporteurGuide'))
 const AdminApporteurs = lazy(() => import('./pages/admin/AdminApporteurs'))
 import PublicCommander from './pages/PublicCommander'
 const PublicSuivi = lazy(() => import('./pages/PublicSuivi'))
@@ -157,6 +158,7 @@ export default function App() {
         <Route path="portefeuille" element={<ReserveMembres><Portefeuille /></ReserveMembres>} />
         <Route path="profil"       element={<Profil />} />
         <Route path="apporteur"    element={<Apporteur />} />
+        <Route path="apporteur/guide" element={<ApporteurGuide />} />
         <Route path="parrainage"   element={<ReserveMembres><Parrainage /></ReserveMembres>} />
       </Route>
 

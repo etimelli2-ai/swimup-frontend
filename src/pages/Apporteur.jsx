@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Copy, Check, Handshake, Wallet } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Copy, Check, Handshake, Wallet, BookOpen } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../lib/api'
 import usePageTitle from '../hooks/usePageTitle'
@@ -73,6 +74,14 @@ export default function Apporteur() {
           Tu amènes des entreprises avec ton lien. Quand l'une d'elles paie son premier abonnement, tu touches {Math.round(data.taux * 100)} % de ce paiement.
         </p>
       </div>
+
+      <Link to="/apporteur/guide" className="card flex items-center gap-3 !p-4">
+        <span className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0"><BookOpen size={18} /></span>
+        <span className="min-w-0">
+          <span className="block font-medium text-gray-900">Guide de l'apporteur</span>
+          <span className="block text-sm text-gray-500">À qui parler, où les trouver, les messages à copier</span>
+        </span>
+      </Link>
 
       {!data.actif && (
         <div className="rounded-xl p-3 text-sm bg-amber-50 text-amber-800 border border-amber-200">

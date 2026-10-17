@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import api from '../lib/api'
 import BadgePause from './BadgePause'
 import {
   LayoutDashboard,
@@ -123,6 +124,18 @@ export default function Layout() {
     { path: '/profil',       label: 'Profil',           icon: User },
   ]
 
+  // Un compte apporteur voit « Apporteur » dans son menu, quel que soit son rôle.
+  const [estApporteur, setEstApporteur] = useState(false)
+  useEffect(() => {
+    if (!user?.id) return
+    let vivant = true
+    api.get('/apporteur/statut').then(r => { if (vivant) setEstApporteur(!!r.data?.apporteur) }).catch(() => {})
+    return () => { vivant = false }
+  }, [user?.id])
+  const menu = estApporteur && !navItems.some(i => i.path === '/apporteur')
+    ? [...navItems.slice(0, -1), { path: '/apporteur', label: 'Apporteur', icon: Handshake }, navItems[navItems.length - 1]]
+    : navItems
+
   const handleLogout = () => {
     logout()
     navigate('/login')
@@ -196,7 +209,7 @@ export default function Layout() {
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {navItems.map(item => <NavLink key={item.path} item={item} scope="desktop" />)}
+          {menu.map(item => <NavLink key={item.path} item={item} scope="desktop" />)}
         </nav>
 
         <div className="p-3 border-t border-slate-100 dark:border-slate-700 space-y-0.5">
@@ -268,7 +281,7 @@ export default function Layout() {
             className="lg:hidden fixed left-0 top-14 bottom-0 z-[25] w-[82vw] max-w-[300px] material-glass border-r border-slate-200/70 dark:border-slate-700/70"
           >
             <nav className="p-3 space-y-0.5 h-full overflow-y-auto">
-              {navItems.map(item => (
+              {menu.map(item => (
                 <NavLink key={item.path} item={item} scope="mobile" onClick={() => setMobileOpen(false)} />
               ))}
               <DiscordButton />
