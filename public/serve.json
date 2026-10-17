@@ -19,6 +19,7 @@
     { "source": "/portefeuille", "destination": "/index.html" },
     { "source": "/profil", "destination": "/index.html" },
     { "source": "/parrainage", "destination": "/index.html" },
+    { "source": "/apporteur", "destination": "/index.html" },
     { "source": "/admin", "destination": "/index.html" },
     { "source": "/admin/**", "destination": "/index.html" },
     { "source": "/client", "destination": "/index.html" },

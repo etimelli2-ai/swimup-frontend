@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth'
 import { springSmooth, springSnappy, springSheet } from '../lib/motion'
 import toast from 'react-hot-toast'
 import { retenirOffreSouhaitee } from '../lib/offreSouhaitee'
+import { lireCode, oublierCode } from '../lib/apporteur.mjs'
 import { LogoMarque } from '../components/Logo'
 import { LiensLegaux } from '../components/PageLegale'
 import { MentionDonnees } from '../components/PageLegale'
@@ -45,7 +46,8 @@ export default function InscriptionClient() {
     }
     setEnvoi(true)
     try {
-      await registerClient(email.trim(), password)
+      await registerClient(email.trim(), password, lireCode())
+      oublierCode()
       mesure('compte-cree')
       if (offre) retenirOffreSouhaitee(offre)
       toast.success('Compte créé !')

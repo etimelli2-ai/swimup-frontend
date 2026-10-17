@@ -72,8 +72,8 @@ export function AuthProvider({ children }) {
   }, [ouvrirSession])
 
   // Inscription libre d'un compte client : email + mot de passe, sans lien ni code.
-  const registerClient = useCallback(async (email, password) => {
-    const r = await api.post('/auth/register-client', { email, password })
+  const registerClient = useCallback(async (email, password, ref) => {
+    const r = await api.post('/auth/register-client', ref ? { email, password, ref } : { email, password })
     await ouvrirSession(r.data.user)
     return r.data.user
   }, [ouvrirSession])

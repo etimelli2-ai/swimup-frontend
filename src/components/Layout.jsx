@@ -26,6 +26,7 @@ import {
   BarChart3,
   Users,
   BookOpen,
+  Handshake,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SelecteurCompte from './SelecteurCompte'
@@ -98,6 +99,7 @@ export default function Layout() {
     { path: '/admin/emails', label: 'Emails', icon: Mail },
     { path: '/admin/entreprises', label: 'Entreprises', icon: Building2 },
     { path: '/admin/business', label: 'Business', icon: BarChart3 },
+    { path: '/admin/apporteurs', label: 'Apporteurs', icon: Handshake },
     { path: '/profil',         label: 'Profil',       icon: User },
   ] : isClient ? [
     // Les outils payants restent visibles pour un compte gratuit, avec un cadenas :

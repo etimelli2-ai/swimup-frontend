@@ -28,6 +28,8 @@ const ClientReputation = lazy(() => import('./pages/client/ClientReputation'))
 const ClientCampagnes = lazy(() => import('./pages/client/ClientCampagnes'))
 const ClientEquipe = lazy(() => import('./pages/client/ClientEquipe'))
 const Parrainage = lazy(() => import('./pages/Parrainage'))
+const Apporteur = lazy(() => import('./pages/Apporteur'))
+const AdminApporteurs = lazy(() => import('./pages/admin/AdminApporteurs'))
 import PublicCommander from './pages/PublicCommander'
 const PublicSuivi = lazy(() => import('./pages/PublicSuivi'))
 const AideCommercantsIndex = lazy(() => import('./pages/AideCommercants').then(m => ({ default: m.AideCommercantsIndex })))
@@ -47,6 +49,7 @@ const VerificationRequise = lazy(() => import('./pages/VerificationRequise'))
 import Layout from './components/Layout'
 import ZonesPrivees from './components/ZonesPrivees'
 import Mesure from './components/Mesure'
+import CaptureApporteur from './components/CaptureApporteur'
 const NotFound = lazy(() => import('./pages/NotFound'))
 const LienAvisGoogle = lazy(() => import('./pages/outils/LienAvisGoogle'))
 const ModelesReponsesAvis = lazy(() => import('./pages/outils/ModelesReponsesAvis'))
@@ -113,6 +116,7 @@ export default function App() {
     <a href="#contenu" className="lien-evitement">Aller au contenu</a>
     <ZonesPrivees />
     <Mesure />
+    <CaptureApporteur />
     <Routes>
       {/* Pages publiques — sans auth */}
       <Route path="/commander" element={<PublicCommander />} />
@@ -152,6 +156,7 @@ export default function App() {
         <Route path="mon-avis"     element={<Navigate to="/avis" replace />} />
         <Route path="portefeuille" element={<ReserveMembres><Portefeuille /></ReserveMembres>} />
         <Route path="profil"       element={<Profil />} />
+        <Route path="apporteur"    element={<Apporteur />} />
         <Route path="parrainage"   element={<ReserveMembres><Parrainage /></ReserveMembres>} />
       </Route>
 
@@ -168,6 +173,7 @@ export default function App() {
         <Route path="emails" element={<AdminEmails />} />
         <Route path="entreprises" element={<AdminEntreprises />} />
         <Route path="business" element={<AdminBusiness />} />
+        <Route path="apporteurs" element={<AdminApporteurs />} />
       </Route>
 
       {/* Routes client */}
