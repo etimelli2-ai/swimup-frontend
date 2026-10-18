@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import api from '../../lib/api'
 import { lienOutilPrepare } from '../../lib/lienAvis.mjs'
 import RatissageProspection from './RatissageProspection'
+import EnvoiLotProspection from './EnvoiLotProspection'
+import EmailsUneParUne from './EmailsUneParUne'
+import { estContacte, visibles, compterMasquees, lienRechercheGoogle } from '../../lib/prospectionLot.mjs'
 import { Search, Mail, Phone, Globe, Star, Trash2, Send, Pencil, ExternalLink, Plus } from 'lucide-react'
 
 function Spinner() {
@@ -37,7 +40,6 @@ const CANAUX = [
   ['autre', 'Autre'],
 ]
 const LABEL_CANAL = { ...Object.fromEntries(CANAUX), email: 'Email' }
-const estContacte = (p) => !!p.email_envoye || !!p.dernier_contact_at
 
 // Mail de démarchage : il dit ce qu'est SwimUp (outils gratuits + offres) et renvoie
 // vers la page des offres, où tout est expliqué avec les prix. Pas d'avis offert
@@ -81,6 +83,7 @@ export default function AdminProspection() {
   const [maxAvis, setMaxAvis]       = useState(20)
   const [prospects, setProspects]   = useState([])
   const [filtre, setFiltre]         = useState('tous')
+  const [afficherSansEmail, setAfficherSansEmail] = useState(false)
   const [loadingRecherche, setLR]   = useState(false)
   const [loadingAction, setLA]      = useState(null)
   const [editEmail, setEditEmail]   = useState({})
@@ -249,11 +252,6 @@ export default function AdminProspection() {
     setLA(null)
   }
 
-  const lienRechercheGoogle = (p) => {
-    const ville = (p.ville || p.adresse || '').toString()
-    return `https://www.google.com/search?q=${encodeURIComponent(`${p.nom} ${ville} email contact`)}`
-  }
-
   const ajouterManuellement = async (e) => {
     e.preventDefault()
     if (!formManuel.nom.trim()) return showMsg('error', 'Le nom est requis')
@@ -286,12 +284,8 @@ export default function AdminProspection() {
     setLA(null)
   }
 
-  const filtered = prospects.filter(p => {
-    if (filtre === 'a_contacter') return !estContacte(p)
-    if (filtre === 'sans_email') return !p.email
-    if (filtre === 'contactes') return estContacte(p)
-    return true
-  })
+  const filtered = visibles(prospects, filtre, afficherSansEmail)
+  const masquees = compterMasquees(prospects)
 
   return (
     <div className="p-4 space-y-4">
@@ -353,6 +347,9 @@ export default function AdminProspection() {
 
       {/* Ratissage automatique : métiers x zones, traité en tâche de fond par le serveur */}
       <RatissageProspection onNouvellesFiches={load} />
+
+      {/* Envoi en lot : mail de présentation à tous ceux qui ont un email, avec plafond par jour */}
+      <EnvoiLotProspection prospects={prospects} sujet={SUJET_DEFAUT} messageDe={MESSAGE_DEFAUT} onFini={load} />
 
       {/* Formulaire de recherche */}
       <form onSubmit={rechercher} className="card space-y-3">
@@ -453,6 +450,9 @@ export default function AdminProspection() {
         </form>
       )}
 
+      {/* Mode « une par une » pour compléter les emails manquants */}
+      <EmailsUneParUne prospects={prospects} onFini={load} />
+
       {/* Filtres */}
       <div className="flex bg-gray-100 rounded-xl p-1 gap-1 overflow-x-auto">
         {[['tous', 'Tous'], ['a_contacter', 'À contacter'], ['sans_email', 'Sans email'], ['contactes', 'Contactés']].map(([v, l]) => (
@@ -464,6 +464,15 @@ export default function AdminProspection() {
           </button>
         ))}
       </div>
+
+      {masquees > 0 && filtre !== 'sans_email' && filtre !== 'contactes' && (
+        <p className="text-xs text-gray-500">
+          {masquees} fiche{masquees > 1 ? 's' : ''} sans email, {afficherSansEmail ? 'affichée' : 'masquée'}{masquees > 1 ? 's' : ''} (rien n'est supprimé).{' '}
+          <button type="button" onClick={() => setAfficherSansEmail(v => !v)} className="text-sky-700 underline">
+            {afficherSansEmail ? 'Les masquer' : 'Les afficher'}
+          </button>
+        </p>
+      )}
 
       {/* Liste des prospects */}
       <div className="space-y-3">
