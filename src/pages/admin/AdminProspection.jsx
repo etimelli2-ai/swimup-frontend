@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
 import { lienOutilPrepare } from '../../lib/lienAvis.mjs'
+import RatissageProspection from './RatissageProspection'
 import { Search, Mail, Phone, Globe, Star, Trash2, Send, Pencil, ExternalLink, Plus } from 'lucide-react'
 
 function Spinner() {
@@ -349,6 +350,9 @@ export default function AdminProspection() {
           {msg.text}
         </div>
       )}
+
+      {/* Ratissage automatique : métiers x zones, traité en tâche de fond par le serveur */}
+      <RatissageProspection onNouvellesFiches={load} />
 
       {/* Formulaire de recherche */}
       <form onSubmit={rechercher} className="card space-y-3">
