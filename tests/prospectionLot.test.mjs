@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { estContacte, estMasquee, compterMasquees, visibles, aCompleter, eligiblesEnvoi, emailValide, lienRechercheGoogle, pauseEntreMails, aEnvoyerMaintenant } from '../src/lib/prospectionLot.mjs'
+import { estContacte, estMasquee, compterMasquees, visibles, aCompleter, eligiblesEnvoi, emailValide, lienRechercheGoogle, PAUSE_ENTRE_MAILS_MS, aEnvoyerMaintenant } from '../src/lib/prospectionLot.mjs'
 
 const P = [
   { id: 1, nom: 'Avec mail', email: 'a@x.fr' },
@@ -47,9 +47,8 @@ test('recherche Google : nom, ville et « email contact »', () => {
   assert.match(lienRechercheGoogle({ nom: 'X', adresse: '1 rue A, Lyon' }), /1%20rue%20A/)
 })
 
-test('pause entre mails dans la fourchette', () => {
-  assert.equal(pauseEntreMails(8, 20, () => 0), 8000)
-  assert.equal(pauseEntreMails(8, 20, () => 1), 20000)
+test('pause entre mails : courte, sous la limite de 2 requêtes par seconde de Resend', () => {
+  assert.ok(PAUSE_ENTRE_MAILS_MS >= 500 && PAUSE_ENTRE_MAILS_MS <= 1000)
 })
 
 test('à envoyer maintenant : reste du plafond du jour', () => {

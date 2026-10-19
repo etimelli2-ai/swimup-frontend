@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import api from '../../lib/api'
-import { eligiblesEnvoi, aEnvoyerMaintenant, pauseEntreMails } from '../../lib/prospectionLot.mjs'
+import { eligiblesEnvoi, aEnvoyerMaintenant, PAUSE_ENTRE_MAILS_MS } from '../../lib/prospectionLot.mjs'
 
 const attendre = (ms) => new Promise(r => setTimeout(r, ms))
 
@@ -38,7 +38,7 @@ export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFin
     if (!window.confirm(
       `Envoyer le mail de présentation à ${liste.length} prospect${liste.length > 1 ? 's' : ''} ?\n\n` +
       `Chaque mail indique d'où vient l'adresse et contient le lien pour se désinscrire. ` +
-      `Un envoi toutes les 8 à 20 secondes : garde cette page ouverte jusqu'à la fin.`
+      `Les mails partent à la suite, environ 2 par seconde : garde cette page ouverte jusqu'à la fin.`
     )) return
 
     stop.current = false; enCours.current = true
@@ -58,7 +58,7 @@ export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFin
         res.echecs += 1; echecsDeSuite += 1
         if (echecsDeSuite >= 3) { res.arret = `3 échecs de suite, j'arrête (${e.response?.data?.error || 'erreur'}).`; break }
       }
-      if (i < liste.length - 1) await attendre(pauseEntreMails())
+      if (i < liste.length - 1) await attendre(PAUSE_ENTRE_MAILS_MS)
     }
     enCours.current = false
     setEtat(null); setBilan(res)

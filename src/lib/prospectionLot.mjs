@@ -41,10 +41,9 @@ export function lienRechercheGoogle(p) {
   return `https://www.google.com/search?q=${encodeURIComponent(`${p.nom} ${ville} email contact`)}`
 }
 
-// Pause entre deux mails d'un lot (en ms), tirée entre min et max secondes.
-export function pauseEntreMails(minSec = 8, maxSec = 20, alea = Math.random) {
-  return Math.round((minSec + alea() * (maxSec - minSec)) * 1000)
-}
+// Pause entre deux mails d'un lot : juste de quoi rester sous la limite de Resend (2 requêtes par seconde),
+// sinon des mails seraient refusés. 30 mails partent en une vingtaine de secondes.
+export const PAUSE_ENTRE_MAILS_MS = 600
 
 // Combien envoyer maintenant : ce qui reste du plafond du jour, sans dépasser les fiches éligibles.
 export function aEnvoyerMaintenant(eligibles, plafond, dejaEnvoyes) {
