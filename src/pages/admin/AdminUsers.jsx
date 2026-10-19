@@ -146,6 +146,20 @@ export default function AdminUsers() {
     setLoadingAction(null)
   }
 
+  // Valide l'email à la main : le compte passe vérifié tout de suite, sans attendre le clic sur le mail.
+  const validerEmailManuel = async (user) => {
+    if (!confirm(`Valider l'email de ${user.email} sans passer par le mail de vérification ?`)) return
+    setLoadingAction('valider_email')
+    try {
+      const r = await api.put(`/admin/users/${user.id}/valider-email`)
+      setUsers(u => u.map(x => x.id === user.id ? { ...x, email_verifie: 1 } : x))
+      setDetail(p => ({ ...p, email_verifie: 1 }))
+      if (detailData) setDetailData(d => ({ ...d, user: { ...d.user, email_verifie: 1 } }))
+      showMsg('success', r.data?.deja_verifie ? 'Cet email était déjà vérifié.' : 'Email validé !')
+    } catch (e) { showMsg('error', e.response?.data?.error || 'Erreur') }
+    setLoadingAction(null)
+  }
+
   const renvoyerVerificationTous = async () => {
     const nbNonVerifies = users.filter(u => !u.email_verifie && u.role !== 'admin').length
     if (!nbNonVerifies) return showMsg('error', 'Tout le monde a déjà vérifié son email.')
@@ -399,6 +413,11 @@ export default function AdminUsers() {
                           disabled={loadingAction === 'verif'}
                           className="w-full bg-amber-500 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
                           {loadingAction === 'verif' ? <><Spinner /> Envoi...</> : <><Send size={15} /> Renvoyer l'email de vérification</>}
+                        </button>
+                        <button onClick={() => validerEmailManuel(detail)}
+                          disabled={loadingAction === 'valider_email'}
+                          className="w-full bg-emerald-600 text-white py-2.5 rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70">
+                          {loadingAction === 'valider_email' ? <><Spinner /> Validation...</> : <><CheckCircle size={15} /> Valider l'email à la main</>}
                         </button>
                       </div>
                     )}
