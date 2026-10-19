@@ -303,8 +303,10 @@ export default function Avis() {
   }, [])
 
   const avisEnCours = mesAvis?.find(a => a.statut === 'reserve')
-  const avisEnVerif = mesAvis?.find(a => a.statut === 'en_verification')
-  const currentAvis = avisEnCours || avisEnVerif
+  // Seul un avis réservé (pas encore envoyé) bloque la réservation d'un autre : ceux qui attendent la vérification
+  // de l'admin s'affichent à part, le membre peut en réserver un nouveau sans attendre.
+  const avisEnVerifs = mesAvis?.filter(a => a.statut === 'en_verification') || []
+  const currentAvis = avisEnCours
   const avisValides = mesAvis?.filter(a => a.statut === 'valide') || []
   const avisRefuses = mesAvis?.filter(a => a.statut === 'refuse') || []
 
@@ -414,6 +416,30 @@ export default function Avis() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {avisEnVerifs.length > 0 && (
+        <div>
+          <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+            En vérification ({avisEnVerifs.length})
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+            L'équipe contrôle ces avis. Tu peux en réserver un nouveau sans attendre.
+          </p>
+          <div className="divide-y divide-slate-100 dark:divide-slate-800 border-y border-slate-100 dark:border-slate-800">
+            {avisEnVerifs.map(a => (
+              <div key={a.cle} className="flex items-center gap-3 py-3">
+                <Loader2 size={16} className="text-sky-500 animate-spin shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{a.nom_societe}</p>
+                </div>
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400 shrink-0">
+                  +{parseFloat(a.prix).toFixed(2)}€
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
