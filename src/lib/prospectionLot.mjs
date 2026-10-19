@@ -50,3 +50,34 @@ export function aEnvoyerMaintenant(eligibles, plafond, dejaEnvoyes) {
   const reste = Math.max(0, Number(plafond) - Number(dejaEnvoyes))
   return eligibles.slice(0, reste)
 }
+
+// ---- Validation manuelle avant envoi -------------------------------------------------------
+
+const DOMAINES_PERSO = ['gmail.com', 'hotmail.com', 'hotmail.fr', 'outlook.com', 'outlook.fr', 'yahoo.fr', 'yahoo.com', 'orange.fr', 'free.fr', 'sfr.fr', 'wanadoo.fr', 'laposte.net', 'icloud.com', 'live.fr', 'live.com']
+
+// D'où vient plausiblement l'adresse, pour t'aider à la valider : 'site' (même domaine que le site de la fiche),
+// 'perso' (gmail, orange… : souvent l'adresse perso d'un artisan, à vérifier), 'autre' (domaine différent du site).
+export function typeAdresse(p) {
+  const domaine = String(p.email || '').split('@')[1]?.toLowerCase()
+  if (!domaine) return 'inconnu'
+  let hote = ''
+  try {
+    const url = /^https?:\/\//i.test(p.site_web || '') ? p.site_web : `https://${p.site_web || ''}`
+    hote = p.site_web ? new URL(url).hostname.replace(/^www\./, '').toLowerCase() : ''
+  } catch { hote = '' }
+  if (hote && (domaine === hote || domaine.endsWith(`.${hote}`) || hote.endsWith(`.${domaine}`))) return 'site'
+  if (DOMAINES_PERSO.includes(domaine)) return 'perso'
+  return 'autre'
+}
+
+export const LIBELLE_ADRESSE = {
+  site: 'Adresse du site',
+  perso: 'Adresse perso (gmail, orange…) : à vérifier',
+  autre: 'Domaine différent du site',
+  inconnu: '',
+}
+
+// Seuls les prospects que tu as validés partent, dans la limite du plafond du jour.
+export function aEnvoyerValides(eligibles, valides, plafond, dejaEnvoyes) {
+  return aEnvoyerMaintenant(eligibles.filter(p => valides.has(p.id)), plafond, dejaEnvoyes)
+}

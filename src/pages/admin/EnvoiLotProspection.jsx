@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import api from '../../lib/api'
-import { eligiblesEnvoi, aEnvoyerMaintenant, PAUSE_ENTRE_MAILS_MS } from '../../lib/prospectionLot.mjs'
+import { eligiblesEnvoi, aEnvoyerValides, typeAdresse, LIBELLE_ADRESSE, PAUSE_ENTRE_MAILS_MS } from '../../lib/prospectionLot.mjs'
 
 const attendre = (ms) => new Promise(r => setTimeout(r, ms))
 
-// Envoi en lot : le mail de présentation part à tous les prospects qui ont un email et n'ont jamais été
-// contactés, un par un avec une pause, dans la limite d'un plafond par jour (vérifié aussi par le serveur).
+// Envoi en lot avec validation manuelle : tu coches les prospects dont l'adresse et le mail te conviennent,
+// seuls ceux-là partent, à la suite, dans la limite d'un plafond par jour (vérifié aussi par le serveur).
 // La page doit rester ouverte pendant l'envoi.
 export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFini }) {
   const [plafond, setPlafond] = useState(30)
@@ -13,11 +13,18 @@ export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFin
   const [etat, setEtat] = useState(null) // { fait, total, nom } pendant l'envoi
   const [bilan, setBilan] = useState(null)
   const [erreur, setErreur] = useState(null)
+  const [valides, setValides] = useState(new Set())
   const stop = useRef(false)
   const enCours = useRef(false)
 
   const eligibles = eligiblesEnvoi(prospects)
-  const cible = aEnvoyerMaintenant(eligibles, plafond, deja ?? 0)
+  // On ne garde que les validations qui concernent encore des prospects éligibles (après un envoi, une adresse retirée…).
+  const validesActifs = new Set(eligibles.filter(p => valides.has(p.id)).map(p => p.id))
+  const cible = aEnvoyerValides(eligibles, validesActifs, plafond, deja ?? 0)
+
+  const basculer = (id) => setValides(v => { const n = new Set(v); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const validerTous = (filtre = () => true) => setValides(new Set(eligibles.filter(filtre).map(p => p.id)))
+  const toutDecocher = () => setValides(new Set())
 
   const lireCompteur = () => api.get('/admin/prospection/envois-jour').then(r => { setDeja(r.data.envoyes); return r.data.envoyes }).catch(() => null)
   useEffect(() => { lireCompteur() }, [prospects.length]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -33,10 +40,11 @@ export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFin
     setErreur(null); setBilan(null)
     const dejaMaintenant = await lireCompteur()
     if (dejaMaintenant === null) return setErreur('Impossible de lire le compteur du jour : réessaie.')
-    const liste = aEnvoyerMaintenant(eligibles, plafond, dejaMaintenant)
+    if (!validesActifs.size) return setErreur('Coche au moins un prospect à valider.')
+    const liste = aEnvoyerValides(eligibles, validesActifs, plafond, dejaMaintenant)
     if (!liste.length) return setErreur(`Plafond du jour atteint (${dejaMaintenant}/${plafond}). Reprise demain, ou monte le plafond si tes rebonds restent bas.`)
     if (!window.confirm(
-      `Envoyer le mail de présentation à ${liste.length} prospect${liste.length > 1 ? 's' : ''} ?\n\n` +
+      `Envoyer le mail de présentation aux ${liste.length} prospect${liste.length > 1 ? 's' : ''} que tu as validé${liste.length > 1 ? 's' : ''} ?\n\n` +
       `Chaque mail indique d'où vient l'adresse et contient le lien pour se désinscrire. ` +
       `Les mails partent à la suite, environ 2 par seconde : garde cette page ouverte jusqu'à la fin.`
     )) return
@@ -51,6 +59,7 @@ export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFin
       try {
         await api.post(`/admin/prospection/${p.id}/envoyer-email`, { sujet, message: messageDe(p), essaiGratuit: false, plafondJour: Number(plafond) })
         res.envoyes += 1; echecsDeSuite = 0
+        setValides(v => { const n = new Set(v); n.delete(p.id); return n })
       } catch (e) {
         const s = e.response?.status
         if (s === 429) { res.arret = e.response.data?.error || 'Plafond du jour atteint.'; break }
@@ -75,14 +84,14 @@ export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFin
       <div>
         <h3 className="font-bold text-gray-900">Envoi en lot</h3>
         <p className="text-xs text-gray-500">
-          Envoie le mail de présentation à tous les prospects qui ont un email et que tu n'as jamais contactés. Les adresses qui ont dit stop sont sautées. Pas d'avis offert dans ce mail.
+          Tu valides à la main les prospects à qui envoyer le mail de présentation : seuls ceux que tu coches partent. Les adresses qui ont dit stop sont sautées. Pas d'avis offert dans ce mail.
         </p>
       </div>
 
       <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="bg-gray-50 rounded-lg py-2"><p className="text-lg font-bold text-gray-900 tabular-nums">{eligibles.length}</p><p className="text-[11px] text-gray-500">prêts à recevoir</p></div>
+        <div className="bg-gray-50 rounded-lg py-2"><p className="text-lg font-bold text-gray-900 tabular-nums">{eligibles.length}</p><p className="text-[11px] text-gray-500">à valider</p></div>
         <div className="bg-gray-50 rounded-lg py-2"><p className="text-lg font-bold text-gray-900 tabular-nums">{deja ?? '—'}</p><p className="text-[11px] text-gray-500">envoyés aujourd'hui</p></div>
-        <div className="bg-gray-50 rounded-lg py-2"><p className="text-lg font-bold text-gray-900 tabular-nums">{cible.length}</p><p className="text-[11px] text-gray-500">partiront maintenant</p></div>
+        <div className="bg-gray-50 rounded-lg py-2"><p className="text-lg font-bold text-gray-900 tabular-nums">{validesActifs.size}</p><p className="text-[11px] text-gray-500">validés ({cible.length} partiront)</p></div>
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
@@ -94,9 +103,9 @@ export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFin
         {etat ? (
           <button onClick={arreter} className="bg-gray-100 text-gray-700 px-5 py-2.5 rounded-full text-sm font-medium">Arrêter l'envoi</button>
         ) : (
-          <button onClick={lancer} disabled={!eligibles.length || !Number(plafond) || Number(plafond) < 1 || Number(plafond) > 500}
+          <button onClick={lancer} disabled={!validesActifs.size || !Number(plafond) || Number(plafond) < 1 || Number(plafond) > 500}
             className="bg-sky-600 text-white px-5 py-2.5 rounded-full text-sm font-medium disabled:opacity-50">
-            Envoyer à tous ceux qui ont un email
+            {validesActifs.size ? `Envoyer les ${validesActifs.size} validés` : 'Envoyer les validés'}
           </button>
         )}
       </div>
@@ -123,12 +132,38 @@ export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFin
         </p>
       )}
 
-      {eligibles[0] && (
-        <details className="text-xs text-gray-600">
-          <summary className="cursor-pointer">Voir le mail tel qu'il partira (pour {eligibles[0].nom})</summary>
-          <p className="font-medium mt-2">Sujet : {sujet}</p>
-          <pre className="whitespace-pre-wrap bg-gray-50 rounded-lg p-3 mt-1 text-[11px] leading-relaxed">{messageDe(eligibles[0])}</pre>
-        </details>
+      {eligibles.length > 0 && !etat && (
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => validerTous()} className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full text-xs font-medium">Tout valider</button>
+            <button type="button" onClick={() => validerTous(p => typeAdresse(p) === 'site')} className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full text-xs font-medium">Valider les adresses du site</button>
+            <button type="button" onClick={toutDecocher} className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full text-xs font-medium">Tout décocher</button>
+          </div>
+          <ul className="max-h-96 overflow-y-auto divide-y divide-gray-100 rounded-xl border border-gray-200">
+            {eligibles.map(p => {
+              const type = typeAdresse(p)
+              return (
+                <li key={p.id} className="p-3">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" checked={validesActifs.has(p.id)} onChange={() => basculer(p.id)} className="mt-1 w-4 h-4 shrink-0" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium text-gray-900 truncate">{p.nom}</span>
+                      <span className="block text-xs text-gray-600 break-all">{p.email}</span>
+                      {LIBELLE_ADRESSE[type] && (
+                        <span className={`inline-block mt-1 text-[11px] px-2 py-0.5 rounded-full ${type === 'site' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{LIBELLE_ADRESSE[type]}</span>
+                      )}
+                    </span>
+                  </label>
+                  <details className="ml-7 mt-1 text-xs text-gray-600">
+                    <summary className="cursor-pointer">Voir le mail tel qu'il partira</summary>
+                    <p className="font-medium mt-2">Sujet : {sujet}</p>
+                    <pre className="whitespace-pre-wrap bg-gray-50 rounded-lg p-3 mt-1 text-[11px] leading-relaxed">{messageDe(p)}</pre>
+                  </details>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       )}
     </div>
   )

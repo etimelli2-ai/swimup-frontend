@@ -58,3 +58,22 @@ test('à envoyer maintenant : reste du plafond du jour', () => {
   assert.equal(aEnvoyerMaintenant(e, 3, 3).length, 0)
   assert.equal(aEnvoyerMaintenant(e, 3, 10).length, 0)
 })
+
+import { typeAdresse, aEnvoyerValides } from '../src/lib/prospectionLot.mjs'
+
+test('type d\'adresse : site, perso ou autre domaine', () => {
+  assert.equal(typeAdresse({ email: 'contact@salon-lea.fr', site_web: 'https://www.salon-lea.fr/' }), 'site')
+  assert.equal(typeAdresse({ email: 'info@mail.salon-lea.fr', site_web: 'salon-lea.fr' }), 'site')
+  assert.equal(typeAdresse({ email: 'briceserdar@gmail.com', site_web: 'https://nselec.fr' }), 'perso')
+  assert.equal(typeAdresse({ email: 'briceserdar@gmail.com' }), 'perso')
+  assert.equal(typeAdresse({ email: 'contact@groupe.com', site_web: 'https://salon-lea.fr' }), 'autre')
+  assert.equal(typeAdresse({ email: 'pas-un-mail' }), 'inconnu')
+  assert.equal(typeAdresse({ email: 'a@b.fr', site_web: 'http://[invalide' }), 'autre')
+})
+
+test('seuls les validés partent, dans la limite du plafond', () => {
+  const e = [1, 2, 3, 4].map(id => ({ id }))
+  assert.deepEqual(aEnvoyerValides(e, new Set([2, 4]), 30, 0).map(p => p.id), [2, 4])
+  assert.deepEqual(aEnvoyerValides(e, new Set([1, 2, 3]), 3, 1).map(p => p.id), [1, 2])
+  assert.deepEqual(aEnvoyerValides(e, new Set(), 30, 0), [])
+})
