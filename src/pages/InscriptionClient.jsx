@@ -36,6 +36,7 @@ export default function InscriptionClient() {
   const [erreur, setErreur] = useState('')
   const [emailExiste, setEmailExiste] = useState(false)
   const [envoi, setEnvoi] = useState(false)
+  const [piege, setPiege] = useState('')   // champ invisible : seul un robot le remplit
 
   const soumettre = async (e) => {
     e.preventDefault()
@@ -46,7 +47,7 @@ export default function InscriptionClient() {
     }
     setEnvoi(true)
     try {
-      await registerClient(email.trim(), password, lireCode())
+      await registerClient(email.trim(), password, lireCode(), piege)
       oublierCode()
       mesure('compte-cree')
       if (offre) retenirOffreSouhaitee(offre)
@@ -108,6 +109,10 @@ export default function InscriptionClient() {
           </AnimatePresence>
 
           <form onSubmit={soumettre} className="space-y-4">
+            <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
+              <label htmlFor="ins-site-web">Ne pas remplir</label>
+              <input id="ins-site-web" name="site_web" type="text" tabIndex={-1} autoComplete="off" value={piege} onChange={e => setPiege(e.target.value)} />
+            </div>
             <div>
               <label htmlFor="ins-email" className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
               <input id="ins-email" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} className="input" placeholder="toi@commerce.fr" />
