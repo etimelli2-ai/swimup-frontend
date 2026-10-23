@@ -4,7 +4,7 @@ import { sujetDefaut, messageDefaut, langueDe } from '../../lib/messagesProspect
 import RatissageProspection from './RatissageProspection'
 import EnvoiLotProspection from './EnvoiLotProspection'
 import EmailsUneParUne from './EmailsUneParUne'
-import { tirerLieux, metierPourLieu, cleDejaFait, FILTRES } from '../../lib/lieuxProspection.mjs'
+import { tirerLieux, metierPourLieu, cleDejaFait, PAYS, paysParDefaut, tousLesLieux } from '../../lib/lieuxProspection.mjs'
 import { estContacte, visibles, compterMasquees, lienRechercheGoogle } from '../../lib/prospectionLot.mjs'
 import { Search, Mail, Phone, Globe, Star, Trash2, Send, Pencil, ExternalLink, Plus } from 'lucide-react'
 
@@ -44,7 +44,7 @@ const LABEL_CANAL = { ...Object.fromEntries(CANAUX), email: 'Email' }
 
 export default function AdminProspection() {
   const [recherches, setRecherches] = useState([{ requete: '', ville: '', autre: false }])
-  const [filtreLieux, setFiltreLieux] = useState('tous')
+  const [paysChoisis, setPaysChoisis] = useState(paysParDefaut)
   const [maxAvis, setMaxAvis]       = useState(20)
   const [prospects, setProspects]   = useState([])
   const [filtre, setFiltre]         = useState('tous')
@@ -107,19 +107,20 @@ export default function AdminProspection() {
   const lignesAuHasard = () => {
     const r0 = recherches[0]
     const metierChoisi = r0.aleatoire ? '' : (r0.base || (!r0.autre && r0.requete ? r0.requete : ''))
-    const lieux = tirerLieux({ n: 5, filtre: filtreLieux, metier: metierChoisi, dejaFaits: dejaFaits() })
+    const lieux = tirerLieux({ n: 5, ids: paysChoisis, metier: metierChoisi, dejaFaits: dejaFaits() })
     return lieux.map(l => {
       const metier = metierChoisi || METIERS.filter(m => m !== '__autre__')[Math.floor(Math.random() * (METIERS.length - 1))]
       return { requete: metierPourLieu(metier, l.langue), ville: l.ville, autre: false, base: metier, aleatoire: !metierChoisi }
     })
   }
   const tirerAuHasard = (lancerTout) => {
+    if (!paysChoisis.length) return showMsg('error', 'Coche au moins un pays.')
     const lignes = lignesAuHasard()
     const metierImpose = lignes.length > 0 && !lignes[0].aleatoire
-    if (!lignes.length) return showMsg('error', 'Plus aucun lieu à tirer avec ce filtre et ce métier : change de métier ou de filtre.')
+    if (!lignes.length) return showMsg('error', 'Plus aucun code postal à tirer dans ces pays avec ce métier : coche d\'autres pays ou change de métier.')
     setRecherches(lignes.map(l => ({ ...l, autre: !METIERS.includes(l.requete), base: metierImpose ? l.base : undefined })))
     if (lancerTout) lancerRecherches(lignes.map(({ requete, ville }) => ({ requete, ville })))
-    else showMsg('success', `🎲 ${lignes.length} lieux tirés : ${lignes.map(l => l.ville).join(' · ')}`)
+    else showMsg('success', `🎲 ${lignes.length} codes postaux tirés : ${lignes.map(l => l.ville).join(' · ')}`)
   }
 
   const lancerRecherches = async (valides) => {
@@ -360,14 +361,30 @@ export default function AdminProspection() {
         <h3 className="font-bold text-gray-900">Nouvelle recherche</h3>
         <div className="rounded-xl border border-sky-100 bg-sky-50/60 p-3 space-y-2">
           <p className="text-xs text-gray-600">
-            Plus besoin de saisir des codes postaux : 5 lieux tirés au hasard dans des pays dont une langue officielle est le français ou l'anglais, un par pays, jamais un lieu déjà cherché avec le même métier. Choisis un métier sur la première ligne pour l'imposer, sinon il est tiré aussi.
+            Plus besoin de saisir des codes postaux : 5 codes postaux tirés au hasard dans les pays cochés, un par pays, jamais un code déjà cherché avec le même métier. Choisis un métier sur la première ligne pour l'imposer, sinon il est tiré aussi.
           </p>
+          <details className="text-sm">
+            <summary className="cursor-pointer text-gray-700 font-medium">Pays : {paysChoisis.length} sur {PAYS.length} cochés ({tousLesLieux(paysChoisis).length} codes possibles)</summary>
+            <div className="mt-2 flex gap-3 text-xs">
+              <button type="button" className="underline text-sky-700" onClick={() => setPaysChoisis(PAYS.map(p => p.id))}>Tous</button>
+              <button type="button" className="underline text-sky-700" onClick={() => setPaysChoisis([])}>Aucun</button>
+              <button type="button" className="underline text-sky-700" onClick={() => setPaysChoisis(paysParDefaut())}>Par défaut</button>
+            </div>
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+              {PAYS.map(p => (
+                <label key={p.id} className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+                  <input type="checkbox" checked={paysChoisis.includes(p.id)}
+                    onChange={e => setPaysChoisis(e.target.checked ? [...paysChoisis, p.id] : paysChoisis.filter(x => x !== p.id))} />
+                  <span>{p.pays}</span>
+                  <span className="text-[10px] text-gray-400">mail en {p.langue === 'en' ? 'anglais' : 'français'}</span>
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-[11px] text-gray-400">Les petits territoires (Jersey, Bermudes...) sont décochés au départ : très peu de commerces.</p>
+          </details>
           <div className="flex flex-wrap items-center gap-2">
-            <select value={filtreLieux} onChange={e => setFiltreLieux(e.target.value)} className="input w-auto text-sm" aria-label="Pays à tirer">
-              {FILTRES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
             <button type="button" disabled={loadingRecherche} onClick={() => tirerAuHasard(false)} className="px-3 py-2 rounded-lg border border-sky-300 text-sky-700 text-sm font-medium bg-white disabled:opacity-60">
-              🎲 Tirer 5 lieux
+              🎲 Tirer 5 codes postaux
             </button>
             <button type="button" disabled={loadingRecherche} onClick={() => tirerAuHasard(true)} className="px-3 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium disabled:opacity-60">
               Tirer et lancer
