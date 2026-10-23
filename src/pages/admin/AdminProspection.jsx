@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
-import { lienOutilPrepare } from '../../lib/lienAvis.mjs'
+import { sujetDefaut, messageDefaut, langueDe } from '../../lib/messagesProspection.mjs'
 import RatissageProspection from './RatissageProspection'
 import EnvoiLotProspection from './EnvoiLotProspection'
 import EmailsUneParUne from './EmailsUneParUne'
@@ -41,43 +41,6 @@ const CANAUX = [
 ]
 const LABEL_CANAL = { ...Object.fromEntries(CANAUX), email: 'Email' }
 
-// Mail de démarchage : il dit ce qu'est SwimUp (outils gratuits + offres) et renvoie
-// vers la page des offres, où tout est expliqué avec les prix. Pas d'avis offert
-// dans le mail. Les chiffres cités (note, nombre d'avis) sont ceux de la fiche
-// du prospect, jamais inventés : sans donnée on ne cite rien.
-const SUJET_DEFAUT = 'Votre fiche Google Maps : ce qui peut jouer sur sa visibilité'
-const MESSAGE_DEFAUT = (p) => {
-  const note = p.note ? String(p.note).replace('.', ',') : null
-  const constat = note && p.nb_avis != null
-    ? `Votre fiche affiche ${note} sur 5 avec ${p.nb_avis} avis.`
-    : 'J\'ai regardé votre fiche.'
-  const lienOutil = lienOutilPrepare(p, 'mail')
-  const intro = lienOutil.includes('id=')
-    ? `J'ai préparé pour "${p.nom}" le lien direct vers votre formulaire d'avis Google, son QR code et une affiche à imprimer. C'est gratuit, sans inscription, vous pouvez le tester tout de suite :`
-    : 'On a mis en ligne un outil gratuit qui crée le lien direct vers le formulaire d\'avis Google de votre établissement, son QR code et une affiche à imprimer :'
-  return `Bonjour,
-
-Je suis Enzo, je gère SwimUp. En regardant les fiches Google Maps du secteur, je suis tombé sur "${p.nom}". ${constat}
-
-${intro}
-${lienOutil}
-
-On a aussi un diagnostic gratuit qui passe votre fiche en revue et indique quoi corriger, en 2 minutes :
-https://swimup.net/outils/diagnostic-fiche-google?src=mail
-
-Si vous voulez aller plus loin, on propose aussi des outils de suivi de réputation et d'envoi de demandes d'avis à vos propres clients. Tout est détaillé ici, avec les prix :
-https://swimup.net/offres?src=mail
-
-Si ça ne vous intéresse pas, ignorez simplement ce mail.
-
-Vous recevez ce message parce que les coordonnées de votre entreprise sont publiques sur sa fiche Google Maps. Vous pouvez vous opposer à tout moment à être recontacté : {{LIEN_STOP}}
-Comment sont utilisées vos données : https://swimup.net/confidentialite
-
-Bonne journée,
-Enzo
-SwimUp`
-}
-
 export default function AdminProspection() {
   const [recherches, setRecherches] = useState([{ requete: '', ville: '', autre: false }])
   const [maxAvis, setMaxAvis]       = useState(20)
@@ -88,7 +51,8 @@ export default function AdminProspection() {
   const [loadingAction, setLA]      = useState(null)
   const [editEmail, setEditEmail]   = useState({})
   const [modal, setModal]           = useState(null) // prospect en cours d'envoi
-  const [sujet, setSujet]           = useState(SUJET_DEFAUT)
+  const [langueMail, setLangueMail] = useState('fr') // langue du mail en cours d'écriture
+  const [sujet, setSujet]           = useState(sujetDefaut())
   const [message, setMessage]       = useState('')
   const [essaiGratuit, setEssaiGratuit] = useState(false)
   const [msg, setMsg]               = useState(null)
@@ -150,15 +114,16 @@ export default function AdminProspection() {
 
   const ouvrirModal = (p) => {
     setModal(p)
-    setSujet(SUJET_DEFAUT)
-    setMessage(MESSAGE_DEFAUT(p))
+    setLangueMail(langueDe(p))
+    setSujet(sujetDefaut(langueDe(p)))
+    setMessage(messageDefaut(p))
     setEssaiGratuit(false)
   }
 
   const envoyerEmail = async () => {
     setLA(`envoi_${modal.id}`)
     try {
-      await api.post(`/admin/prospection/${modal.id}/envoyer-email`, { sujet, message, essaiGratuit })
+      await api.post(`/admin/prospection/${modal.id}/envoyer-email`, { sujet, message, essaiGratuit, langue: langueMail })
       showMsg('success', `✅ Email envoyé à ${modal.nom}`)
       setModal(null)
       load()
@@ -349,7 +314,7 @@ export default function AdminProspection() {
       <RatissageProspection onNouvellesFiches={load} />
 
       {/* Envoi en lot : mail de présentation à tous ceux qui ont un email, avec plafond par jour */}
-      <EnvoiLotProspection prospects={prospects} sujet={SUJET_DEFAUT} messageDe={MESSAGE_DEFAUT} onFini={load} />
+      <EnvoiLotProspection prospects={prospects} sujetDe={(p) => sujetDefaut(langueDe(p))} messageDe={messageDefaut} onFini={load} />
 
       {/* Formulaire de recherche */}
       <form onSubmit={rechercher} className="card space-y-3">
@@ -642,6 +607,14 @@ export default function AdminProspection() {
           <div className="bg-white rounded-2xl w-full max-w-md p-5 space-y-3" onClick={e => e.stopPropagation()}>
             <h3 className="font-bold text-gray-900">Envoyer à {modal.nom}</h3>
             <p className="text-xs text-gray-500">{modal.email}</p>
+            <p className="text-xs text-gray-600 flex items-center gap-2 flex-wrap">
+              <span>Mail en <strong>{langueMail === 'en' ? 'anglais' : 'français'}</strong>{langueDe(modal) === langueMail ? (langueMail === 'en' ? ' (commerce à l\'étranger)' : '') : ' (choisi à la main)'}</span>
+              <button type="button" className="underline text-blue-600" onClick={() => {
+                const suivante = langueMail === 'en' ? 'fr' : 'en'
+                if (message !== messageDefaut(modal, langueMail) && !window.confirm('Le message sera remplacé par le modèle dans l\'autre langue. Continuer ?')) return
+                setLangueMail(suivante); setSujet(sujetDefaut(suivante)); setMessage(messageDefaut(modal, suivante))
+              }}>Passer en {langueMail === 'en' ? 'français' : 'anglais'}</button>
+            </p>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Sujet</label>
               <input type="text" value={sujet} onChange={e => setSujet(e.target.value)} className="input" />
@@ -650,7 +623,7 @@ export default function AdminProspection() {
               <label className="block text-xs font-medium text-gray-600 mb-1">Message</label>
               <textarea rows={9} value={message} onChange={e => setMessage(e.target.value)} className="input text-sm" />
               <p className="text-[11px] text-gray-400 mt-1">
-                Relis avant d'envoyer : ne garde que ce qui est vrai pour ce commerce. Si tu ajoutes <code className="bg-gray-100 px-1 rounded">{'{{LIEN_ESSAI}}'}</code>, il est remplacé par le lien d'essai (case ci-dessous). <code className="bg-gray-100 px-1 rounded">{'{{LIEN_STOP}}'}</code> devient le bouton « Me désinscrire » : il est ajouté tout seul s'il manque, et la personne qui clique n'est plus jamais contactée.
+                Relis avant d'envoyer : ne garde que ce qui est vrai pour ce commerce. Si tu ajoutes <code className="bg-gray-100 px-1 rounded">{'{{LIEN_ESSAI}}'}</code>, il est remplacé par le lien d'essai (case ci-dessous). <code className="bg-gray-100 px-1 rounded">{'{{LIEN_STOP}}'}</code> devient le bouton de désinscription (« Me désinscrire » ou « Unsubscribe me » selon la langue) : il est ajouté tout seul s'il manque, et la personne qui clique n'est plus jamais contactée.
               </p>
             </div>
             <label className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3 cursor-pointer">

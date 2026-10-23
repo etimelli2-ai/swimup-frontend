@@ -10,6 +10,7 @@
 
 const ID_LIEU = /^(ChIJ|GhIJ)[A-Za-z0-9_-]{10,200}$/
 const BASE_OUTIL = 'https://swimup.net/outils/lien-avis-google'
+const BASE_OUTIL_EN = 'https://swimup.net/en/tools/google-review-link'
 const CODE_GPAGE = /^[A-Za-z0-9_-]{4,64}$/
 const HOTES_GOOGLE = /^(www\.)?google\.[a-z.]{2,6}$|^search\.google\.com$/
 
@@ -63,14 +64,14 @@ export function nettoyerNomAffiche(n) {
 
 // Lien de l'outil gratuit déjà rempli pour un prospect (identifiant de lieu + nom), pour le mail de prospection.
 // Sans identifiant de lieu valide (prospect ajouté à la main), on renvoie l'outil vide : jamais de lien cassé.
-export function lienOutilPrepare({ place_id, nom } = {}, src = 'mail') {
+export function lienOutilPrepare({ place_id, nom } = {}, src = 'mail', langue = 'fr') {
   const q = new URLSearchParams({ src })
   if (ID_LIEU.test(String(place_id || ''))) {
     q.set('id', place_id)
     const n = nettoyerNomAffiche(nom)
     if (n) q.set('nom', n)
   }
-  return `${BASE_OUTIL}?${q.toString()}`
+  return `${langue === 'en' ? BASE_OUTIL_EN : BASE_OUTIL}?${q.toString()}`
 }
 
 // Ce que l'outil reprend de l'adresse : un identifiant valide et un nom propre, sinon rien.

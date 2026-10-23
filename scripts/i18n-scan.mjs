@@ -20,7 +20,7 @@ export const IGNORES = [
   /src\/(main|Racine|prerender-entry)\.jsx$/, /src\/lib\/(accueilEn|chemins)\.mjs$/,
   // Contenu éditorial pour le marché francophone (référencement, textes à envoyer à des commerces français) :
   // volontairement laissé en français. Le chapeau des pages qui l'affichent, lui, est traduit.
-  /src\/content\//, /src\/lib\/(modelesReponses|seo|ratissage|prospectionLot|parcoursClient)\.mjs$/,
+  /src\/content\//, /src\/lib\/(modelesReponses|seo|ratissage|prospectionLot|messagesProspection|parcoursClient)\.mjs$/,
   // Technique : en-têtes, détection de message d'erreur serveur.
   /src\/lib\/api\.js$/,
 ]

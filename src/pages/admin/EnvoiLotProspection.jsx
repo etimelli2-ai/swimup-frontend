@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { langueDe } from '../../lib/messagesProspection.mjs'
 import api from '../../lib/api'
 import { eligiblesEnvoi, aEnvoyerMaintenant, PAUSE_ENTRE_MAILS_MS } from '../../lib/prospectionLot.mjs'
 
@@ -7,7 +8,7 @@ const attendre = (ms) => new Promise(r => setTimeout(r, ms))
 // Envoi en lot : le mail de présentation part à tous les prospects qui ont un email et n'ont jamais été
 // contactés, un par un avec une pause, dans la limite d'un plafond par jour (vérifié aussi par le serveur).
 // La page doit rester ouverte pendant l'envoi.
-export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFini }) {
+export default function EnvoiLotProspection({ prospects, sujetDe, messageDe, onFini }) {
   const [plafond, setPlafond] = useState(30)
   const [deja, setDeja] = useState(null)
   const [etat, setEtat] = useState(null) // { fait, total, nom } pendant l'envoi
@@ -35,8 +36,10 @@ export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFin
     if (dejaMaintenant === null) return setErreur('Impossible de lire le compteur du jour : réessaie.')
     const liste = aEnvoyerMaintenant(eligibles, plafond, dejaMaintenant)
     if (!liste.length) return setErreur(`Plafond du jour atteint (${dejaMaintenant}/${plafond}). Reprise demain, ou monte le plafond si tes rebonds restent bas.`)
+    const nbEn = liste.filter(p => langueDe(p) === 'en').length
     if (!window.confirm(
       `Envoyer le mail de présentation à ${liste.length} prospect${liste.length > 1 ? 's' : ''} ?\n\n` +
+      (nbEn ? `${liste.length - nbEn} en français, ${nbEn} en anglais (commerces à l'étranger).\n\n` : '') +
       `Chaque mail indique d'où vient l'adresse et contient le lien pour se désinscrire. ` +
       `Les mails partent à la suite, environ 2 par seconde : garde cette page ouverte jusqu'à la fin.`
     )) return
@@ -49,7 +52,7 @@ export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFin
       const p = liste[i]
       setEtat({ fait: i, total: liste.length, nom: p.nom })
       try {
-        await api.post(`/admin/prospection/${p.id}/envoyer-email`, { sujet, message: messageDe(p), essaiGratuit: false, plafondJour: Number(plafond) })
+        await api.post(`/admin/prospection/${p.id}/envoyer-email`, { sujet: sujetDe(p), message: messageDe(p), essaiGratuit: false, plafondJour: Number(plafond), langue: langueDe(p) })
         res.envoyes += 1; echecsDeSuite = 0
       } catch (e) {
         const s = e.response?.status
@@ -126,7 +129,7 @@ export default function EnvoiLotProspection({ prospects, sujet, messageDe, onFin
       {eligibles[0] && (
         <details className="text-xs text-gray-600">
           <summary className="cursor-pointer">Voir le mail tel qu'il partira (pour {eligibles[0].nom})</summary>
-          <p className="font-medium mt-2">Sujet : {sujet}</p>
+          <p className="font-medium mt-2">Sujet : {sujetDe(eligibles[0])}</p>
           <pre className="whitespace-pre-wrap bg-gray-50 rounded-lg p-3 mt-1 text-[11px] leading-relaxed">{messageDe(eligibles[0])}</pre>
         </details>
       )}

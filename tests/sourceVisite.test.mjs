@@ -15,9 +15,11 @@ test('src : valeurs propres gardées, le reste ignoré', () => {
 })
 
 test('mail de prospection : les deux liens portent ?src=mail', () => {
-  const f = readFileSync(new URL('../src/pages/admin/AdminProspection.jsx', import.meta.url), 'utf8')
+  const f = readFileSync(new URL('../src/lib/messagesProspection.mjs', import.meta.url), 'utf8')
   assert.ok(f.includes('diagnostic-fiche-google?src=mail'))
   assert.ok(f.includes('swimup.net/offres?src=mail'))
+  assert.ok(f.includes('google-business-profile-checkup?src=mail'))
+  assert.ok(f.includes('swimup.net/en/plans?src=mail'))
 })
 
 test('offre Agence : prix dans les CGV, option admin, niveau reconnu côté espace client', () => {
@@ -53,5 +55,5 @@ test('l\'outil lit l\'adresse après l\'affichage et propose le compte gratuit a
   const outil = lire('src/pages/outils/LienAvisGoogle.jsx')
   assert.ok(outil.includes('prepareDepuisRecherche(window.location.search)'))
   assert.ok(outil.includes('/inscription?src=mail-fiche'))
-  assert.ok(lire('src/pages/admin/AdminProspection.jsx').includes('lienOutilPrepare(p'))
+  assert.ok(lire('src/lib/messagesProspection.mjs').includes('lienOutilPrepare(p'))
 })
