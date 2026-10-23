@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { useNavigate, Link as RouterLink } from '../../components/Lien'
 import { useAuth } from '../../hooks/useAuth'
 import api from '../../lib/api'
 import { CreditCard, Star, Building, Link, Clock, CheckCircle2, ArrowRight, ShieldCheck, Gift, Crown, ChevronDown, Wallet } from 'lucide-react'

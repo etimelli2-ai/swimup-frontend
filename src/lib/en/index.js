@@ -10,6 +10,10 @@ import client2 from './client2.js'
 import publicZone from './public.js'
 import guides from './guides.js'
 import divers from './divers.js'
+import contenuEditorial from './contenu.js'
+
+// Guides, métiers, modèles et messages d'apporteur : voir src/content/en/
+export const contenu = contenuEditorial
 
 export default {
   ...lire(commun),

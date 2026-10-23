@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from '../components/Lien'
 import Seo from '../components/Seo'
 import { LogoMarque } from '../components/Logo'
 import { t } from '../lib/i18n'

@@ -1,28 +1,28 @@
 // Outil gratuit, sans compte : lien direct vers le formulaire d'avis Google + QR code + affiche A4.
 // Tout est calculé dans le navigateur ; ce que la personne saisit n'est envoyé nulle part.
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, adr } from '../../components/Lien'
 import { Copy, Check, Download, Printer, TriangleAlert, ChevronRight, QrCode, ExternalLink } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Seo from '../../components/Seo'
 import { mesure } from '../../lib/mesure.mjs'
 import CadrePublic from '../../components/CadrePublic'
 import { analyserLien, prepareDepuisRecherche } from '../../lib/lienAvis.mjs'
-import { filAriane, urlAbsolue } from '../../lib/seo.mjs'
+import { filAriane, urlPage, langueSchema } from '../../lib/seo.mjs'
 import { t } from '../../lib/i18n'
 
 const CHEMIN = '/outils/lien-avis-google'
 const MESSAGE_DEFAUT = 'Votre avis nous aide à nous améliorer et aide d\'autres personnes à nous connaître.'
 const LIEN_FINDER = 'https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder'
 
-const JSON_LD = [
+const jsonLd = () => [
   {
-    '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Générateur de lien et de QR code pour les avis Google',
-    url: urlAbsolue(CHEMIN), applicationCategory: 'BusinessApplication', operatingSystem: 'Tous (navigateur web)', inLanguage: 'fr-FR',
-    description: 'Crée le lien direct vers le formulaire d\'avis Google de ton commerce, son QR code et une affiche A4 à imprimer.',
+    '@context': 'https://schema.org', '@type': 'WebApplication', name: t('Générateur de lien et de QR code pour les avis Google'),
+    url: urlPage(CHEMIN), applicationCategory: 'BusinessApplication', operatingSystem: t('Tous (navigateur web)'), inLanguage: langueSchema(),
+    description: t('Crée le lien direct vers le formulaire d\'avis Google de ton commerce, son QR code et une affiche A4 à imprimer.'),
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
   },
-  filAriane([['Accueil', '/'], ['Outils', CHEMIN], ['Lien et QR code d\'avis Google', CHEMIN]]),
+  filAriane([[t('Accueil'), '/'], [t('Outils'), CHEMIN], [t('Lien et QR code d\'avis Google'), CHEMIN]]),
 ]
 
 function useQr(lien) {
@@ -98,7 +98,7 @@ export default function LienAvisGoogle() {
         title={t('Lien et QR code pour demander des avis Google')}
         description={t('Crée gratuitement le lien direct vers le formulaire d\'avis Google de ton commerce, son QR code et une affiche A4 à imprimer. Sans compte, directement dans ton navigateur.')}
         path={CHEMIN}
-        jsonLd={JSON_LD}
+        jsonLd={jsonLd()}
       />
       <style>{`
         @media print {
@@ -201,7 +201,7 @@ export default function LienAvisGoogle() {
                 <p className="text-[14.5px] leading-relaxed text-slate-600">
                   {t('Avec un compte gratuit SwimUp, tu gardes ton lien et ton QR code au même endroit et tu vois combien de personnes scannent ou cliquent. Deux champs, pas de carte bancaire.')}
                 </p>
-                <a href="/inscription?src=mail-fiche" className="inline-flex items-center rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[14px] font-semibold px-6 py-2.5">{t('Créer mon compte gratuit')}</a>
+                <a href={adr("/inscription?src=mail-fiche")} className="inline-flex items-center rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[14px] font-semibold px-6 py-2.5">{t('Créer mon compte gratuit')}</a>
               </div>
             )}
           </div>
@@ -235,7 +235,7 @@ export default function LienAvisGoogle() {
             <p className="mt-2 text-[15px] leading-relaxed text-slate-600">
               {t('Avec un compte gratuit SwimUp, tu gardes ton lien et ton QR code au même endroit, tu vois combien de personnes scannent ou cliquent, tu peux envoyer une demande d\'avis par email à tes propres clients (3 par jour) et tu as de l\'aide pour rédiger tes réponses aux avis (3 par jour). Pas de carte bancaire.')}
             </p>
-            <a href="/inscription?src=outil-lien" className="mt-4 inline-flex items-center rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[14px] font-semibold px-6 py-2.5">{t('Créer un compte gratuit')}</a>
+            <a href={adr("/inscription?src=outil-lien")} className="mt-4 inline-flex items-center rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[14px] font-semibold px-6 py-2.5">{t('Créer un compte gratuit')}</a>
           </div>
         </article>
       </main>

@@ -1,8 +1,10 @@
+import { MentionsLegalesEn } from './legalEn'
+import { getLangue } from '../lib/i18n'
 import PageLegale, { Titre, Champ } from '../components/PageLegale'
-import { Link } from 'react-router-dom'
+import { Link } from '../components/Lien'
 import { EDITEUR, HEBERGEUR } from '../lib/legal.mjs'
 
-export default function MentionsLegales() {
+function MentionsLegalesFr() {
   return (
     <PageLegale titre="Mentions légales" chemin="/mentions-legales" description="Qui édite SwimUp, qui l'héberge et comment nous contacter.">
       <p className="mt-3">Ces informations sont publiées pour répondre à l'obligation d'identification des éditeurs de sites internet (loi du 21 juin 2004 pour la confiance dans l'économie numérique, dite LCEN).</p>
@@ -35,4 +37,9 @@ export default function MentionsLegales() {
       <p>Le site renvoie vers des services tiers (Google, Stripe, PayPal, Discord, Instagram, TikTok). Leur contenu ne dépend pas de nous. SwimUp n'est ni affilié à Google ni approuvé par Google : Google Maps et Google Business Profile sont des marques de Google LLC.</p>
     </PageLegale>
   )
+}
+
+// En anglais : la version traduite de pages/legalEn.jsx (le texte français fait foi).
+export default function MentionsLegales() {
+  return getLangue() === 'en' ? <MentionsLegalesEn /> : <MentionsLegalesFr />
 }

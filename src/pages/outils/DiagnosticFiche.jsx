@@ -1,27 +1,27 @@
 // Page gratuite, sans compte : checklist de fiche Google que le commerçant coche lui-même.
 // Aucun appel à Google ni au serveur ; le score compte seulement les points cochés.
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, adr } from '../../components/Lien'
 import { Check, ChevronRight, Copy } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Seo from '../../components/Seo'
 import CadrePublic from '../../components/CadrePublic'
 import { mesure } from '../../lib/mesure.mjs'
-import { filAriane, urlAbsolue } from '../../lib/seo.mjs'
+import { filAriane, urlPage, langueSchema } from '../../lib/seo.mjs'
 import { GROUPES, TOTAL, analyser, listeAFaire } from '../../lib/diagnosticFiche.mjs'
 import { t, tn } from '../../lib/i18n'
 
 const CHEMIN = '/outils/diagnostic-fiche-google'
 const AIDE_GOOGLE = 'https://support.google.com/business'
 
-const JSON_LD = [
+const jsonLd = () => [
   {
-    '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Diagnostic de fiche Google à cocher',
-    url: urlAbsolue(CHEMIN), applicationCategory: 'BusinessApplication', operatingSystem: 'Tous (navigateur web)', inLanguage: 'fr-FR',
-    description: `Une liste de ${TOTAL} points à vérifier sur ta fiche Google Business Profile, à cocher toi-même.`,
+    '@context': 'https://schema.org', '@type': 'WebApplication', name: t('Diagnostic de fiche Google à cocher'),
+    url: urlPage(CHEMIN), applicationCategory: 'BusinessApplication', operatingSystem: t('Tous (navigateur web)'), inLanguage: langueSchema(),
+    description: t('Une liste de {TOTAL} points à vérifier sur ta fiche Google Business Profile, à cocher toi-même.', { TOTAL }),
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
   },
-  filAriane([['Accueil', '/'], ['Outils', '/outils/lien-avis-google'], ['Diagnostic de fiche Google', CHEMIN]]),
+  filAriane([[t('Accueil'), '/'], [t('Outils'), '/outils/lien-avis-google'], [t('Diagnostic de fiche Google'), CHEMIN]]),
 ]
 
 export default function DiagnosticFiche() {
@@ -48,7 +48,7 @@ export default function DiagnosticFiche() {
         title={t('Diagnostic de fiche Google : la liste à cocher')}
         description={t('{TOTAL} points à vérifier sur ta fiche Google Business Profile : informations, catégories, photos, description, avis. Tu coches, tu vois ce qu\'il reste à faire. Gratuit, sans compte.', { TOTAL })}
         path={CHEMIN}
-        jsonLd={JSON_LD}
+        jsonLd={jsonLd()}
       />
       <section className="max-w-2xl mx-auto px-4 pt-10 pb-6">
         <nav aria-label={t('Fil d\'Ariane')} className="text-[13px] text-slate-500 flex items-center gap-1">
@@ -127,7 +127,7 @@ export default function DiagnosticFiche() {
           <p className="mt-2 text-[15px] leading-relaxed text-slate-600">
             {t('Avec un compte gratuit SwimUp, tu crées ton lien et ton QR code d\'avis, tu suis un mot-clé sur Google Maps et tu as de l\'aide pour répondre à tes avis. Pas de carte bancaire.')}
           </p>
-          <a href="/inscription?src=diagnostic" className="mt-4 inline-flex items-center rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[14px] font-semibold px-6 py-2.5">{t('Créer un compte gratuit')}</a>
+          <a href={adr("/inscription?src=diagnostic")} className="mt-4 inline-flex items-center rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[14px] font-semibold px-6 py-2.5">{t('Créer un compte gratuit')}</a>
         </div>
       </main>
     </CadrePublic>

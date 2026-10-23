@@ -6,10 +6,12 @@ import { StaticRouter } from 'react-router-dom'
 import Racine from './Racine'
 import { GUIDES } from './content/guidesCommercants'
 import { METIERS } from './content/metiersAvis.mjs'
+import { versEn, estEn } from './lib/chemins.mjs'
+import { chargerAnglais } from './lib/i18n'
 
 // Pages publiques prérendues. La commande (/, /commander), le suivi, l'espace connecté, l'admin,
 // la connexion et les pages membres n'en font pas partie : elles restent servies comme avant.
-export const PAGES = [
+const PAGES_FR = [
   '/aide-commercants',
   ...GUIDES.map(g => `/aide-commercants/${g.slug}`),
   '/outils/lien-avis-google',
@@ -26,7 +28,11 @@ export const PAGES = [
   '/retractation',
 ]
 
-export function rendre(url) {
+// Chaque page existe aussi en anglais, sous /en/ (adresses de lib/chemins.mjs).
+export const PAGES = [...PAGES_FR, ...PAGES_FR.map(p => versEn(p))]
+
+export async function rendre(url) {
+  if (estEn(url)) await chargerAnglais()
   globalThis.__SEO_COLLECTE = []
   return new Promise((resolve, reject) => {
     let erreur = null

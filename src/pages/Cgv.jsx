@@ -1,10 +1,12 @@
+import { CgvEn } from './legalEn'
+import { getLangue } from '../lib/i18n'
 import PageLegale, { Titre, Champ } from '../components/PageLegale'
-import { Link } from 'react-router-dom'
+import { Link } from '../components/Lien'
 import { EDITEUR, LOI_ET_TRIBUNAL, PRIX } from '../lib/legal.mjs'
 
 const eur = (n) => `${String(n).replace('.', ',')} €`
 
-export default function Cgv() {
+function CgvFr() {
   return (
     <PageLegale titre="Conditions générales de vente" chemin="/cgv" description="Prix, paiement, délais, garantie et résiliation pour les commandes d'avis et les abonnements SwimUp, réservés aux professionnels.">
       <p className="mt-3">Ces conditions s'appliquent aux achats faits sur swimup.net : commandes d'avis et abonnements aux offres payantes. Elles complètent les <Link to="/cgu" className="text-sky-600 underline">CGU</Link>. Vendeur : <Champ v={EDITEUR.nom} /> (<Champ v={EDITEUR.statut} />), voir les <Link to="/mentions-legales" className="text-sky-600 underline">mentions légales</Link>.</p>
@@ -53,4 +55,9 @@ export default function Cgv() {
       <p>Droit français. <Champ v={LOI_ET_TRIBUNAL} /></p>
     </PageLegale>
   )
+}
+
+// En anglais : la version traduite de pages/legalEn.jsx (le texte français fait foi).
+export default function Cgv() {
+  return getLangue() === 'en' ? <CgvEn /> : <CgvFr />
 }

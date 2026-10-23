@@ -1,6 +1,6 @@
 import usePageTitle from '../../hooks/usePageTitle'
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '../../components/Lien'
 import api from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { CreditCard, ShoppingBag, Bell, CheckCircle2, Clock, Star, Crown, BarChart3, Wallet, PenLine } from 'lucide-react'

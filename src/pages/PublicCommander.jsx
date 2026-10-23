@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { adr } from '../components/Lien'
 import { ArrowRight, AlertCircle, Loader2, Check, Lock, ChevronDown, MessageCircle } from 'lucide-react'
 import axios from 'axios'
 import Logo from '../components/Logo'
@@ -61,11 +62,11 @@ export default function PublicCommander() {
 
       <header className="border-b border-slate-200/80">
         <div className="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2" aria-label="SwimUp">
+          <a href={adr("/")} className="flex items-center gap-2" aria-label="SwimUp">
             <Logo taille={30} classeTexte="text-[#0B1F33]" />
           </a>
           <nav className="flex items-center gap-5 text-[14px]">
-            <a href="/inscription" className="hidden sm:inline text-slate-600 hover:text-[#0B1F33]">{t('Créer un compte gratuit')}</a>
+            <a href={adr("/inscription")} className="hidden sm:inline text-slate-600 hover:text-[#0B1F33]">{t('Créer un compte gratuit')}</a>
             <a href="/login" className="font-semibold text-[#0369A1] hover:underline underline-offset-4">{t('Se connecter')}</a>
             <SelecteurLangue />
           </nav>
@@ -189,7 +190,7 @@ export default function PublicCommander() {
 
         <p className="max-w-5xl mx-auto px-5 pb-6 text-[13.5px] text-slate-600">
           {t('Votre propre fiche à soigner ?')}{' '}
-          <a href="/inscription" className="font-semibold text-[#0369A1] underline underline-offset-4">{t('Créez un compte gratuit')}</a>
+          <a href={adr("/inscription")} className="font-semibold text-[#0369A1] underline underline-offset-4">{t('Créez un compte gratuit')}</a>
           {' '}{t(': QR code, affiche et réponses aux avis, sans carte bancaire.')}
         </p>
       </section>
@@ -250,7 +251,7 @@ export default function PublicCommander() {
         <div className="max-w-5xl mx-auto px-5 py-7 flex flex-wrap items-center justify-between gap-3 text-[13px] text-slate-600">
           <span>{t('© {date} SwimUp', { date: new Date().getFullYear() })}</span>
           <span className="flex items-center gap-5">
-            <a href="/aide-commercants" className="hover:text-[#0B1F33]">{t('Aide aux commerçants')}</a>
+            <a href={adr("/aide-commercants")} className="hover:text-[#0B1F33]">{t('Aide aux commerçants')}</a>
             <a href={LIEN_INSTAGRAM} rel="noopener noreferrer me" target="_blank" className="hover:text-[#0B1F33]">{t('Instagram')}</a>
             <a href={LIEN_TIKTOK} rel="noopener noreferrer me" target="_blank" className="hover:text-[#0B1F33]">{t('TikTok')}</a>
             <a href="/login" className="hover:text-[#0B1F33]">{t('Connexion')}</a>

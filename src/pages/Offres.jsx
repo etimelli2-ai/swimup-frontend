@@ -1,7 +1,7 @@
 // Page publique des offres. Prix et contenu viennent de GET /api/public/offres (même source que l'espace
 // client) : la page ne contient aucun prix écrit en dur et ne peut pas afficher autre chose que le produit.
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, adr } from '../components/Lien'
 import { Check, Minus, ChevronRight } from 'lucide-react'
 import api from '../lib/api'
 import Seo from '../components/Seo'
@@ -10,7 +10,7 @@ import { filAriane } from '../lib/seo.mjs'
 import { t, sepDecimal, euros } from '../lib/i18n'
 
 const CHEMIN = '/offres'
-const JSON_LD = [filAriane([['Accueil', '/'], ['Offres', CHEMIN]])]
+const jsonLd = () => [filAriane([[t('Accueil'), '/'], [t('Offres'), CHEMIN]])]
 const eur = (n) => euros(n)
 const valeurDe = (lignes, cle, offre) => lignes.find(l => l.cle === cle)?.[offre]
 
@@ -74,7 +74,7 @@ export default function Offres() {
 
   const grille = 'grid-cols-[1fr_3rem_3.75rem_3.75rem_3.75rem] sm:grid-cols-[1fr_5rem_6rem_6rem_6rem]'
   const bouton = (href, texte, plein) => (
-    <a href={href} className={`mt-6 inline-flex items-center justify-center rounded-full text-[15px] font-semibold px-6 py-3 ${plein ? 'bg-sky-500 hover:bg-sky-600 text-white' : 'border border-slate-300 text-slate-800 hover:bg-slate-50'}`}>{texte}</a>
+    <a href={adr(href)} className={`mt-6 inline-flex items-center justify-center rounded-full text-[15px] font-semibold px-6 py-3 ${plein ? 'bg-sky-500 hover:bg-sky-600 text-white' : 'border border-slate-300 text-slate-800 hover:bg-slate-50'}`}>{texte}</a>
   )
 
   return (
@@ -83,7 +83,7 @@ export default function Offres() {
         title={t('Offres et tarifs')}
         description={t('Compare les offres Gratuit, Premium, Business et Agence de SwimUp pour gérer tes avis Google : QR code, demandes d\'avis par email, campagnes, suivi de ta visibilité. Prix et contenu détaillés.')}
         path={CHEMIN}
-        jsonLd={JSON_LD}
+        jsonLd={jsonLd()}
       />
       <section className="max-w-5xl mx-auto px-4 pt-10 pb-6">
         <nav aria-label={t('Fil d\'Ariane')} className="text-[13px] text-slate-500 flex items-center gap-1">
@@ -97,7 +97,7 @@ export default function Offres() {
       </section>
 
       <main id="contenu" className="max-w-5xl mx-auto px-4 pb-16">
-        {erreur && <p className="rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[15px] px-4 py-3">{t('Les offres ne se sont pas chargées. Recharge la page, ou')}{' '}<a href="/inscription?src=offres" className="underline">{t('crée ton compte gratuit')}</a>{' '}{t('pour les voir depuis ton espace.')}</p>}
+        {erreur && <p className="rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[15px] px-4 py-3">{t('Les offres ne se sont pas chargées. Recharge la page, ou')}{' '}<a href={adr("/inscription?src=offres")} className="underline">{t('crée ton compte gratuit')}</a>{' '}{t('pour les voir depuis ton espace.')}</p>}
         {!d && !erreur && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-busy="true">{[0, 1, 2, 3].map(i => <div key={i} className="h-80 rounded-2xl bg-slate-100 animate-pulse" />)}</div>}
 
         {d && (

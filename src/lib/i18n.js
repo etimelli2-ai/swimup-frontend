@@ -15,8 +15,11 @@
 export const LANGUES = ['fr', 'en']
 export const CLE_STOCKAGE = 'swimup_langue'
 
-let langueCourante = 'fr'
+import { getLangue, setLangueCourante } from './langue.mjs'
+export { getLangue, setLangueCourante }
+
 let en = {}
+let contenuEn = null
 const cacheCles = new Map()
 
 // Charge le dictionnaire anglais (une seule fois). À appeler avant de passer en anglais.
@@ -24,14 +27,19 @@ export async function chargerAnglais() {
   if (Object.keys(en).length) return
   const m = await import('./en/index.js')
   en = m.default
+  contenuEn = m.contenu
 }
+
+// Le dictionnaire anglais est-il déjà là ? (le rendu serveur et l'hydratation d'une page /en en ont besoin tout de suite)
+export function anglaisCharge() { return Object.keys(en).length > 0 }
 
 // Pour les tests : installer un dictionnaire sans passer par l'import dynamique.
 export function definirDictionnaire(d) { en = d || {} }
 
+// Contenu éditorial anglais (guides, métiers, modèles, messages d'apporteur), ou null tant que l'anglais n'est pas chargé.
+export function contenuAnglais() { return contenuEn }
+
 export function langueValide(l) { return LANGUES.includes(l) ? l : 'fr' }
-export function getLangue() { return langueCourante }
-export function setLangueCourante(l) { langueCourante = langueValide(l) }
 
 // Langue enregistrée par le visiteur (localStorage), ou « fr ». Lecture protégée : le stockage peut
 // être bloqué (navigation privée, données de site bloquées).
@@ -42,6 +50,15 @@ export function langueEnregistree() {
     if (url === 'fr' || url === 'en') return url
     return langueValide(window.localStorage.getItem(CLE_STOCKAGE))
   } catch { return 'fr' }
+}
+
+// Choix explicite du visiteur ('fr' | 'en'), ou null s'il n'en a jamais fait.
+export function choixEnregistre() {
+  try {
+    if (typeof window === 'undefined') return null
+    const v = window.localStorage.getItem(CLE_STOCKAGE)
+    return v === 'fr' || v === 'en' ? v : null
+  } catch { return null }
 }
 
 export function enregistrerLangue(l) {
@@ -64,13 +81,13 @@ function accorderAnglais(texte) { return texte.replace(RE_SINGULIER, (m, avant, 
 function interpoler(texte, vars) {
   if (!vars) return texte
   const rempli = texte.replace(/\{(\w+)\}/g, (m, nom) => (!(nom in vars) ? m : (vars[nom] === undefined || vars[nom] === null ? '' : String(vars[nom]))))
-  return langueCourante === 'en' ? accorderAnglais(rempli) : rempli
+  return getLangue() === 'en' ? accorderAnglais(rempli) : rempli
 }
 
 // t('Bonjour {prenom}', { prenom }) — renvoie le texte dans la langue courante.
 export function t(fr, vars) {
   if (typeof fr !== 'string' || !fr) return fr
-  if (langueCourante === 'fr') return interpoler(fr, vars)
+  if (getLangue() === 'fr') return interpoler(fr, vars)
   const traduit = en[cle(fr)]
   return interpoler(typeof traduit === 'string' ? traduit : fr, vars)
 }
@@ -79,21 +96,21 @@ export function t(fr, vars) {
 // anglais est indexé par la forme plurielle française et contient [singulier, pluriel].
 export function tn(n, singulierFr, plurielFr, autres) {
   const vars = { ...autres, n }
-  if (langueCourante === 'fr') return interpoler(n >= 2 ? plurielFr : singulierFr, vars)
+  if (getLangue() === 'fr') return interpoler(n >= 2 ? plurielFr : singulierFr, vars)
   const traduit = en[cle(plurielFr)]
   if (Array.isArray(traduit)) return interpoler(n === 1 ? traduit[0] : traduit[1], vars)
   return interpoler(typeof traduit === 'string' ? traduit : (n >= 2 ? plurielFr : singulierFr), vars)
 }
 
 // Réglage régional pour dates et nombres : toLocaleDateString(locale(), …).
-export function locale() { return langueCourante === 'en' ? 'en-GB' : 'fr-FR' }
+export function locale() { return getLangue() === 'en' ? 'en-GB' : 'fr-FR' }
 
 // Séparateur décimal : « , » en français, « . » en anglais (pour les montants construits à la main).
-export function sepDecimal() { return langueCourante === 'en' ? '.' : ',' }
+export function sepDecimal() { return getLangue() === 'en' ? '.' : ',' }
 
 // Montant en euros : « 9,90 € » en français, « €9.90 » en anglais.
 export function euros(valeur, { decimales = 2 } = {}) {
   const n = Number(valeur) || 0
-  if (langueCourante !== 'en') return `${n.toFixed(decimales).replace('.', ',')} €`
+  if (getLangue() !== 'en') return `${n.toFixed(decimales).replace('.', ',')} €`
   return n.toLocaleString(locale(), { style: 'currency', currency: 'EUR', minimumFractionDigits: decimales, maximumFractionDigits: decimales })
 }

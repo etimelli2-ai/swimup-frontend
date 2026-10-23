@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom'
+import { useLocation, Outlet } from 'react-router-dom'
+import { Link, useNavigate } from './Lien'
 import { useAuth } from '../hooks/useAuth'
 import api from '../lib/api'
 import BadgePause from './BadgePause'

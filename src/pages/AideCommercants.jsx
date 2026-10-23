@@ -1,17 +1,17 @@
 import { useState, createContext, useContext } from 'react'
-import { Link, useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate } from 'react-router-dom'
+import { Link, adr } from '../components/Lien'
 import { motion } from 'framer-motion'
 import { Star, ArrowLeft, QrCode, ChevronRight, Copy, Check, TriangleAlert, Sparkles, MessageSquareReply, MapPin, ShieldAlert, MessageCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Seo from '../components/Seo'
 import { LiensLegaux } from '../components/PageLegale'
-import { organisationLd, filAriane, urlAbsolue, LIEN_INSTAGRAM, LIEN_TIKTOK } from '../lib/seo.mjs'
+import { organisationLd, filAriane, urlPage, langueSchema, LIEN_INSTAGRAM, LIEN_TIKTOK } from '../lib/seo.mjs'
 import { springSmooth } from '../lib/motion'
-import { GUIDES, guideParSlug } from '../content/guidesCommercants'
+import { guidesLocalises, guideLocalise } from '../content/langue.mjs'
 import Logo from '../components/Logo'
 import { t } from '../lib/i18n'
 import SelecteurLangue from '../components/SelecteurLangue'
-import NoteContenuFrancais from '../components/NoteContenuFrancais'
 
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
@@ -48,7 +48,7 @@ function Cadre({ children }) {
             </Link>
             <a href="/login" className="text-[13px] text-slate-500 hover:text-slate-700 font-medium transition-colors">{t('Se connecter')}</a>
             <SelecteurLangue />
-            <a href="/inscription?src=guide" className="text-[13px] text-sky-600 hover:text-sky-700 font-semibold transition-colors">{t('Compte gratuit')}</a>
+            <a href={adr("/inscription?src=guide")} className="text-[13px] text-sky-600 hover:text-sky-700 font-semibold transition-colors">{t('Compte gratuit')}</a>
           </div>
         </div>
       </header>
@@ -119,7 +119,7 @@ function Cta() {
         {t('QR code et affiche à imprimer, demandes d\'avis par email à tes clients, aide à la rédaction de tes réponses. Le compte gratuit suffit pour commencer.')}
       </p>
       <div className="mt-5 flex items-center justify-center gap-5 flex-wrap">
-        <a href="/inscription?src=guide" className="inline-flex items-center rounded-full bg-white text-sky-600 text-[14px] font-semibold px-6 py-2.5 hover:bg-sky-50 transition-colors">
+        <a href={adr("/inscription?src=guide")} className="inline-flex items-center rounded-full bg-white text-sky-600 text-[14px] font-semibold px-6 py-2.5 hover:bg-sky-50 transition-colors">
           {t('Créer un compte gratuit')}
         </a>
         <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-white/90 hover:text-white underline-offset-4 hover:underline">
@@ -146,7 +146,6 @@ export function AideCommercantsIndex() {
           <Star size={12} className="fill-sky-500 text-sky-500" />
           {t('Guides gratuits')}
         </span>
-        <NoteContenuFrancais />
         <h1 className="text-[36px] sm:text-[48px] leading-[1.05] font-semibold tracking-tight text-slate-900">
           {t('Ta réputation sur Google,')}<br />
           <span className="bg-gradient-to-r from-sky-500 to-violet-500 bg-clip-text text-transparent">{t('sans prise de tête')}</span>
@@ -182,7 +181,7 @@ export function AideCommercantsIndex() {
           </Link>
         </div>
         <ul className="grid gap-4 sm:grid-cols-2">
-          {GUIDES.map(g => {
+          {guidesLocalises().map(g => {
             const Icone = ICONES[g.icone] || Star
             const c = COULEURS[g.couleur] || COULEURS.sky
             return (
@@ -214,7 +213,7 @@ function ModeleCopiable({ texte }) {
   const [ok, setOk] = useState(false)
   const copier = async () => {
     try {
-      await navigator.clipboard.writeText(texte.replace(/^«\s*|\s*»$/g, ''))
+      await navigator.clipboard.writeText(texte.replace(/^[«“]\s*|\s*[»”]$/g, ''))
       setOk(true)
       setTimeout(() => setOk(false), 1800)
     } catch {
@@ -312,11 +311,11 @@ export function AideCommercantsGuide() {
   const integre = useContext(ModeIntegre)
   const base = racine(integre)
   const { slug } = useParams()
-  const guide = guideParSlug(slug)
+  const guide = guideLocalise(slug)
   if (!guide) return <Navigate to={base} replace />
   const Icone = ICONES[guide.icone] || Star
   const c = COULEURS[guide.couleur] || COULEURS.sky
-  const autres = GUIDES.filter(g => g.slug !== guide.slug)
+  const autres = guidesLocalises().filter(g => g.slug !== guide.slug)
 
   const chemin = `/aide-commercants/${guide.slug}`
   return (
@@ -326,8 +325,8 @@ export function AideCommercantsGuide() {
         : <Seo title={guide.titre} description={guide.description} path={chemin} type="article"
                jsonLd={[
                  {
-                   '@context': 'https://schema.org', '@type': t('Article'), headline: guide.titre, description: guide.description,
-                   inLanguage: 'fr-FR', mainEntityOfPage: urlAbsolue(chemin), author: organisationLd, publisher: organisationLd,
+                   '@context': 'https://schema.org', '@type': 'Article', headline: guide.titre, description: guide.description,
+                   inLanguage: langueSchema(), mainEntityOfPage: urlPage(chemin), author: organisationLd, publisher: organisationLd,
                  },
                  filAriane([[t('Accueil'), '/'], [t('Aide aux commerçants'), '/aide-commercants'], [guide.titre, chemin]]),
                ]} />}
@@ -338,7 +337,6 @@ export function AideCommercantsGuide() {
         <div className="flex justify-center">
           <span className={`w-12 h-12 rounded-2xl border flex items-center justify-center ${c.tuile}`}><Icone size={24} /></span>
         </div>
-        <NoteContenuFrancais />
         <h1 className="mt-5 text-[32px] sm:text-[44px] leading-[1.08] font-semibold tracking-tight text-slate-900">{guide.titre}</h1>
         <p className="mt-4 text-[18px] leading-relaxed text-slate-500 max-w-xl mx-auto font-light">{guide.resume}</p>
       </Hero>

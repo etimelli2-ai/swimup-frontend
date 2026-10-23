@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../../lib/api'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { Link } from '../../components/Lien'
 import { Star, ChevronDown, ChevronUp, Save, Loader2, Trash2, CalendarClock, Clock3, ShoppingBag, Wallet, CheckCircle2 } from 'lucide-react'
 import { lienPaypal } from '../../lib/paypal'
 import { motion, AnimatePresence } from 'framer-motion'

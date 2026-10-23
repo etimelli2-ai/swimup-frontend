@@ -1,5 +1,7 @@
+import { ConfidentialiteEn } from './legalEn'
+import { getLangue } from '../lib/i18n'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '../components/Lien'
 import api from '../lib/api'
 import PageLegale, { Titre, Champ, ARemplir } from '../components/PageLegale'
 import { EDITEUR, CNIL } from '../lib/legal.mjs'
@@ -31,7 +33,7 @@ const SOUS_TRAITANTS = [
   ['Discord', "Aide et échanges avec les membres, si tu rejoins le serveur.", 'Discord décide seul de l\'usage de tes données sur son serveur'],
 ]
 
-export default function Confidentialite() {
+function ConfidentialiteFr() {
   const [conservation, setConservation] = useState(null)
   useEffect(() => { api.get('/public/conservation').then(r => setConservation(r.data.conservation)).catch(() => setConservation(false)) }, [])
 
@@ -114,4 +116,9 @@ export default function Confidentialite() {
       <p className="mt-8 text-sm text-slate-600">Cette page est mise à jour quand les pratiques changent. La date est en haut de page.</p>
     </PageLegale>
   )
+}
+
+// En anglais : la version traduite de pages/legalEn.jsx (le texte français fait foi).
+export default function Confidentialite() {
+  return getLangue() === 'en' ? <ConfidentialiteEn /> : <ConfidentialiteFr />
 }

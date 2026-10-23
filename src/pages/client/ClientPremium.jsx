@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { useNavigate, Link as RouterLink } from '../../components/Lien'
 import api from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { Crown, CheckCircle2, ArrowRight, Sparkles, Check, MessageCircle, RotateCcw, CreditCard, Minus, ExternalLink, Building2, ChevronDown } from 'lucide-react'

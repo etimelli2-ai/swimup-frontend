@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Link, useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from '../../components/Lien'
 import { Users, Crown, Mail, Trash2, FileDown, LogOut, Check, Building2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api, { choisirCompte } from '../../lib/api'

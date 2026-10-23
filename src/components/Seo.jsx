@@ -10,10 +10,14 @@
 // existent dans index.html reprennent leur valeur d'origine (HEAD_BASE), les autres sont retirées.
 import { useEffect } from 'react'
 import { construireHead, HEAD_BASE } from '../lib/seo.mjs'
+import { localiser } from '../lib/chemins.mjs'
+import { getLangue } from '../lib/i18n'
 
 const LD_GLOBAL = 'script[type="application/ld+json"]:not([data-seo]):not([data-seo-pre])'
 
-export default function Seo(props) {
+export default function Seo(brut) {
+  // L'adresse canonique suit la langue de la page : /offres en français, /en/plans en anglais.
+  const props = brut.path ? { ...brut, path: localiser(brut.path, getLangue()) } : brut
   const cle = JSON.stringify(props)
   // Rendu serveur (prérendu) : le script récupère les props de la page pour écrire son <head>.
   if (typeof document === 'undefined' && globalThis.__SEO_COLLECTE) globalThis.__SEO_COLLECTE.push(props)
@@ -53,6 +57,21 @@ export default function Seo(props) {
         document.head.appendChild(el)
         retours.push(() => el.remove())
       }
+    }
+
+    // Versions dans l'autre langue (hreflang) : celles d'index.html ou du prérendu sont remplacées par celles de la page.
+    const anciennes = [...document.head.querySelectorAll('link[rel="alternate"][hreflang]:not([data-seo])')]
+    anciennes.forEach(el => {
+      const parent = el.parentNode
+      const suivant = el.nextSibling
+      el.remove()
+      retours.push(() => parent.insertBefore(el, suivant))
+    })
+    for (const [lang, href] of h.alternates) {
+      const el = document.createElement('link')
+      el.setAttribute('rel', 'alternate'); el.setAttribute('hreflang', lang); el.setAttribute('href', href); el.setAttribute('data-seo', '1')
+      document.head.appendChild(el)
+      retours.push(() => el.remove())
     }
 
     // Les données structurées globales (offre à 4 € + FAQ de la commande) ne décrivent pas cette page.

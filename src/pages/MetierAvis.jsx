@@ -3,24 +3,24 @@
 // Contenu statique (src/content/metiersAvis.mjs), rien n'est envoyé à nos serveurs.
 // Ces pages ne touchent ni à la commande d'avis, ni aux comptes, ni aux paiements.
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { Link, adr } from '../components/Lien'
 import { Copy, Check, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Seo from '../components/Seo'
 import CadrePublic from '../components/CadrePublic'
 import { mesure } from '../lib/mesure.mjs'
-import { filAriane, urlAbsolue } from '../lib/seo.mjs'
-import { CHAMPS, remplir } from '../lib/modelesReponses.mjs'
-import { METIERS, metierParSlug } from '../content/metiersAvis.mjs'
+import { filAriane, urlPage, langueSchema } from '../lib/seo.mjs'
+import { remplir } from '../lib/modelesReponses.mjs'
+import { champsLocalises, metiersLocalises, metierLocalise } from '../content/langue.mjs'
 import { t } from '../lib/i18n'
-import NoteContenuFrancais from '../components/NoteContenuFrancais'
 
 const BASE = '/avis-google'
 const maj1 = (tx) => tx.charAt(0).toUpperCase() + tx.slice(1)
 
 function Modele({ m, valeurs, metier }) {
   const [copie, setCopie] = useState(false)
-  const texte = remplir(m.texte, valeurs)
+  const texte = remplir(m.texte, valeurs, champsLocalises())
   const copier = async () => {
     try {
       await navigator.clipboard.writeText(texte)
@@ -58,7 +58,7 @@ function Fil({ dernier }) {
 
 export function AvisGoogleIndex() {
   const jsonLd = [
-    { '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Avis Google par métier', url: urlAbsolue(BASE), inLanguage: 'fr-FR',
+    { '@context': 'https://schema.org', '@type': 'CollectionPage', name: t('Avis Google par métier'), url: urlPage(BASE), inLanguage: langueSchema(),
       description: t('Conseils et modèles de réponses aux avis Google, métier par métier.') },
     filAriane([[t('Accueil'), '/'], [t('Avis Google par métier'), BASE]]),
   ]
@@ -72,7 +72,6 @@ export function AvisGoogleIndex() {
       />
       <section className="max-w-2xl mx-auto px-4 pt-10 pb-6">
         <Fil />
-        <NoteContenuFrancais />
         <h1 className="mt-4 text-[32px] sm:text-[44px] leading-[1.08] font-semibold tracking-tight text-slate-900">{t('Avis Google, métier par métier')}</h1>
         <p className="mt-4 text-[17px] leading-relaxed text-slate-500">
           {t('Un restaurant, un garage et un coiffeur ne reçoivent pas les mêmes critiques. Choisis ton activité : tu trouves les situations qui reviennent, trois modèles de réponses à adapter, les bons endroits pour ton QR code et les points de ta fiche à vérifier.')}
@@ -80,7 +79,7 @@ export function AvisGoogleIndex() {
       </section>
       <main id="contenu" className="max-w-2xl mx-auto px-4 pb-16">
         <ul className="grid gap-3 sm:grid-cols-2">
-          {METIERS.map(m => (
+          {metiersLocalises().map(m => (
             <li key={m.slug}>
               <Link to={`${BASE}/${m.slug}`} className="block h-full rounded-2xl border border-slate-200 bg-white p-5 hover:border-sky-300 hover:bg-sky-50/40">
                 <span className="text-[17px] font-semibold tracking-tight text-slate-900">{maj1(m.nom)}</span>
@@ -99,7 +98,7 @@ export function AvisGoogleIndex() {
 
 export default function MetierAvis() {
   const { metier: slug } = useParams()
-  const m = metierParSlug(slug)
+  const m = metierLocalise(slug)
   const [valeurs, setValeurs] = useState({})
   const maj = (cle, v) => setValeurs(a => ({ ...a, [cle]: v.slice(0, 80) }))
 
@@ -116,11 +115,12 @@ export default function MetierAvis() {
   }
 
   const chemin = `${BASE}/${m.slug}`
-  const autres = METIERS.filter(x => x.slug !== m.slug)
+  const autres = metiersLocalises().filter(x => x.slug !== m.slug)
   const jsonLd = [
-    { '@context': 'https://schema.org', '@type': 'WebPage', name: m.titre, url: urlAbsolue(chemin), inLanguage: 'fr-FR', description: m.description },
+    { '@context': 'https://schema.org', '@type': 'WebPage', name: m.titre, url: urlPage(chemin), inLanguage: langueSchema(), description: m.description },
     filAriane([[t('Accueil'), '/'], [t('Avis Google par métier'), BASE], [m.titre, chemin]]),
   ]
+  const CHAMPS = champsLocalises()
   const champsUtiles = CHAMPS.filter(c => m.modeles.some(x => x.texte.includes(`{${c.cle}}`)))
 
   return (
@@ -128,7 +128,6 @@ export default function MetierAvis() {
       <Seo title={m.titre} description={m.description} path={chemin} jsonLd={jsonLd} />
       <section className="max-w-2xl mx-auto px-4 pt-10 pb-6">
         <Fil dernier={maj1(m.nom)} />
-        <NoteContenuFrancais />
         <h1 className="mt-4 text-[30px] sm:text-[40px] leading-[1.1] font-semibold tracking-tight text-slate-900">{m.titre}</h1>
         <p className="mt-4 text-[17px] leading-relaxed text-slate-500">{m.intro}</p>
         <nav aria-label={t('Sections')} className="mt-5 flex flex-wrap gap-2 text-[14px]">
@@ -206,7 +205,7 @@ export default function MetierAvis() {
           <p className="mt-2 text-[15px] leading-relaxed text-slate-600">
             {t('Avec un compte gratuit SwimUp, tu colles l\'avis et tu obtiens un brouillon de réponse adapté (3 par jour). Relis-le toujours avant de publier. Pas de carte bancaire. SwimUp propose aussi des services payants autour des avis Google, présentés sur la page d\'accueil.')}
           </p>
-          <a href={`/inscription?src=metier-${m.slug}`} className="mt-4 inline-flex items-center rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[14px] font-semibold px-6 py-2.5">{t('Créer un compte gratuit')}</a>
+          <a href={adr(`/inscription?src=metier-${m.slug}`)} className="mt-4 inline-flex items-center rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[14px] font-semibold px-6 py-2.5">{t('Créer un compte gratuit')}</a>
         </div>
 
         <section className="mt-12">

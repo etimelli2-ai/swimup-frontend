@@ -2,6 +2,8 @@
 // Les chiffres cités (prix, limites) sont ceux de la page /offres à ce jour ; le guide renvoie vers elle
 // pour le détail. Rien n'est promis sur le classement Google ou les résultats.
 
+import { versEn } from '../lib/chemins.mjs'
+
 export const SOMMAIRE = [
   ['principe', 'Le principe'],
   ['cibles', 'À qui parler'],
@@ -155,9 +157,11 @@ export const SUIVI = [
 ]
 
 // Remplace {outil} et {offres} par les liens de l'apporteur (le code est gardé 30 jours chez la personne qui clique).
-export function remplirLiens(texte, { origine, code }) {
+// Avec langue: 'en', les liens mènent aux pages anglaises (/en/tools/..., /en/plans).
+export function remplirLiens(texte, { origine, code, langue = 'fr' }) {
   const ref = `?ref=${encodeURIComponent(code)}`
+  const page = (chemin) => (langue === 'en' ? versEn(chemin) : chemin)
   return texte
-    .replaceAll('{outil}', `${origine}/outils/lien-avis-google${ref}`)
-    .replaceAll('{offres}', `${origine}/offres${ref}`)
+    .replaceAll('{outil}', `${origine}${page('/outils/lien-avis-google')}${ref}`)
+    .replaceAll('{offres}', `${origine}${page('/offres')}${ref}`)
 }

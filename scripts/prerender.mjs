@@ -10,6 +10,8 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { construireHead, injecterHead } from '../src/lib/seo.mjs'
+import { ACCUEIL_EN } from '../src/lib/accueilEn.mjs'
+import { estEn } from '../src/lib/chemins.mjs'
 
 const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dist = path.join(racine, 'dist')
@@ -22,6 +24,15 @@ async function ecrire404(modele) {
   if (page === modele) throw new Error('meta robots introuvable dans index.html')
   await writeFile(path.join(dist, '404.html'), page)
   console.log('[prerender] 404.html écrit')
+}
+
+// Accueil anglais : index.html avec le <head> anglais, sans contenu prérendu (la page de commande dépend de la session).
+function accueilEn(modele) {
+  const head = construireHead({ description: ACCUEIL_EN.description, path: '/en' })
+  head.titre = ACCUEIL_EN.titre
+  head.metas = head.metas.map(([a, n, v]) => (n === 'og:title' || n === 'twitter:title' ? [a, n, ACCUEIL_EN.titre] : [a, n, v]))
+  head.ld = ACCUEIL_EN.ld
+  return injecterHead(modele, head, null, 'en')
 }
 
 async function main() {
@@ -43,13 +54,14 @@ async function main() {
       if (props.noindex) throw new Error(`${url} : page en noindex`)
       if (props.path !== url) throw new Error(`${url} : canonical ${props.path} différent de l'URL`)
       if (!/<h1[\s>]/.test(html)) throw new Error(`${url} : aucun <h1> dans le rendu`)
-      const page = injecterHead(modele, construireHead(props), html)
+      const page = injecterHead(modele, construireHead(props), html, estEn(url) ? 'en' : 'fr')
       // /aide-commercants -> aide-commercants.html (serve sert /aide-commercants sans extension)
       sorties.push([path.join(dist, `${url.slice(1)}.html`), page])
     }
   } finally {
     await vite.close()
   }
+  sorties.push([path.join(dist, 'en.html'), accueilEn(modele)])
   for (const [fichier, contenu] of sorties) {
     await mkdir(path.dirname(fichier), { recursive: true })
     await writeFile(fichier, contenu)

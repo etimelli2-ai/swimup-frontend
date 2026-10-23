@@ -1,6 +1,6 @@
 // En-tête et pied de page des pages publiques « ressources » (outils gratuits).
 // Même grammaire visuelle que les guides ; ne dépend ni de la connexion ni de l'API.
-import { Link } from 'react-router-dom'
+import { Link, adr } from './Lien'
 import Logo from './Logo'
 import SelecteurLangue from './SelecteurLangue'
 import { LiensLegaux } from './PageLegale'
@@ -20,7 +20,7 @@ export default function CadrePublic({ children, large = false }) {
             <Link to="/aide-commercants" className="hidden sm:inline text-[13px] text-slate-500 hover:text-slate-700 font-medium">{t('Guides')}</Link>
             <Link to="/offres" className="hidden sm:inline text-[13px] text-slate-500 hover:text-slate-700 font-medium">{t('Offres')}</Link>
             <a href="/login" className="text-[13px] text-slate-500 hover:text-slate-700 font-medium">{t('Se connecter')}</a>
-            <a href="/inscription?src=outil" className="text-[13px] text-sky-600 hover:text-sky-700 font-semibold">{t('Compte gratuit')}</a>
+            <a href={adr("/inscription?src=outil")} className="text-[13px] text-sky-600 hover:text-sky-700 font-semibold">{t('Compte gratuit')}</a>
             <SelecteurLangue />
           </nav>
         </div>

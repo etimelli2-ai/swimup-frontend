@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { Link, adr } from '../../components/Lien'
 import { Star, Crown, RefreshCw, Check, Copy, FileDown, Search, Trash2, TrendingDown, TrendingUp, Bell, ShieldCheck, ChevronDown } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api, { compteActif } from '../../lib/api'
@@ -812,12 +813,12 @@ function Reglages() {
           <ul className="divide-y divide-slate-200/70 dark:divide-slate-700 text-sm px-4 pb-2">
             {d.conservation.map(c => (
               <li key={c.donnee} className="py-2.5 flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-0.5 sm:gap-4">
-                <span className="font-medium">{c.donnee}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 sm:text-right sm:max-w-[60%]">{c.duree}{c.note ? ` · ${c.note}` : ''}</span>
+                <span className="font-medium">{t(c.donnee)}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 sm:text-right sm:max-w-[60%]">{t(c.duree)}{c.note ? ` · ${t(c.note)}` : ''}</span>
               </li>
             ))}
           </ul>
-          <p className="text-xs text-slate-500 dark:text-slate-400 px-4 pb-3">{t('Le détail est sur la')}{' '}<a href="/confidentialite" target="_blank" rel="noopener noreferrer" className="underline">{t('page confidentialité')}</a>.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 px-4 pb-3">{t('Le détail est sur la')}{' '}<a href={adr("/confidentialite")} target="_blank" rel="noopener noreferrer" className="underline">{t('page confidentialité')}</a>.</p>
         </details>
       </div>
 

@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '../components/Lien'
 import { Copy, Check, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../lib/api'
 import usePageTitle from '../hooks/usePageTitle'
 import {
-  SOMMAIRE, BONNES_CIBLES, SIGNES_BON_PROSPECT, A_EVITER, CANAUX, MESSAGES, PALIERS, QUESTIONS, REGLES, SUIVI, remplirLiens,
+  SOMMAIRE, BONNES_CIBLES, SIGNES_BON_PROSPECT, A_EVITER, CANAUX, PALIERS, QUESTIONS, REGLES, SUIVI, remplirLiens,
 } from '../content/guideApporteur.mjs'
-import { t } from '../lib/i18n'
+import { t, getLangue } from '../lib/i18n'
+import { messagesLocalises } from '../content/langue.mjs'
 import NoteContenuFrancais from '../components/NoteContenuFrancais'
 
 function Section({ id, titre, children }) {
@@ -25,9 +26,9 @@ const Liste = ({ items }) => (
 
 function Message({ m, liens }) {
   const [copie, setCopie] = useState(false)
-  const texte = remplirLiens(m.texte, liens)
+  const texte = remplirLiens(m.texte, { ...liens, langue: getLangue() })
   const copier = () => {
-    navigator.clipboard.writeText(m.objet ? `Objet : ${m.objet}\n\n${texte}` : texte)
+    navigator.clipboard.writeText(m.objet ? `${getLangue() === 'en' ? 'Subject:' : 'Objet :'} ${m.objet}\n\n${texte}` : texte)
     setCopie(true); toast.success(t('Message copié'))
     setTimeout(() => setCopie(false), 2000)
   }
@@ -118,9 +119,9 @@ export default function ApporteurGuide() {
 
       <Section id="messages" titre={t('Messages à copier')}>
         <p className="text-sm text-gray-700">{t('Remplace ce qui est entre crochets. Pour le constat, écris seulement ce que tu as vraiment vu sur la fiche (nombre d\'avis, note). Si tu n\'as rien de précis, enlève la phrase.')}</p>
-        <NoteContenuFrancais>{t('Les messages ci-dessous sont en français : ils sont faits pour être envoyés à des commerces francophones.')}</NoteContenuFrancais>
+        <NoteContenuFrancais>{t('Les messages ci-dessous sont en anglais : ils sont faits pour être envoyés à des commerces anglophones. Pour des commerces francophones, passe le site en français : les messages y sont en français.')}</NoteContenuFrancais>
         <div className="space-y-3">
-          {MESSAGES.map(m => <Message key={m.id} m={m} liens={liens} />)}
+          {messagesLocalises().map(m => <Message key={m.id} m={m} liens={liens} />)}
         </div>
       </Section>
 

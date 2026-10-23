@@ -51,6 +51,7 @@ import Layout from './components/Layout'
 import ZonesPrivees from './components/ZonesPrivees'
 import Mesure from './components/Mesure'
 import CaptureApporteur from './components/CaptureApporteur'
+import SuggestionLangue from './components/SuggestionLangue'
 import { t } from './lib/i18n'
 const NotFound = lazy(() => import('./pages/NotFound'))
 const LienAvisGoogle = lazy(() => import('./pages/outils/LienAvisGoogle'))
@@ -91,6 +92,15 @@ function RacineRoute({ children }) {
   return <PrivateRoute>{children}</PrivateRoute>
 }
 
+// Accueil anglais (swimup.net/en) : même page de commande que la racine pour un visiteur non connecté ;
+// un compte connecté retourne dans son espace.
+function AccueilEn() {
+  const { user, loading } = useAuth()
+  if (loading) return <div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/></div>
+  if (user) return <Navigate to="/" replace />
+  return <PublicCommander />
+}
+
 // Pages du côté « membres » (réserver et publier des avis, portefeuille,
 // parrainage) : un compte client n'y a pas accès, il retombe sur son espace.
 function ReserveMembres({ children }) {
@@ -119,6 +129,7 @@ export default function App() {
     <ZonesPrivees />
     <Mesure />
     <CaptureApporteur />
+    <SuggestionLangue />
     <Routes>
       {/* Pages publiques — sans auth */}
       <Route path="/commander" element={<PublicCommander />} />
@@ -137,6 +148,25 @@ export default function App() {
       <Route path="/aide-commercants/:slug" element={<AideCommercantsGuide />} />
       <Route path="/avis-google" element={<AvisGoogleIndex />} />
       <Route path="/avis-google/:metier" element={<MetierAvis />} />
+      {/* Version anglaise des pages publiques (adresses en anglais, voir lib/chemins.mjs) */}
+      <Route path="/en" element={<AccueilEn />} />
+      <Route path="/en/order" element={<PublicCommander />} />
+      <Route path="/en/tracking" element={<PublicSuivi />} />
+      <Route path="/en/plans" element={<Offres />} />
+      <Route path="/en/sign-up" element={<InscriptionClient />} />
+      <Route path="/en/business-help" element={<AideCommercantsIndex />} />
+      <Route path="/en/business-help/:slug" element={<AideCommercantsGuide />} />
+      <Route path="/en/tools/google-review-link" element={<LienAvisGoogle />} />
+      <Route path="/en/tools/google-review-reply-templates" element={<ModelesReponsesAvis />} />
+      <Route path="/en/tools/google-business-profile-checkup" element={<DiagnosticFiche />} />
+      <Route path="/en/google-reviews" element={<AvisGoogleIndex />} />
+      <Route path="/en/google-reviews/:metier" element={<MetierAvis />} />
+      <Route path="/en/legal-notice" element={<MentionsLegales />} />
+      <Route path="/en/privacy" element={<Confidentialite />} />
+      <Route path="/en/cookies" element={<Cookies />} />
+      <Route path="/en/terms-of-use" element={<Cgu />} />
+      <Route path="/en/terms-of-sale" element={<Cgv />} />
+      <Route path="/en/withdrawal" element={<Retractation />} />
       <Route path="/verifier-email" element={<VerifierEmail />} />
       <Route path="/verification-requise" element={
         <RouteConnecteSeulement><VerificationRequise /></RouteConnecteSeulement>

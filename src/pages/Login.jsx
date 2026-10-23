@@ -4,7 +4,7 @@ import usePageTitle from '../hooks/usePageTitle'
 // ============================================================
 
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from '../components/Lien'
 import { useAuth } from '../hooks/useAuth'
 import { Eye, EyeOff, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'

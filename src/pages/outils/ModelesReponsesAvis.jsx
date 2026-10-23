@@ -1,31 +1,31 @@
 // Page gratuite, sans compte : modèles de réponses aux avis Google à copier, avec les champs
 // (prénom, commerce...) qui se remplissent dans les textes. Tout reste dans le navigateur.
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, adr } from '../../components/Lien'
 import { Copy, Check, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Seo from '../../components/Seo'
 import CadrePublic from '../../components/CadrePublic'
 import { mesure } from '../../lib/mesure.mjs'
-import { filAriane, urlAbsolue } from '../../lib/seo.mjs'
-import { CHAMPS, SECTIONS, remplir } from '../../lib/modelesReponses.mjs'
-import { t } from '../../lib/i18n'
-import NoteContenuFrancais from '../../components/NoteContenuFrancais'
+import { filAriane, urlPage, langueSchema } from '../../lib/seo.mjs'
+import { remplir } from '../../lib/modelesReponses.mjs'
+import { champsLocalises, sectionsLocalisees } from '../../content/langue.mjs'
+import { t, getLangue } from '../../lib/i18n'
 
 const CHEMIN = '/outils/modeles-reponses-avis-google'
 
-const JSON_LD = [
+const jsonLd = () => [
   {
-    '@context': 'https://schema.org', '@type': 'WebPage', name: 'Modèles de réponses aux avis Google',
-    url: urlAbsolue(CHEMIN), inLanguage: 'fr-FR',
-    description: 'Modèles de réponses aux avis Google à copier : avis positifs, négatifs, faux ou injustes.',
+    '@context': 'https://schema.org', '@type': 'WebPage', name: t('Modèles de réponses aux avis Google'),
+    url: urlPage(CHEMIN), inLanguage: langueSchema(),
+    description: t('Modèles de réponses aux avis Google à copier : avis positifs, négatifs, faux ou injustes.'),
   },
-  filAriane([['Accueil', '/'], ['Outils', '/outils/lien-avis-google'], ['Modèles de réponses aux avis', CHEMIN]]),
+  filAriane([[t('Accueil'), '/'], [t('Outils'), '/outils/lien-avis-google'], [t('Modèles de réponses aux avis'), CHEMIN]]),
 ]
 
 function Modele({ m, valeurs, type }) {
   const [copie, setCopie] = useState(false)
-  const texte = remplir(m.texte, valeurs)
+  const texte = remplir(m.texte, valeurs, champsLocalises())
   const copier = async () => {
     try {
       await navigator.clipboard.writeText(texte)
@@ -50,7 +50,15 @@ function Modele({ m, valeurs, type }) {
   )
 }
 
+// Titre de section sans le verbe, pour les liens de navigation : « Répondre à un avis positif » -> « avis positif ».
+function libelleCourt(titre) {
+  if (getLangue() !== 'en') return titre.replace('Répondre à un ', '').replace('Répondre à ', '')
+  const sans = titre.replace(/^Replying to (a |an )?/, '')
+  return sans.charAt(0).toUpperCase() + sans.slice(1)
+}
+
 export default function ModelesReponsesAvis() {
+  const CHAMPS = champsLocalises(), SECTIONS = sectionsLocalisees()
   const [valeurs, setValeurs] = useState({})
   const maj = (cle, v) => setValeurs(a => ({ ...a, [cle]: v.slice(0, 80) }))
 
@@ -60,14 +68,13 @@ export default function ModelesReponsesAvis() {
         title={t('Modèles de réponses aux avis Google')}
         description={t('Modèles de réponses aux avis Google à copier et adapter : avis positifs, négatifs, faux ou injustes. Gratuit, sans compte, avec le prénom et le nom de ton commerce déjà remplis.')}
         path={CHEMIN}
-        jsonLd={JSON_LD}
+        jsonLd={jsonLd()}
       />
       <section className="max-w-2xl mx-auto px-4 pt-10 pb-6">
         <nav aria-label={t('Fil d\'Ariane')} className="text-[13px] text-slate-500 flex items-center gap-1">
           <Link to="/" className="hover:text-slate-600">{t('Accueil')}</Link><ChevronRight size={12} />
           <span className="text-slate-500">{t('Outils')}</span>
         </nav>
-        <NoteContenuFrancais />
         <h1 className="mt-4 text-[32px] sm:text-[44px] leading-[1.08] font-semibold tracking-tight text-slate-900">
           {t('Modèles de réponses aux avis Google')}
         </h1>
@@ -75,7 +82,7 @@ export default function ModelesReponsesAvis() {
           {t('Douze réponses prêtes à adapter, pour les avis positifs, les avis négatifs et les avis faux ou injustes. Remplis les champs ci-dessous : ils se glissent dans les textes. Gratuit, sans compte, rien n\'est envoyé à nos serveurs.')}
         </p>
         <nav aria-label={t('Sections')} className="mt-5 flex flex-wrap gap-2 text-[14px]">
-          {SECTIONS.map(s => <a key={s.id} href={`#${s.id}`} className="rounded-full border border-slate-200 px-4 py-1.5 text-slate-600 hover:bg-slate-50">{s.titre.replace(t('Répondre à un '), '').replace(t('Répondre à '), '')}</a>)}
+          {SECTIONS.map(s => <a key={s.id} href={`#${s.id}`} className="rounded-full border border-slate-200 px-4 py-1.5 text-slate-600 hover:bg-slate-50">{libelleCourt(s.titre)}</a>)}
         </nav>
       </section>
 
@@ -123,7 +130,7 @@ export default function ModelesReponsesAvis() {
           <p className="mt-2 text-[15px] leading-relaxed text-slate-600">
             {t('Avec un compte gratuit SwimUp, tu colles l\'avis et tu obtiens un brouillon de réponse adapté (3 par jour). Relis-le toujours avant de publier. Pas de carte bancaire.')}
           </p>
-          <a href="/inscription?src=modeles" className="mt-4 inline-flex items-center rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[14px] font-semibold px-6 py-2.5">{t('Créer un compte gratuit')}</a>
+          <a href={adr("/inscription?src=modeles")} className="mt-4 inline-flex items-center rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[14px] font-semibold px-6 py-2.5">{t('Créer un compte gratuit')}</a>
         </div>
       </main>
     </CadrePublic>

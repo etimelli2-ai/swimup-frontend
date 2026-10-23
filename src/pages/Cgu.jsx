@@ -1,8 +1,10 @@
+import { CguEn } from './legalEn'
+import { getLangue } from '../lib/i18n'
 import PageLegale, { Titre, Champ } from '../components/PageLegale'
-import { Link } from 'react-router-dom'
+import { Link } from '../components/Lien'
 import { EDITEUR, LOI_ET_TRIBUNAL } from '../lib/legal.mjs'
 
-export default function Cgu() {
+function CguFr() {
   return (
     <PageLegale titre="Conditions générales d'utilisation" chemin="/cgu" description="Les règles d'utilisation du site SwimUp pour les membres, les clients et les visiteurs.">
       <p className="mt-3">Ces conditions s'appliquent à toute personne qui utilise swimup.net : visiteur, client (entreprise qui utilise les outils ou commande des avis) ou membre (personne qui rédige et publie des avis contre rémunération). Les conditions de vente sont à part : voir les <Link to="/cgv" className="text-sky-600 underline">CGV</Link>.</p>
@@ -59,4 +61,9 @@ export default function Cgu() {
       <p>Ces conditions sont régies par le droit français. En cas de litige, on essaie d'abord de trouver une solution à l'amiable. <Champ v={LOI_ET_TRIBUNAL} /></p>
     </PageLegale>
   )
+}
+
+// En anglais : la version traduite de pages/legalEn.jsx (le texte français fait foi).
+export default function Cgu() {
+  return getLangue() === 'en' ? <CguEn /> : <CguFr />
 }

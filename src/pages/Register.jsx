@@ -4,7 +4,8 @@ import usePageTitle from '../hooks/usePageTitle'
 // ============================================================
 
 import { useState, useEffect } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from '../components/Lien'
 import { useAuth } from '../hooks/useAuth'
 import api from '../lib/api'
 import { Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, Loader2, Tag } from 'lucide-react'

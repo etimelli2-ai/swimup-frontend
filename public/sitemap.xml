@@ -1,127 +1,402 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://swimup.net/</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en"/>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://swimup.net/inscription</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/inscription"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/sign-up"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/sign-up"/>
     <lastmod>2026-10-13</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/sign-up</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/inscription"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/sign-up"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/sign-up"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://swimup.net/offres</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/offres"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/plans"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/plans"/>
     <lastmod>2026-10-13</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://swimup.net/en/plans</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/offres"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/plans"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/plans"/>
+    <lastmod>2026-10-23</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://swimup.net/outils/lien-avis-google</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/outils/lien-avis-google"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/tools/google-review-link"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/tools/google-review-link"/>
     <lastmod>2026-10-13</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://swimup.net/en/tools/google-review-link</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/outils/lien-avis-google"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/tools/google-review-link"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/tools/google-review-link"/>
+    <lastmod>2026-10-23</lastmod>
+    <priority>0.9</priority>
+  </url>
+  <url>
     <loc>https://swimup.net/outils/modeles-reponses-avis-google</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/outils/modeles-reponses-avis-google"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/tools/google-review-reply-templates"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/tools/google-review-reply-templates"/>
     <lastmod>2026-10-13</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/tools/google-review-reply-templates</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/outils/modeles-reponses-avis-google"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/tools/google-review-reply-templates"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/tools/google-review-reply-templates"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://swimup.net/outils/diagnostic-fiche-google</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/outils/diagnostic-fiche-google"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/tools/google-business-profile-checkup"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/tools/google-business-profile-checkup"/>
     <lastmod>2026-10-13</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://swimup.net/en/tools/google-business-profile-checkup</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/outils/diagnostic-fiche-google"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/tools/google-business-profile-checkup"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/tools/google-business-profile-checkup"/>
+    <lastmod>2026-10-23</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://swimup.net/aide-commercants</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/aide-commercants"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/business-help"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/business-help"/>
     <lastmod>2026-10-13</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/business-help</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/aide-commercants"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/business-help"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/business-help"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://swimup.net/aide-commercants/obtenir-des-avis-google</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/aide-commercants/obtenir-des-avis-google"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/business-help/get-more-google-reviews"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/business-help/get-more-google-reviews"/>
     <lastmod>2026-10-13</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/business-help/get-more-google-reviews</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/aide-commercants/obtenir-des-avis-google"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/business-help/get-more-google-reviews"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/business-help/get-more-google-reviews"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://swimup.net/aide-commercants/ou-mettre-son-qr-code-davis</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/aide-commercants/ou-mettre-son-qr-code-davis"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/business-help/where-to-put-your-review-qr-code"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/business-help/where-to-put-your-review-qr-code"/>
     <lastmod>2026-10-13</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/business-help/where-to-put-your-review-qr-code</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/aide-commercants/ou-mettre-son-qr-code-davis"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/business-help/where-to-put-your-review-qr-code"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/business-help/where-to-put-your-review-qr-code"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://swimup.net/aide-commercants/repondre-aux-avis</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/aide-commercants/repondre-aux-avis"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/business-help/reply-to-google-reviews"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/business-help/reply-to-google-reviews"/>
     <lastmod>2026-10-13</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/business-help/reply-to-google-reviews</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/aide-commercants/repondre-aux-avis"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/business-help/reply-to-google-reviews"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/business-help/reply-to-google-reviews"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://swimup.net/aide-commercants/optimiser-fiche-google</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/aide-commercants/optimiser-fiche-google"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/business-help/optimise-google-business-profile"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/business-help/optimise-google-business-profile"/>
     <lastmod>2026-10-13</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/business-help/optimise-google-business-profile</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/aide-commercants/optimiser-fiche-google"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/business-help/optimise-google-business-profile"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/business-help/optimise-google-business-profile"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://swimup.net/aide-commercants/avis-injuste-ou-faux</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/aide-commercants/avis-injuste-ou-faux"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/business-help/unfair-or-fake-review"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/business-help/unfair-or-fake-review"/>
     <lastmod>2026-10-13</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/business-help/unfair-or-fake-review</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/aide-commercants/avis-injuste-ou-faux"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/business-help/unfair-or-fake-review"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/business-help/unfair-or-fake-review"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://swimup.net/confidentialite</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/privacy"/>
     <lastmod>2026-10-13</lastmod>
     <priority>0.2</priority>
   </url>
   <url>
+    <loc>https://swimup.net/en/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/privacy"/>
+    <lastmod>2026-10-23</lastmod>
+    <priority>0.2</priority>
+  </url>
+  <url>
     <loc>https://swimup.net/mentions-legales</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/legal-notice"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/legal-notice"/>
     <lastmod>2026-10-14</lastmod>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/legal-notice</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/legal-notice"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/legal-notice"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://swimup.net/cookies</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/cookies"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/cookies"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/cookies"/>
     <lastmod>2026-10-14</lastmod>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/cookies</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/cookies"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/cookies"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/cookies"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://swimup.net/cgu</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/cgu"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/terms-of-use"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/terms-of-use"/>
     <lastmod>2026-10-14</lastmod>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/terms-of-use</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/cgu"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/terms-of-use"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/terms-of-use"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://swimup.net/cgv</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/cgv"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/terms-of-sale"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/terms-of-sale"/>
     <lastmod>2026-10-14</lastmod>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/terms-of-sale</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/cgv"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/terms-of-sale"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/terms-of-sale"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://swimup.net/retractation</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/retractation"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/withdrawal"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/withdrawal"/>
     <lastmod>2026-10-14</lastmod>
     <priority>0.2</priority>
   </url>
   <url>
+    <loc>https://swimup.net/en/withdrawal</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/retractation"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/withdrawal"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/withdrawal"/>
+    <lastmod>2026-10-23</lastmod>
+    <priority>0.2</priority>
+  </url>
+  <url>
     <loc>https://swimup.net/avis-google</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews"/>
     <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/google-reviews</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://swimup.net/avis-google/restaurant</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google/restaurant"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews/restaurant"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews/restaurant"/>
     <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/google-reviews/restaurant</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google/restaurant"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews/restaurant"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews/restaurant"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://swimup.net/avis-google/coiffeur</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google/coiffeur"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews/hair-salon"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews/hair-salon"/>
     <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/google-reviews/hair-salon</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google/coiffeur"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews/hair-salon"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews/hair-salon"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://swimup.net/avis-google/artisan-batiment</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google/artisan-batiment"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews/building-contractor"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews/building-contractor"/>
     <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/google-reviews/building-contractor</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google/artisan-batiment"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews/building-contractor"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews/building-contractor"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://swimup.net/avis-google/garage-automobile</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google/garage-automobile"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews/car-garage"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews/car-garage"/>
     <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/google-reviews/car-garage</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google/garage-automobile"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews/car-garage"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews/car-garage"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://swimup.net/avis-google/boulangerie</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google/boulangerie"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews/bakery"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews/bakery"/>
     <lastmod>2026-10-15</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://swimup.net/en/google-reviews/bakery</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google/boulangerie"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews/bakery"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews/bakery"/>
+    <lastmod>2026-10-23</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://swimup.net/avis-google/institut-de-beaute</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google/institut-de-beaute"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews/beauty-salon"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews/beauty-salon"/>
     <lastmod>2026-10-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://swimup.net/en/google-reviews/beauty-salon</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://swimup.net/avis-google/institut-de-beaute"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://swimup.net/en/google-reviews/beauty-salon"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://swimup.net/en/google-reviews/beauty-salon"/>
+    <lastmod>2026-10-23</lastmod>
     <priority>0.6</priority>
   </url>
 </urlset>

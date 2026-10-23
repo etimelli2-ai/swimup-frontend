@@ -4,6 +4,7 @@
 // tests/legal.test.mjs liste ces champs ; quand tu les remplis, retire-les de la liste du test.
 
 export const DATE_MAJ = '14 octobre 2026'
+export const DATE_MAJ_EN = '14 October 2026'
 
 export const EDITEUR = {
   nom: 'Enzo TIMELLI',
@@ -45,3 +46,17 @@ export const LIENS_LEGAUX = [
   ['/cgv', 'CGV'],
   ['/retractation', 'Rétractation et remboursement'],
 ]
+
+// Versions anglaises des champs ci-dessus (pages légales en anglais : traduction de courtoisie, le texte français fait foi).
+export const EDITEUR_EN = {
+  statut: 'Sole proprietor (micro-entrepreneur)',
+  adresse: 'Private address, not published',
+  telephone: 'None: contact by email only',
+  siret: 'No SIRET number at this time',
+  capital: 'Not applicable (sole proprietorship)',
+  tva: 'VAT not applicable, article 293 B of the French General Tax Code',
+}
+export const HEBERGEUR_EN = {
+  details: 'Railway Corporation, 548 Market St PMB 68956, San Francisco, CA 94104, United States. Contact: team@railway.com.',
+}
+export const LOI_ET_TRIBUNAL_EN = "Failing an amicable agreement, the French courts of the place where the publisher lives have jurisdiction."

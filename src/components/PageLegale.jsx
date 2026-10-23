@@ -1,8 +1,8 @@
 // Cadre commun des pages légales + petits composants réutilisés partout (pied de page, mentions sous les formulaires).
-import { Link } from 'react-router-dom'
+import { Link } from './Lien'
 import CadrePublic from './CadrePublic'
 import Seo from './Seo'
-import { DATE_MAJ, LIENS_LEGAUX } from '../lib/legal.mjs'
+import { DATE_MAJ, DATE_MAJ_EN, LIENS_LEGAUX } from '../lib/legal.mjs'
 import { t, getLangue } from '../lib/i18n'
 
 // Un champ non fourni reste visible (fond jaune) pour qu'on le retrouve avant de publier.
@@ -25,10 +25,10 @@ export default function PageLegale({ titre, description, chemin, children }) {
       <Seo title={titre} description={description} path={chemin} />
       <main id="contenu" className="max-w-2xl mx-auto px-4 py-10 text-[15px] leading-relaxed text-slate-700">
         <h1 className="text-2xl font-bold text-slate-900">{titre}</h1>
-        <p className="mt-1 text-sm text-slate-600">{t('Dernière mise à jour : {DATE_MAJ}', { DATE_MAJ })}</p>
+        <p className="mt-1 text-sm text-slate-600">{t('Dernière mise à jour : {DATE_MAJ}', { DATE_MAJ: getLangue() === 'en' ? DATE_MAJ_EN : DATE_MAJ })}</p>
         {getLangue() === 'en' && (
           <p role="note" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-[13px] text-slate-700">
-            {t('Ce document n\'existe qu\'en français, et c\'est le texte français qui fait foi. Ce n\'est pas un conseil juridique.')}
+            {t('Cette page est une traduction anglaise, fournie pour information. SwimUp est exploité depuis la France : c\'est la loi française qui s\'applique et le texte français fait foi. En cas de différence entre les deux versions, la version française prévaut. Ce n\'est pas un conseil juridique.')}
           </p>
         )}
         {children}

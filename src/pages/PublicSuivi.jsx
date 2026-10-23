@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { Link } from '../components/Lien'
 import { LiensLegaux, MentionDonnees } from '../components/PageLegale'
 import { CheckCircle2, Clock, AlertCircle, Package, Star, MapPin, Mail, Copy, Check, Sparkles, Loader2, Building2, Link as LinkIcon } from 'lucide-react'
 import { motion } from 'framer-motion'

@@ -58,9 +58,9 @@ export const SECTIONS = [
 ]
 
 // Remplace {cle} par la valeur saisie, ou par le texte entre crochets quand elle est vide.
-export function remplir(texte, valeurs = {}) {
+export function remplir(texte, valeurs = {}, champs = CHAMPS) {
   return texte.replace(/\{(\w+)\}/g, (_, cle) => {
-    const champ = CHAMPS.find(c => c.cle === cle)
+    const champ = champs.find(c => c.cle === cle)
     if (!champ) return `{${cle}}`
     const v = (valeurs[cle] || '').trim()
     return v || champ.defaut

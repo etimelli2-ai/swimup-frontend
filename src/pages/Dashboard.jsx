@@ -1,6 +1,6 @@
 import usePageTitle from '../hooks/usePageTitle'
 import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '../components/Lien'
 import { useAuth } from '../hooks/useAuth'
 import { useSolde, useMesAvis } from '../hooks/useAvis'
 import { DashboardSkeleton } from '../components/Skeleton'

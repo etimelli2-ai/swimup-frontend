@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { Link } from '../../components/Lien'
 import { CheckCircle2, ArrowRight, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { springSmooth } from '../../lib/motion'

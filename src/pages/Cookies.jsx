@@ -1,5 +1,7 @@
+import { CookiesEn } from './legalEn'
+import { getLangue } from '../lib/i18n'
 import PageLegale, { Titre } from '../components/PageLegale'
-import { Link } from 'react-router-dom'
+import { Link } from '../components/Lien'
 import { UMAMI_SCRIPT, DOMAINE_MESURE } from '../lib/mesure.mjs'
 
 const LIGNES = [
@@ -10,7 +12,7 @@ const LIGNES = [
   ['swimup_compte', 'Stockage de session', 'Retenir le compte sélectionné quand tu en gères plusieurs.', "Jusqu'à la fermeture de l'onglet", 'Oui, ne quitte jamais ton navigateur'],
 ]
 
-export default function Cookies() {
+function CookiesFr() {
   return (
     <PageLegale titre="Cookies et traceurs" chemin="/cookies" description="La liste des cookies et traceurs utilisés par SwimUp, et pourquoi aucun bandeau de consentement n'est affiché.">
       <p className="mt-3">Cette page liste tout ce que SwimUp pose ou lit sur ton appareil et tout service tiers chargé par le site. À la date de mise à jour, <strong className="text-slate-900">aucun cookie publicitaire, aucun pixel de suivi et aucun réseau social n'est chargé</strong>.</p>
@@ -58,4 +60,9 @@ export default function Cookies() {
       <p>Tu peux effacer le stockage du site depuis les réglages de ton navigateur. Tu seras alors déconnecté et ton thème sera remis par défaut. Pour comprendre ce que font tes données, lis la <Link to="/confidentialite" className="text-sky-600 underline">politique de confidentialité</Link>.</p>
     </PageLegale>
   )
+}
+
+// En anglais : la version traduite de pages/legalEn.jsx (le texte français fait foi).
+export default function Cookies() {
+  return getLangue() === 'en' ? <CookiesEn /> : <CookiesFr />
 }

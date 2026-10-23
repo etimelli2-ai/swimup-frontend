@@ -2,7 +2,7 @@
 // - modifier l'entreprise sur laquelle on travaille (nom + fiche Google), pour tout le monde ;
 // - gérer plusieurs entreprises avec le même abonnement (Premium : 3, Business : 10).
 import { useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '../../components/Lien'
 import { Building2, Crown, Pencil, Plus, Trash2, Check, X, Repeat, MapPin } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api, { compteActif, choisirCompte } from '../../lib/api'

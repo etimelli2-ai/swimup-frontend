@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '../components/Lien'
 import { Copy, Check, Handshake, Wallet, BookOpen } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../lib/api'

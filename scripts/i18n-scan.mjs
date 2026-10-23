@@ -15,9 +15,9 @@ const traverse = require('@babel/traverse').default
 const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
 export const IGNORES = [
-  /src\/pages\/admin\//, /src\/pages\/(Cgu|Cgv|MentionsLegales|Confidentialite|Cookies|Retractation)\.jsx$/,
-  /src\/lib\/i18n\.js$/, /src\/lib\/legal\.mjs$/, /src\/lib\/en\//, /src\/components\/(LangueContext|SelecteurLangue)\.jsx$/,
-  /src\/(main|Racine|prerender-entry)\.jsx$/,
+  /src\/pages\/admin\//, /src\/pages\/(Cgu|Cgv|MentionsLegales|Confidentialite|Cookies|Retractation|legalEn)\.jsx$/,
+  /src\/lib\/i18n\.js$/, /src\/lib\/legal\.mjs$/, /src\/lib\/en\//, /src\/components\/(LangueContext|SelecteurLangue|SuggestionLangue)\.jsx$/,
+  /src\/(main|Racine|prerender-entry)\.jsx$/, /src\/lib\/(accueilEn|chemins)\.mjs$/,
   // Contenu éditorial pour le marché francophone (référencement, textes à envoyer à des commerces français) :
   // volontairement laissé en français. Le chapeau des pages qui l'affichent, lui, est traduit.
   /src\/content\//, /src\/lib\/(modelesReponses|seo|ratissage|prospectionLot|parcoursClient)\.mjs$/,
@@ -26,7 +26,7 @@ export const IGNORES = [
 ]
 
 // Textes qui ressemblent à du français mais n'en sont pas (mot de confirmation envoyé au serveur, nom de fichier).
-export const AUTORISES = [/^Objet : /, /^SUPPRIMER$/, /^affiche-avis-/, /^Tous \(navigateur web\)$/, /^Offer$/, /^Organization$/]
+export const AUTORISES = [/^Objet : /, /^SUPPRIMER$/, /^affiche-avis-/, /^Tous \(navigateur web\)$/, /^Offer$/, /^Organization$/, /^Article$/, /^Subject:$/, /^Répondre à( un)? $/]
 
 const LETTRE = /[A-Za-zÀ-ÿ]/
 const ACCENT = /[À-ÿ]/

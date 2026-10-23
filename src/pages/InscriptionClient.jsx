@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from '../components/Lien'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Eye, EyeOff, ArrowRight, AlertCircle, Check } from 'lucide-react'
 import Seo from '../components/Seo'

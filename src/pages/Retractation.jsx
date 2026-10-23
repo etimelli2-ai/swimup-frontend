@@ -1,8 +1,10 @@
+import { RetractationEn } from './legalEn'
+import { getLangue } from '../lib/i18n'
 import PageLegale, { Titre, Champ } from '../components/PageLegale'
-import { Link } from 'react-router-dom'
+import { Link } from '../components/Lien'
 import { EDITEUR } from '../lib/legal.mjs'
 
-export default function Retractation() {
+function RetractationFr() {
   return (
     <PageLegale titre="Rétractation et remboursement" chemin="/retractation" description="Pas de droit de rétractation pour les achats professionnels, et les cas où SwimUp rembourse une commande ou un abonnement.">
       <p className="mt-3">Cette page explique si tu peux annuler un achat et dans quels cas tu es remboursé. Elle complète les <Link to="/cgv" className="text-sky-600 underline">conditions de vente</Link>.</p>
@@ -22,4 +24,9 @@ export default function Retractation() {
       <p>Écris à <Champ v={EDITEUR.email} /> avec ton numéro de commande ou ton lien de suivi. Le remboursement se fait par le même moyen que ton paiement (carte via Stripe, ou PayPal).</p>
     </PageLegale>
   )
+}
+
+// En anglais : la version traduite de pages/legalEn.jsx (le texte français fait foi).
+export default function Retractation() {
+  return getLangue() === 'en' ? <RetractationEn /> : <RetractationFr />
 }
