@@ -23,6 +23,7 @@ import {
 import { motion } from 'framer-motion'
 import { springSmooth } from '../lib/motion'
 import { MentionDonnees } from '../components/PageLegale'
+import { t, locale } from '../lib/i18n'
 
 function Deux2FA() {
   const { user, updateUser } = useAuth()
@@ -47,7 +48,7 @@ function Deux2FA() {
       setSecret(r.data.secret)
       setEtape('setup')
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Erreur')
+      toast.error(err.response?.data?.error || t('Erreur'))
     }
     setLoading(false)
   }
@@ -61,9 +62,9 @@ function Deux2FA() {
       setEtape('codes')
       updateUser({ totp_enabled: true })
       setCode('')
-      toast.success('2FA activée !')
+      toast.success(t('2FA activée !'))
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Code invalide')
+      toast.error(err.response?.data?.error || t('Code invalide'))
     }
     setLoading(false)
   }
@@ -77,9 +78,9 @@ function Deux2FA() {
       setShowDesactiver(false)
       setMdpDesactiver('')
       setCodeDesactiver('')
-      toast.success('2FA désactivée')
+      toast.success(t('2FA désactivée'))
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Erreur')
+      toast.error(err.response?.data?.error || t('Erreur'))
     }
     setLoading(false)
   }
@@ -102,25 +103,25 @@ function Deux2FA() {
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-emerald-600">
           <ShieldCheck size={18} />
-          <p className="text-sm font-medium">La double authentification est activée sur ton compte.</p>
+          <p className="text-sm font-medium">{t('La double authentification est activée sur ton compte.')}</p>
         </div>
 
         {!showDesactiver ? (
           <button onClick={() => setShowDesactiver(true)} className="btn-secondary text-red-600">
-            <ShieldOff size={16} /> Désactiver la 2FA
+            <ShieldOff size={16} />{' '}{t('Désactiver la 2FA')}
           </button>
         ) : (
           <form onSubmit={desactiver} className="space-y-3 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-xl p-4">
-            <p className="text-sm text-red-700 dark:text-red-400">Confirme avec ton mot de passe et un code de ton appli.</p>
-            <input type="password" placeholder="Mot de passe" value={mdpDesactiver}
+            <p className="text-sm text-red-700 dark:text-red-400">{t('Confirme avec ton mot de passe et un code de ton appli.')}</p>
+            <input type="password" placeholder={t('Mot de passe')} value={mdpDesactiver}
               onChange={e => setMdpDesactiver(e.target.value)} required className="input" />
-            <input type="text" inputMode="numeric" placeholder="Code à 6 chiffres" value={codeDesactiver}
+            <input type="text" inputMode="numeric" placeholder={t('Code à 6 chiffres')} value={codeDesactiver}
               onChange={e => setCodeDesactiver(e.target.value)} required maxLength={6} className="input" />
             <div className="flex gap-2">
               <button type="submit" disabled={loading} className="btn-danger flex-1">
-                {loading ? '...' : 'Confirmer la désactivation'}
+                {loading ? '...' : t('Confirmer la désactivation')}
               </button>
-              <button type="button" onClick={() => setShowDesactiver(false)} className="btn-secondary">Annuler</button>
+              <button type="button" onClick={() => setShowDesactiver(false)} className="btn-secondary">{t('Annuler')}</button>
             </div>
           </form>
         )}
@@ -133,10 +134,10 @@ function Deux2FA() {
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
           <ShieldOff size={18} />
-          <p className="text-sm">La double authentification n'est pas activée.</p>
+          <p className="text-sm">{t('La double authentification n\'est pas activée.')}</p>
         </div>
         <button onClick={lancerSetup} disabled={loading} className="btn-primary">
-          {loading ? '...' : <><Shield size={16} /> Activer la 2FA</>}
+          {loading ? '...' : <><Shield size={16} />{' '}{t('Activer la 2FA')}</>}
         </button>
       </div>
     )
@@ -146,13 +147,13 @@ function Deux2FA() {
     return (
       <form onSubmit={confirmerActivation} className="space-y-4">
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          Scanne ce QR code avec Google Authenticator, Authy ou une autre appli TOTP, puis entre le code généré.
+          {t('Scanne ce QR code avec Google Authenticator, Authy ou une autre appli TOTP, puis entre le code généré.')}
         </p>
         <div className="flex justify-center">
           <img loading="lazy" src={qrCode} alt="QR code 2FA" className="w-44 h-44 rounded-lg border border-slate-200 dark:border-slate-700" />
         </div>
         <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-          <span>Ou entre la clé manuellement : <code className="font-mono">{secret}</code></span>
+          <span>{t('Ou entre la clé manuellement :')}{' '}<code className="font-mono">{secret}</code></span>
           <button type="button" onClick={copierSecret} className="text-sky-500">
             {copie ? <Check size={14} /> : <Copy size={14} />}
           </button>
@@ -164,9 +165,9 @@ function Deux2FA() {
         />
         <div className="flex gap-2">
           <button type="submit" disabled={loading} className="btn-primary flex-1">
-            {loading ? '...' : 'Confirmer et activer'}
+            {loading ? '...' : t('Confirmer et activer')}
           </button>
-          <button type="button" onClick={termine} className="btn-secondary">Annuler</button>
+          <button type="button" onClick={termine} className="btn-secondary">{t('Annuler')}</button>
         </div>
       </form>
     )
@@ -177,20 +178,20 @@ function Deux2FA() {
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-emerald-600">
           <ShieldCheck size={18} />
-          <p className="text-sm font-medium">2FA activée !</p>
+          <p className="text-sm font-medium">{t('2FA activée !')}</p>
         </div>
         <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-xl p-4 space-y-2">
           <p className="text-sm font-semibold text-amber-800 dark:text-amber-400">
-            Garde ces codes de secours en lieu sûr
+            {t('Garde ces codes de secours en lieu sûr')}
           </p>
           <p className="text-xs text-amber-700 dark:text-amber-500">
-            Chacun ne peut être utilisé qu'une fois si tu perds l'accès à ton appli d'authentification. Ils ne seront plus jamais affichés.
+            {t('Chacun ne peut être utilisé qu\'une fois si tu perds l\'accès à ton appli d\'authentification. Ils ne seront plus jamais affichés.')}
           </p>
           <div className="grid grid-cols-2 gap-2 font-mono text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 rounded-lg p-3">
             {codesSecours.map(c => <span key={c}>{c}</span>)}
           </div>
         </div>
-        <button onClick={termine} className="btn-primary w-full">J'ai noté mes codes</button>
+        <button onClick={termine} className="btn-primary w-full">{t('J\'ai noté mes codes')}</button>
       </div>
     )
   }
@@ -199,7 +200,7 @@ function Deux2FA() {
 }
 
 export default function Profil() {
-  usePageTitle('Mon profil')
+  usePageTitle(t('Mon profil'))
 
   const { user, updateUser } = useAuth()
   const { dark, toggle } = useTheme()
@@ -228,25 +229,25 @@ export default function Profil() {
         current_password: currentPassword || null,
       })
       updateUser({ discord_id: discordId, paypal_email: paypalEmail })
-      toast.success('Profil mis à jour !')
+      toast.success(t('Profil mis à jour !'))
       setCurrentPassword('')
       setNewPassword('')
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Erreur')
+      toast.error(err.response?.data?.error || t('Erreur'))
     } finally {
       setSaving(false)
     }
   }
 
   const roleLabel = {
-    admin:  { text: 'Administrateur', color: 'bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-900/30 dark:text-violet-400' },
-    client: { text: 'Client',         color: 'bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-900/30 dark:text-sky-400' },
-    membre: { text: 'Membre',         color: 'bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-700 dark:text-slate-300' },
+    admin:  { text: t('Administrateur'), color: 'bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-900/30 dark:text-violet-400' },
+    client: { text: t('Client'),         color: 'bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-900/30 dark:text-sky-400' },
+    membre: { text: t('Membre'),         color: 'bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-700 dark:text-slate-300' },
   }[user?.role] || { text: user?.role, color: 'bg-slate-100 text-slate-600' }
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <h1 className="page-title">Mon profil</h1>
+      <h1 className="page-title">{t('Mon profil')}</h1>
 
       {/* Info card */}
       <motion.div
@@ -265,7 +266,7 @@ export default function Profil() {
               <span className={`badge ${roleLabel.color}`}>{roleLabel.text}</span>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              Membre depuis {user?.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : '—'}
+              {t('Membre depuis')}{' '}{user?.created_at ? new Date(user.created_at).toLocaleDateString(locale()) : '—'}
             </p>
           </div>
         </div>
@@ -275,15 +276,15 @@ export default function Profil() {
       <div className="card p-5">
         <h2 className="section-title flex items-center gap-2 mb-4">
           {dark ? <Moon size={18} className="text-sky-500" /> : <Sun size={18} className="text-sky-500" />}
-          Apparence
+          {t('Apparence')}
         </h2>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-              {dark ? 'Mode sombre' : 'Mode clair'}
+              {dark ? t('Mode sombre') : t('Mode clair')}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5">
-              Changer l'apparence de l'application
+              {t('Changer l\'apparence de l\'application')}
             </p>
           </div>
           <button
@@ -308,7 +309,7 @@ export default function Profil() {
       <div className="card p-5">
         <h2 className="section-title flex items-center gap-2 mb-4">
           <Shield size={18} className="text-sky-500" />
-          Double authentification (2FA)
+          {t('Double authentification (2FA)')}
         </h2>
         <Deux2FA />
       </div>
@@ -320,14 +321,14 @@ export default function Profil() {
       >
         <h2 className="section-title flex items-center gap-2">
           <Shield size={18} className="text-sky-500" />
-          Informations
+          {t('Informations')}
         </h2>
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
               <Mail size={14} className="text-slate-500 dark:text-slate-400" />
-              Email
+              {t('Email')}
             </label>
             <input
               type="email"
@@ -340,11 +341,11 @@ export default function Profil() {
           {/* Discord et PayPal ne servent qu'aux comptes membres (communications, retraits) : un client ne les voit pas. */}
           {user?.role !== 'client' && (
             <>
-          <MentionDonnees>Ton identifiant Discord et ton email PayPal servent à te contacter et à te verser tes gains. Tu peux les modifier ou les retirer à tout moment.</MentionDonnees>
+          <MentionDonnees>{t('Ton identifiant Discord et ton email PayPal servent à te contacter et à te verser tes gains. Tu peux les modifier ou les retirer à tout moment.')}</MentionDonnees>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
               <MessageCircle size={14} className="text-slate-500 dark:text-slate-400" />
-              ID Discord
+              {t('ID Discord')}
             </label>
             <input
               type="text"
@@ -353,13 +354,13 @@ export default function Profil() {
               placeholder="123456789012345678"
               className="input"
             />
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Requis pour les communications</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('Requis pour les communications')}</p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
               <CreditCard size={14} className="text-slate-500 dark:text-slate-400" />
-              Email PayPal
+              {t('Email PayPal')}
             </label>
             <input
               type="email"
@@ -368,7 +369,7 @@ export default function Profil() {
               placeholder="paypal@email.com"
               className="input"
             />
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Requis pour les retraits</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('Requis pour les retraits')}</p>
           </div>
             </>
           )}
@@ -377,12 +378,12 @@ export default function Profil() {
         <div className="border-t border-slate-100 dark:border-slate-700 pt-5 space-y-4">
           <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
             <Lock size={14} className="text-slate-500 dark:text-slate-400" />
-            Changer le mot de passe
+            {t('Changer le mot de passe')}
           </h3>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Mot de passe actuel
+              {t('Mot de passe actuel')}
             </label>
             <input
               type="password"
@@ -395,13 +396,13 @@ export default function Profil() {
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Nouveau mot de passe
+              {t('Nouveau mot de passe')}
             </label>
             <input
               type="password"
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
-              placeholder="Min. 6 caractères"
+              placeholder={t('Min. 6 caractères')}
               className="input"
             />
           </div>
@@ -413,7 +414,7 @@ export default function Profil() {
           ) : (
             <>
               <Save size={16} />
-              Enregistrer les modifications
+              {t('Enregistrer les modifications')}
             </>
           )}
         </button>

@@ -1,3 +1,4 @@
+import { t } from './i18n.js'
 // Diagnostic de fiche Google : une liste que le commerçant coche lui-même.
 // Aucune donnée Google n'est lue, aucun chiffre n'est inventé : le score compte les points cochés, rien d'autre.
 
@@ -44,6 +45,6 @@ export function analyser(coches) {
 
 export function listeAFaire(coches) {
   const { aFaire } = analyser(coches)
-  if (!aFaire.length) return 'Rien à faire sur cette liste.'
-  return ['À faire sur ma fiche Google :', ...aFaire.map(p => `- ${p.titre}`)].join('\n')
+  if (!aFaire.length) return t('Rien à faire sur cette liste.')
+  return [t('À faire sur ma fiche Google :'), ...aFaire.map(p => `- ${t(p.titre)}`)].join('\n')
 }

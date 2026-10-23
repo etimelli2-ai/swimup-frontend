@@ -2,6 +2,7 @@
 // utilisé pour l'évolution de la note Google, du nb d'avis Google et du
 // nombre d'avis publiés. Tooltip au survol/tap sur le point le plus proche.
 import { useRef, useState } from 'react'
+import { t } from '../lib/i18n'
 
 export default function MiniLineChart({ points, color = '#0ea5e9', height = 140, formatValue = (v) => v }) {
   const svgRef = useRef(null)
@@ -10,7 +11,7 @@ export default function MiniLineChart({ points, color = '#0ea5e9', height = 140,
   if (!points || points.length === 0) {
     return (
       <div className="flex items-center justify-center h-[140px] text-sm text-slate-500 dark:text-slate-400">
-        Pas encore assez de données
+        {t('Pas encore assez de données')}
       </div>
     )
   }

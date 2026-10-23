@@ -8,6 +8,7 @@ import api from '../lib/api'
 import { LogoMarque } from '../components/Logo'
 import { lienMessagerie, prochaineEtape } from '../lib/parcoursClient.mjs'
 import { lireOffreSouhaitee } from '../lib/offreSouhaitee'
+import { t } from '../lib/i18n'
 
 export default function VerificationRequise() {
   const { user, logout, updateUser } = useAuth()
@@ -18,9 +19,9 @@ export default function VerificationRequise() {
     setEnvoi(true)
     try {
       const r = await api.post('/auth/resend-verification')
-      toast.success(r.data?.message || 'Email envoyé, vérifie ta boîte de réception.')
+      toast.success(r.data?.message || t('Email envoyé, vérifie ta boîte de réception.'))
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Erreur, réessaie plus tard.')
+      toast.error(err.response?.data?.error || t('Erreur, réessaie plus tard.'))
     }
     setEnvoi(false)
   }
@@ -64,24 +65,24 @@ export default function VerificationRequise() {
       >
         <div className="text-center mb-8">
           <div className="w-14 h-14 mx-auto mb-4">
-            <LogoMarque size={56} titre="Logo SwimUp" />
+            <LogoMarque size={56} titre={t('Logo SwimUp')} />
           </div>
-          <h1 className="font-display text-[28px] font-extrabold text-slate-900 tracking-tight">SwimUp</h1>
+          <h1 className="font-display text-[28px] font-extrabold text-slate-900 tracking-tight">{t('SwimUp')}</h1>
         </div>
 
         {estClient && (
-          <ol className="mb-4 space-y-2 text-sm" aria-label="Les 3 étapes">
+          <ol className="mb-4 space-y-2 text-sm" aria-label={t('Les 3 étapes')}>
             <li className="flex items-center gap-2.5 text-slate-500">
               <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0"><Check size={14} aria-hidden="true" /></span>
-              Compte créé
+              {t('Compte créé')}
             </li>
             <li className="flex items-center gap-2.5 font-semibold text-slate-900" aria-current="step">
               <span className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center shrink-0 text-xs">2</span>
-              Confirme ton adresse email
+              {t('Confirme ton adresse email')}
             </li>
             <li className="flex items-center gap-2.5 text-slate-600">
               <span className="w-6 h-6 rounded-full border border-slate-300 text-slate-600 flex items-center justify-center shrink-0 text-xs">3</span>
-              Commande ton premier avis, par carte ou PayPal
+              {t('Commande ton premier avis, par carte ou PayPal')}
             </li>
           </ol>
         )}
@@ -91,22 +92,21 @@ export default function VerificationRequise() {
             <MailWarning size={22} className="text-amber-500" />
           </div>
           <div>
-            <p className="font-semibold text-slate-900">Ouvre l'email qu'on vient de t'envoyer</p>
+            <p className="font-semibold text-slate-900">{t('Ouvre l\'email qu\'on vient de t\'envoyer')}</p>
             <p className="text-sm text-slate-600 mt-1">
-              Il est parti à <span className="font-medium text-slate-800">{user?.email}</span>. Clique sur le bouton dedans, cette page continue toute seule.
-              Rien reçu au bout d'une minute ? Regarde tes spams.
+              {t('Il est parti à')}{' '}<span className="font-medium text-slate-800">{user?.email}</span>{t('. Clique sur le bouton dedans, cette page continue toute seule. Rien reçu au bout d\'une minute ? Regarde tes spams.')}
             </p>
           </div>
           {messagerie && (
             <a href={messagerie.url} target="_blank" rel="noopener noreferrer" className="btn-primary w-full justify-center">
-              Ouvrir {messagerie.nom} <ExternalLink size={15} aria-hidden="true" />
+              {t('Ouvrir {nom}', { nom: messagerie.nom })}{' '}<ExternalLink size={15} aria-hidden="true" />
             </a>
           )}
           <button onClick={renvoyer} disabled={envoi} className={`${messagerie ? 'btn-secondary' : 'btn-primary'} w-full justify-center disabled:opacity-70`}>
-            {envoi ? 'Envoi...' : "Renvoyer l'email"}
+            {envoi ? t('Envoi...') : t('Renvoyer l\'email')}
           </button>
           <button onClick={handleLogout} className="btn-ghost w-full justify-center text-slate-600">
-            <LogOut size={15} /> Mauvaise adresse ? Me déconnecter
+            <LogOut size={15} />{' '}{t('Mauvaise adresse ? Me déconnecter')}
           </button>
         </div>
       </motion.div>

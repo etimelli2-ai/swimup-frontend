@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import api from '../lib/api'
+import { t } from '../lib/i18n'
 
 const AuthCtx = createContext(null)
 
@@ -41,8 +42,8 @@ export function AuthProvider({ children }) {
     } catch (e) {
       if (e.response?.status === 401) {
         setUser(null)
-        const err = new Error('session non conservée')
-        err.response = { data: { error: "Connexion réussie, mais ton navigateur n'a pas gardé la session (cookies bloqués ou navigation privée). Essaie avec un autre navigateur, ou autorise les cookies pour swimup.net." } }
+        const err = new Error(t('session non conservée'))
+        err.response = { data: { error: t('Connexion réussie, mais ton navigateur n\'a pas gardé la session (cookies bloqués ou navigation privée). Essaie avec un autre navigateur, ou autorise les cookies pour swimup.net.') } }
         throw err
       }
       // autre erreur (réseau...) : la connexion est valable, le profil se rechargera plus tard

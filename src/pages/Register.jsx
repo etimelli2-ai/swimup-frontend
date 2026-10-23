@@ -14,11 +14,12 @@ import { LiensLegaux } from '../components/PageLegale'
 import toast from 'react-hot-toast'
 import { springSmooth, springSnappy, springSheet } from '../lib/motion'
 import { MentionDonnees } from '../components/PageLegale'
+import { t } from '../lib/i18n'
 
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
 export default function Register() {
-  usePageTitle('Inscription')
+  usePageTitle(t('Inscription'))
 
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -49,15 +50,15 @@ export default function Register() {
       .then(r => {
         const order = r.data.order
         if (order.statut === 'en_attente' || order.statut === 'annule') {
-          setCommandeError("Cette commande n'est pas encore payée.")
+          setCommandeError(t('Cette commande n\'est pas encore payée.'))
         } else if (order.compte_cree) {
-          setCommandeError('Un compte a déjà été créé pour cette commande.')
+          setCommandeError(t('Un compte a déjà été créé pour cette commande.'))
         } else {
           setCommande(order)
           setEmail(order.email)
         }
       })
-      .catch(() => setCommandeError('Commande introuvable — vérifie ton lien.'))
+      .catch(() => setCommandeError(t('Commande introuvable — vérifie ton lien.')))
       .finally(() => setCommandeLoading(false))
   }, [commandeToken])
 
@@ -71,27 +72,27 @@ export default function Register() {
     setEmailExiste(false)
 
     if (discordRequis && !/^\d{17,20}$/.test(discordId.trim())) {
-      setError("L'ID Discord est obligatoire : 17 à 20 chiffres. Tu ne le trouves pas ? Utilise le lien sous la case.")
+      setError(t('L\'ID Discord est obligatoire : 17 à 20 chiffres. Tu ne le trouves pas ? Utilise le lien sous la case.'))
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas')
+      setError(t('Les mots de passe ne correspondent pas'))
       return
     }
     if (password.length < 8) {
-      setError('Le mot de passe doit faire au moins 8 caracteres')
+      setError(t('Le mot de passe doit faire au moins 8 caracteres'))
       return
     }
 
     setLoading(true)
     try {
       await register(email, password, discordId.trim() || null, invitationCode || null, commandeToken && commande ? commandeToken : null, parrainageCode || null)
-      toast.success('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.', { duration: 6000 })
+      toast.success(t('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.'), { duration: 6000 })
       navigate('/dashboard')
     } catch (err) {
       setEmailExiste(err.response?.data?.code === 'EMAIL_DEJA_UTILISE')
-      setError(err.response?.data?.error || "Erreur lors de l'inscription")
+      setError(err.response?.data?.error || t('Erreur lors de l\'inscription'))
     } finally {
       setLoading(false)
     }
@@ -118,18 +119,18 @@ export default function Register() {
             transition={springSnappy}
             className="w-14 h-14 mx-auto mb-4"
           >
-            <LogoMarque size={56} titre="Logo SwimUp" />
+            <LogoMarque size={56} titre={t('Logo SwimUp')} />
           </motion.div>
-          <h1 className="font-display text-[28px] font-extrabold text-slate-900 tracking-tight">SwimUp</h1>
+          <h1 className="font-display text-[28px] font-extrabold text-slate-900 tracking-tight">{t('SwimUp')}</h1>
           <p className="text-[15px] text-slate-500 mt-1">
-            {commandeToken ? 'Crée ton compte client' : 'Crée ton compte membre'}
+            {commandeToken ? t('Crée ton compte client') : t('Crée ton compte membre')}
           </p>
         </div>
 
         {/* Bannière commande publique liée */}
         {commandeToken && commandeLoading && (
           <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 flex items-center gap-2 text-sm text-slate-500">
-            <Loader2 size={16} className="animate-spin" /> Vérification de ta commande...
+            <Loader2 size={16} className="animate-spin" />{' '}{t('Vérification de ta commande...')}
           </div>
         )}
         {commandeToken && !commandeLoading && commandeError && (
@@ -142,9 +143,9 @@ export default function Register() {
           <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4 mb-4 flex items-start gap-2">
             <Tag size={16} className="text-sky-500 mt-0.5 shrink-0" />
             <div>
-              <p className="text-sm font-medium text-sky-900">Compte lié à ta commande #{commande.id}</p>
+              <p className="text-sm font-medium text-sky-900">{t('Compte lié à ta commande #{id}', { id: commande.id })}</p>
               <p className="text-xs text-sky-700 mt-0.5">
-                Email verrouillé sur {commande.email} — tes prochaines commandes passent à 3€/avis au lieu de 4€.
+                {t('Email verrouillé sur {email} — tes prochaines commandes passent à 3€/avis au lieu de 4€.', { email: commande.email })}
               </p>
             </div>
           </div>
@@ -166,10 +167,10 @@ export default function Register() {
                   <p>{error}</p>
                   {emailExiste && (
                     <p className="mt-1">
-                      Tu as déjà un compte avec cette adresse :{' '}
-                      <Link to="/login" className="font-semibold underline">connecte-toi</Link>
-                      {' '}ou{' '}
-                      <Link to="/mot-de-passe-oublie" className="font-semibold underline">réinitialise ton mot de passe</Link>.
+                      {t('Tu as déjà un compte avec cette adresse :')}{' '}
+                      <Link to="/login" className="font-semibold underline">{t('connecte-toi')}</Link>
+                      {' '}{t('ou')}{' '}
+                      <Link to="/mot-de-passe-oublie" className="font-semibold underline">{t('réinitialise ton mot de passe')}</Link>.
                     </p>
                   )}
                 </div>
@@ -179,7 +180,7 @@ export default function Register() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('Email')}</label>
               <input
                 type="email"
                 value={email}
@@ -192,7 +193,7 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Mot de passe</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('Mot de passe')}</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -206,7 +207,7 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Cacher le mot de passe' : 'Voir le mot de passe'}
+                  aria-label={showPassword ? t('Cacher le mot de passe') : t('Voir le mot de passe')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -215,7 +216,7 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirmer le mot de passe</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('Confirmer le mot de passe')}</label>
               <input
                 type="password"
                 value={confirmPassword}
@@ -228,7 +229,7 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                ID Discord {!discordRequis && <span className="text-slate-500 font-normal">(optionnel)</span>}
+                {t('ID Discord')}{' '}{!discordRequis && <span className="text-slate-500 font-normal">{t('(optionnel)')}</span>}
               </label>
               <input
                 type="text"
@@ -241,18 +242,16 @@ export default function Register() {
               />
               {discordRequis && (
                 <details className="mt-2 text-sm text-slate-600">
-                  <summary className="cursor-pointer text-sky-600 font-medium">Je ne trouve pas mon ID Discord</summary>
+                  <summary className="cursor-pointer text-sky-600 font-medium">{t('Je ne trouve pas mon ID Discord')}</summary>
                   <div className="mt-2 space-y-3 bg-slate-50 rounded-xl p-3">
                     <p>
-                      Le plus simple : rejoins notre Discord, ouvre un ticket et choisis la catégorie
-                      « Mon ID Discord ». Le bot t'envoie ton ID à copier, avec la marche à suivre pour t'inscrire.
+                      {t('Le plus simple : rejoins notre Discord, ouvre un ticket et choisis la catégorie « Mon ID Discord ». Le bot t\'envoie ton ID à copier, avec la marche à suivre pour t\'inscrire.')}
                     </p>
                     <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="btn-primary w-full justify-center">
-                      Ouvrir un ticket sur Discord
+                      {t('Ouvrir un ticket sur Discord')}
                     </a>
                     <p className="text-xs text-slate-500">
-                      Tu préfères le trouver seul ? Discord → Paramètres → Avancés → active le Mode développeur,
-                      puis clic droit sur ton profil → Copier l'identifiant.
+                      {t('Tu préfères le trouver seul ? Discord → Paramètres → Avancés → active le Mode développeur, puis clic droit sur ton profil → Copier l\'identifiant.')}
                     </p>
                   </div>
                 </details>
@@ -262,21 +261,21 @@ export default function Register() {
             {!commandeToken && (
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Code d'invitation <span className="text-slate-500 font-normal">(optionnel)</span>
+                  {t('Code d\'invitation')}{' '}<span className="text-slate-500 font-normal">{t('(optionnel)')}</span>
                 </label>
                 <input
                   type="text"
                   value={invitationCode}
                   onChange={e => setInvitationCode(e.target.value)}
                   className="input"
-                  placeholder="Code client"
+                  placeholder={t('Code client')}
                 />
               </div>
             )}
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Code de parrainage <span className="text-slate-500 font-normal">(optionnel)</span>
+                {t('Code de parrainage')}{' '}<span className="text-slate-500 font-normal">{t('(optionnel)')}</span>
               </label>
               <input
                 type="text"
@@ -287,7 +286,7 @@ export default function Register() {
               />
               {parrainageCode.trim() && (
                 <p className="text-xs text-slate-500 mt-1.5">
-                  Avec un code de parrainage, tu es payé 0,20 € de moins par avis : cette somme revient à la personne qui t'a invité.
+                  {t('Avec un code de parrainage, tu es payé 0,20 € de moins par avis : cette somme revient à la personne qui t\'a invité.')}
                 </p>
               )}
             </div>
@@ -301,19 +300,19 @@ export default function Register() {
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  S'inscrire
+                  {t('S\'inscrire')}
                   <ArrowRight size={16} />
                 </>
               )}
             </button>
           </form>
-            <MentionDonnees className="mt-4">SwimUp utilise ton email, ton mot de passe, ton identifiant Discord (si tu le donnes) et ton adresse IP pour créer ton compte membre, repérer les comptes en double et te payer.</MentionDonnees>
+            <MentionDonnees className="mt-4">{t('SwimUp utilise ton email, ton mot de passe, ton identifiant Discord (si tu le donnes) et ton adresse IP pour créer ton compte membre, repérer les comptes en double et te payer.')}</MentionDonnees>
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-6">
-          Deja un compte ?{' '}
+          {t('Deja un compte ?')}{' '}
           <Link to="/login" className="font-semibold text-sky-600 hover:text-sky-700">
-            Se connecter
+            {t('Se connecter')}
           </Link>
         </p>
         <LiensLegaux className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6 text-xs" classe="text-slate-600 hover:underline" />

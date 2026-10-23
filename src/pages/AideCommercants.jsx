@@ -9,6 +9,9 @@ import { organisationLd, filAriane, urlAbsolue, LIEN_INSTAGRAM, LIEN_TIKTOK } fr
 import { springSmooth } from '../lib/motion'
 import { GUIDES, guideParSlug } from '../content/guidesCommercants'
 import Logo from '../components/Logo'
+import { t } from '../lib/i18n'
+import SelecteurLangue from '../components/SelecteurLangue'
+import NoteContenuFrancais from '../components/NoteContenuFrancais'
 
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
@@ -41,10 +44,11 @@ function Cadre({ children }) {
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/aide-commercants" className="hidden sm:inline text-[13px] text-slate-500 hover:text-slate-700 font-medium transition-colors">
-              Aide aux commerçants
+              {t('Aide aux commerçants')}
             </Link>
-            <a href="/login" className="text-[13px] text-slate-500 hover:text-slate-700 font-medium transition-colors">Se connecter</a>
-            <a href="/inscription?src=guide" className="text-[13px] text-sky-600 hover:text-sky-700 font-semibold transition-colors">Compte gratuit</a>
+            <a href="/login" className="text-[13px] text-slate-500 hover:text-slate-700 font-medium transition-colors">{t('Se connecter')}</a>
+            <SelecteurLangue />
+            <a href="/inscription?src=guide" className="text-[13px] text-sky-600 hover:text-sky-700 font-semibold transition-colors">{t('Compte gratuit')}</a>
           </div>
         </div>
       </header>
@@ -52,16 +56,16 @@ function Cadre({ children }) {
       <footer className="w-full bg-slate-50 border-t border-slate-200">
         <div className="max-w-2xl mx-auto px-4 py-8 space-y-2">
           <div className="flex items-center justify-between text-[12px] text-slate-500 flex-wrap gap-2">
-            <span>© {new Date().getFullYear()} SwimUp</span>
+            <span>{t('© {date} SwimUp', { date: new Date().getFullYear() })}</span>
             <span className="flex gap-4">
-              <a href={LIEN_INSTAGRAM} rel="noopener noreferrer me" target="_blank" className="hover:underline">Instagram</a>
-              <a href={LIEN_TIKTOK} rel="noopener noreferrer me" target="_blank" className="hover:underline">TikTok</a>
-              <a href="/login" className="text-sky-500 hover:underline">Connexion</a>
+              <a href={LIEN_INSTAGRAM} rel="noopener noreferrer me" target="_blank" className="hover:underline">{t('Instagram')}</a>
+              <a href={LIEN_TIKTOK} rel="noopener noreferrer me" target="_blank" className="hover:underline">{t('TikTok')}</a>
+              <a href="/login" className="text-sky-500 hover:underline">{t('Connexion')}</a>
             </span>
           </div>
           <LiensLegaux className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-slate-600" classe="hover:underline" />
           <p className="text-[11px] text-slate-500">
-            Conseils pratiques, pas des conseils juridiques. Les règles de Google peuvent changer : vérifie toujours l'aide officielle.
+            {t('Conseils pratiques, pas des conseils juridiques. Les règles de Google peuvent changer : vérifie toujours l\'aide officielle.')}
           </p>
         </div>
       </footer>
@@ -93,16 +97,16 @@ function Cta() {
   if (integre) {
     return (
       <div className="rounded-2xl bg-slate-50 border border-slate-200 p-5 sm:p-6 text-center">
-        <h2 className="text-[18px] font-semibold tracking-tight text-slate-900">Passe à l'action</h2>
+        <h2 className="text-[18px] font-semibold tracking-tight text-slate-900">{t('Passe à l\'action')}</h2>
         <p className="mt-1.5 text-[14px] text-slate-500 max-w-md mx-auto leading-relaxed">
-          Ton QR code, ton affiche et tes demandes d'avis par email sont dans « Mes avis ».
+          {t('Ton QR code, ton affiche et tes demandes d\'avis par email sont dans « Mes avis ».')}
         </p>
         <div className="mt-4 flex items-center justify-center gap-4 flex-wrap">
           <Link to="/client/outils" className="inline-flex items-center gap-1.5 rounded-full bg-sky-500 text-white text-[14px] font-semibold px-5 py-2.5 hover:bg-sky-600 transition-colors">
-            <QrCode size={15} /> Ouvrir Mes avis
+            <QrCode size={15} />{' '}{t('Ouvrir Mes avis')}
           </Link>
           <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-slate-600 hover:text-slate-900 underline-offset-4 hover:underline">
-            <MessageCircle size={14} /> Une question ? Discord
+            <MessageCircle size={14} />{' '}{t('Une question ? Discord')}
           </a>
         </div>
       </div>
@@ -110,16 +114,16 @@ function Cta() {
   }
   return (
     <div className="rounded-2xl bg-gradient-to-br from-sky-500 to-violet-500 p-6 sm:p-8 text-center text-white shadow-xl shadow-sky-500/20">
-      <h2 className="text-[22px] font-semibold tracking-tight">Un espace pour gérer tout ça</h2>
+      <h2 className="text-[22px] font-semibold tracking-tight">{t('Un espace pour gérer tout ça')}</h2>
       <p className="mt-2 text-[15px] text-white/85 max-w-md mx-auto font-light leading-relaxed">
-        QR code et affiche à imprimer, demandes d'avis par email à tes clients, aide à la rédaction de tes réponses. Le compte gratuit suffit pour commencer.
+        {t('QR code et affiche à imprimer, demandes d\'avis par email à tes clients, aide à la rédaction de tes réponses. Le compte gratuit suffit pour commencer.')}
       </p>
       <div className="mt-5 flex items-center justify-center gap-5 flex-wrap">
         <a href="/inscription?src=guide" className="inline-flex items-center rounded-full bg-white text-sky-600 text-[14px] font-semibold px-6 py-2.5 hover:bg-sky-50 transition-colors">
-          Créer un compte gratuit
+          {t('Créer un compte gratuit')}
         </a>
         <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-white/90 hover:text-white underline-offset-4 hover:underline">
-          <MessageCircle size={14} /> Une question ? Discord
+          <MessageCircle size={14} />{' '}{t('Une question ? Discord')}
         </a>
       </div>
     </div>
@@ -132,22 +136,23 @@ export function AideCommercantsIndex() {
   return (
     <Cadre>
       {integre
-        ? <Seo title="Guides" noindex />
-        : <Seo title="Aide aux commerçants : guides pour vos avis Google"
-               description="Guides gratuits pour les commerçants : obtenir de vrais avis Google, y répondre, optimiser sa fiche et gérer un avis injuste."
+        ? <Seo title={t('Guides')} noindex />
+        : <Seo title={t('Aide aux commerçants : guides pour vos avis Google')}
+               description={t('Guides gratuits pour les commerçants : obtenir de vrais avis Google, y répondre, optimiser sa fiche et gérer un avis injuste.')}
                path="/aide-commercants"
-               jsonLd={[filAriane([['Accueil', '/'], ['Aide aux commerçants', '/aide-commercants']])]} />}
+               jsonLd={[filAriane([[t('Accueil'), '/'], [t('Aide aux commerçants'), '/aide-commercants']])]} />}
       <Hero>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100 px-3.5 py-1.5 text-[12px] font-semibold tracking-wide uppercase mb-5">
           <Star size={12} className="fill-sky-500 text-sky-500" />
-          Guides gratuits
+          {t('Guides gratuits')}
         </span>
+        <NoteContenuFrancais />
         <h1 className="text-[36px] sm:text-[48px] leading-[1.05] font-semibold tracking-tight text-slate-900">
-          Ta réputation sur Google,<br />
-          <span className="bg-gradient-to-r from-sky-500 to-violet-500 bg-clip-text text-transparent">sans prise de tête</span>
+          {t('Ta réputation sur Google,')}<br />
+          <span className="bg-gradient-to-r from-sky-500 to-violet-500 bg-clip-text text-transparent">{t('sans prise de tête')}</span>
         </h1>
         <p className="mt-5 text-[18px] leading-relaxed text-slate-500 max-w-xl mx-auto font-light">
-          Récolter de vrais avis, y répondre, tenir ta fiche à jour : des guides courts, concrets, pensés pour les commerçants.
+          {t('Récolter de vrais avis, y répondre, tenir ta fiche à jour : des guides courts, concrets, pensés pour les commerçants.')}
         </p>
       </Hero>
 
@@ -155,23 +160,23 @@ export function AideCommercantsIndex() {
         <Link to="/outils/lien-avis-google" className="mb-4 flex items-center gap-4 rounded-2xl border border-sky-200 bg-sky-50 p-5 hover:border-sky-300 transition-colors">
           <span className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center shrink-0"><QrCode size={20} className="text-white" /></span>
           <span className="min-w-0">
-            <span className="block text-[16px] font-semibold tracking-tight text-slate-900">Outil gratuit : ton lien d'avis et ton QR code</span>
-            <span className="block mt-0.5 text-[14px] leading-snug text-slate-600">Colle ton lien Google, télécharge le QR code et imprime l'affiche. Sans compte.</span>
+            <span className="block text-[16px] font-semibold tracking-tight text-slate-900">{t('Outil gratuit : ton lien d\'avis et ton QR code')}</span>
+            <span className="block mt-0.5 text-[14px] leading-snug text-slate-600">{t('Colle ton lien Google, télécharge le QR code et imprime l\'affiche. Sans compte.')}</span>
           </span>
           <ChevronRight size={18} className="ml-auto shrink-0 text-sky-500" />
         </Link>
         <div className="mb-4 grid gap-3 sm:grid-cols-2">
           <Link to="/outils/modeles-reponses-avis-google" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 hover:border-slate-300 transition-colors">
             <span className="min-w-0">
-              <span className="block text-[15px] font-semibold tracking-tight text-slate-900">Modèles de réponses aux avis</span>
-              <span className="block mt-0.5 text-[13px] leading-snug text-slate-500">12 textes à copier et adapter. Gratuit.</span>
+              <span className="block text-[15px] font-semibold tracking-tight text-slate-900">{t('Modèles de réponses aux avis')}</span>
+              <span className="block mt-0.5 text-[13px] leading-snug text-slate-500">{t('12 textes à copier et adapter. Gratuit.')}</span>
             </span>
             <ChevronRight size={16} className="ml-auto shrink-0 text-slate-500" />
           </Link>
           <Link to="/outils/diagnostic-fiche-google" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 hover:border-slate-300 transition-colors">
             <span className="min-w-0">
-              <span className="block text-[15px] font-semibold tracking-tight text-slate-900">Diagnostic de ta fiche Google</span>
-              <span className="block mt-0.5 text-[13px] leading-snug text-slate-500">Une liste à cocher pour voir ce qu'il reste à faire.</span>
+              <span className="block text-[15px] font-semibold tracking-tight text-slate-900">{t('Diagnostic de ta fiche Google')}</span>
+              <span className="block mt-0.5 text-[13px] leading-snug text-slate-500">{t('Une liste à cocher pour voir ce qu\'il reste à faire.')}</span>
             </span>
             <ChevronRight size={16} className="ml-auto shrink-0 text-slate-500" />
           </Link>
@@ -192,7 +197,7 @@ export function AideCommercantsIndex() {
                   <h2 className="mt-4 text-[17px] font-semibold tracking-tight text-slate-900 leading-snug">{g.titre}</h2>
                   <p className="mt-1.5 text-[14px] leading-relaxed text-slate-500 flex-1">{g.resume}</p>
                   <span className="mt-4 inline-flex items-center text-[13px] font-medium text-sky-500 group-hover:underline underline-offset-4">
-                    Lire le guide <ChevronRight size={14} />
+                    {t('Lire le guide')}{' '}<ChevronRight size={14} />
                   </span>
                 </Link>
               </li>
@@ -213,7 +218,7 @@ function ModeleCopiable({ texte }) {
       setOk(true)
       setTimeout(() => setOk(false), 1800)
     } catch {
-      toast.error('Copie impossible, sélectionne le texte à la main.')
+      toast.error(t('Copie impossible, sélectionne le texte à la main.'))
     }
   }
   return (
@@ -223,7 +228,7 @@ function ModeleCopiable({ texte }) {
         onClick={copier}
         className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-medium text-sky-500 hover:text-sky-600"
       >
-        {ok ? <Check size={14} /> : <Copy size={14} />} {ok ? 'Copié' : 'Copier le modèle'}
+        {ok ? <Check size={14} /> : <Copy size={14} />} {ok ? t('Copié') : t('Copier le modèle')}
       </button>
     </div>
   )
@@ -321,18 +326,19 @@ export function AideCommercantsGuide() {
         : <Seo title={guide.titre} description={guide.description} path={chemin} type="article"
                jsonLd={[
                  {
-                   '@context': 'https://schema.org', '@type': 'Article', headline: guide.titre, description: guide.description,
+                   '@context': 'https://schema.org', '@type': t('Article'), headline: guide.titre, description: guide.description,
                    inLanguage: 'fr-FR', mainEntityOfPage: urlAbsolue(chemin), author: organisationLd, publisher: organisationLd,
                  },
-                 filAriane([['Accueil', '/'], ['Aide aux commerçants', '/aide-commercants'], [guide.titre, chemin]]),
+                 filAriane([[t('Accueil'), '/'], [t('Aide aux commerçants'), '/aide-commercants'], [guide.titre, chemin]]),
                ]} />}
       <Hero halo={c.halo}>
         <Link to={base} className="inline-flex items-center gap-1.5 text-[13px] text-slate-500 hover:text-slate-600 mb-6">
-          <ArrowLeft size={14} /> Tous les guides
+          <ArrowLeft size={14} />{' '}{t('Tous les guides')}
         </Link>
         <div className="flex justify-center">
           <span className={`w-12 h-12 rounded-2xl border flex items-center justify-center ${c.tuile}`}><Icone size={24} /></span>
         </div>
+        <NoteContenuFrancais />
         <h1 className="mt-5 text-[32px] sm:text-[44px] leading-[1.08] font-semibold tracking-tight text-slate-900">{guide.titre}</h1>
         <p className="mt-4 text-[18px] leading-relaxed text-slate-500 max-w-xl mx-auto font-light">{guide.resume}</p>
       </Hero>
@@ -344,8 +350,8 @@ export function AideCommercantsGuide() {
 
         <div className="mt-12"><Cta /></div>
 
-        <nav className="mt-12" aria-label="Autres guides">
-          <h2 className="text-[15px] font-semibold text-slate-900">Autres guides</h2>
+        <nav className="mt-12" aria-label={t('Autres guides')}>
+          <h2 className="text-[15px] font-semibold text-slate-900">{t('Autres guides')}</h2>
           <ul className="mt-3 divide-y divide-slate-200 border-y border-slate-200">
             {autres.map(g => (
               <li key={g.slug}>

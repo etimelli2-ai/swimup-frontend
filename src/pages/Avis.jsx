@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { springSheet } from '../lib/motion'
+import { t, tn } from '../lib/i18n'
 
 // Un membre a 3 heures pour publier son avis après l'avoir réservé
 const DELAI_RESERVATION_MS = 3 * 60 * 60 * 1000
@@ -34,7 +35,8 @@ function Etoiles({ n }) {
 // Certains avis n'ont pas de texte imposé : le membre l'écrit lui-même.
 function consigneSansTexte(a) {
   const nb = parseInt(a.nb_etoiles) || 5
-  return `Pas de texte imposé : écris toi-même un avis ${nb} étoile${nb > 1 ? 's' : ''}${a.ton ? `, ton ${a.ton}` : ''}, sincère et en rapport avec l'établissement.`
+  const ton = a.ton ? t(', ton {ton}', { ton: a.ton }) : ''
+  return t('Pas de texte imposé : écris toi-même un avis {etoiles}{ton}, sincère et en rapport avec l\'établissement.', { etoiles: tn(nb, '{n} étoile', '{n} étoiles'), ton })
 }
 
 // ─── Avis disponible à réserver ───
@@ -59,13 +61,13 @@ function CarteDisponible({ a, onReserver, reserving, bloque }) {
             <p className="font-semibold text-slate-900 dark:text-white truncate">{a.nom_societe}</p>
             {isPrioritaire && (
               <span className="badge-blue text-xs flex items-center gap-1">
-                <Flame size={11} /> Prioritaire
+                <Flame size={11} />{' '}{t('Prioritaire')}
               </span>
             )}
           </div>
           <div className="flex items-center gap-2 mt-1.5">
             <Etoiles n={a.nb_etoiles} />
-            <span className="text-xs text-slate-500 dark:text-slate-400">{parseInt(a.nb_etoiles) || 5} étoiles à mettre</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{parseInt(a.nb_etoiles) || 5}{' '}{t('étoiles à mettre')}</span>
           </div>
         </div>
         <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
@@ -79,7 +81,7 @@ function CarteDisponible({ a, onReserver, reserving, bloque }) {
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pr-8 line-clamp-3">{a.texte}</p>
             <button
               onClick={copierTexte}
-              title="Copier le texte"
+              title={t('Copier le texte')}
               className="absolute top-2.5 right-2.5 p-1.5 text-slate-500 dark:text-slate-400 hover:text-sky-500 transition-colors"
             >
               {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
@@ -97,7 +99,7 @@ function CarteDisponible({ a, onReserver, reserving, bloque }) {
         onClick={() => onReserver(a)}
         disabled={reserving !== null}
       >
-        {reserving === a.cle ? <><Spinner /> Réservation...</> : 'Réserver cet avis'}
+        {reserving === a.cle ? <><Spinner />{' '}{t('Réservation...')}</> : t('Réserver cet avis')}
       </button>
     </div>
   )
@@ -151,13 +153,13 @@ function AvisEnCours({ avis, onSoumettre, onAnnuler, soumettant, annulant }) {
       <div className={`px-5 py-3 flex items-center justify-between ${enAttenteVerif ? 'bg-sky-50 dark:bg-sky-900/20 border-b border-sky-100 dark:border-sky-900' : 'bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-900'}`}>
         <div className="flex items-center gap-2">
           {enAttenteVerif
-            ? <><Loader2 size={15} className="text-sky-500 animate-spin" /><span className="text-sm font-medium text-sky-700 dark:text-sky-400">En vérification</span></>
-            : <><Clock size={15} className="text-amber-500" /><span className="text-sm font-medium text-amber-700 dark:text-amber-400">Avis en cours</span></>
+            ? <><Loader2 size={15} className="text-sky-500 animate-spin" /><span className="text-sm font-medium text-sky-700 dark:text-sky-400">{t('En vérification')}</span></>
+            : <><Clock size={15} className="text-amber-500" /><span className="text-sm font-medium text-amber-700 dark:text-amber-400">{t('Avis en cours')}</span></>
           }
         </div>
         {!enAttenteVerif && timeLeft !== null && (
           <span className={`text-sm font-semibold tabular-nums ${timeLeft === 0 ? 'text-red-500' : 'text-amber-600'}`}>
-            {timeLeft === 0 ? 'Délai expiré' : timeLeft}
+            {timeLeft === 0 ? t('Délai expiré') : timeLeft}
           </span>
         )}
       </div>
@@ -176,7 +178,7 @@ function AvisEnCours({ avis, onSoumettre, onAnnuler, soumettant, annulant }) {
           {avis.texte ? (
             <>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pr-8">{avis.texte}</p>
-              <button onClick={copierTexte} title="Copier le texte" className="absolute top-3 right-3 p-1.5 text-slate-500 dark:text-slate-400 hover:text-sky-500 transition-colors">
+              <button onClick={copierTexte} title={t('Copier le texte')} className="absolute top-3 right-3 p-1.5 text-slate-500 dark:text-slate-400 hover:text-sky-500 transition-colors">
                 {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
               </button>
             </>
@@ -190,17 +192,17 @@ function AvisEnCours({ avis, onSoumettre, onAnnuler, soumettant, annulant }) {
             <div className="flex gap-3">
               <a href={avis.lien_maps} target="_blank" rel="noreferrer" className="btn-secondary flex-1 justify-center">
                 <ExternalLink size={16} />
-                Ouvrir Google Maps
+                {t('Ouvrir Google Maps')}
               </a>
               <button onClick={() => onAnnuler(avis)} disabled={annulant} className="btn-ghost px-4">
                 <RotateCcw size={16} />
-                Annuler
+                {t('Annuler')}
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-2.5 pt-3 border-t border-slate-100 dark:border-slate-700">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Lien de ton avis publié
+                {t('Lien de ton avis publié')}
               </label>
               <div className="flex gap-2">
                 <input
@@ -212,10 +214,10 @@ function AvisEnCours({ avis, onSoumettre, onAnnuler, soumettant, annulant }) {
                   className="input flex-1"
                 />
                 <button type="submit" disabled={soumettant || !lienAvis.trim()} className="btn-primary px-5">
-                  {soumettant ? <Loader2 size={16} className="animate-spin" /> : <><Send size={16} />Soumettre</>}
+                  {soumettant ? <Loader2 size={16} className="animate-spin" /> : <><Send size={16} />{t('Soumettre')}</>}
                 </button>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Colle le lien direct de ton avis sur Google Maps.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{t('Colle le lien direct de ton avis sur Google Maps.')}</p>
             </form>
           </>
         )}
@@ -248,7 +250,7 @@ function AvisRefuse({ a, onContester, contestant }) {
           className="text-xs font-medium text-red-600 hover:text-red-700 dark:text-red-400 flex items-center gap-1 shrink-0"
         >
           <MessageSquare size={12} />
-          Contester
+          {t('Contester')}
         </button>
       </div>
       <AnimatePresence>
@@ -263,12 +265,12 @@ function AvisRefuse({ a, onContester, contestant }) {
             <div className="pt-3 mt-3 border-t border-red-100 dark:border-red-900/40 space-y-2">
               <textarea
                 className="input text-sm resize-none min-h-[70px]"
-                placeholder="Explique pourquoi cet avis a été refusé à tort..."
+                placeholder={t('Explique pourquoi cet avis a été refusé à tort...')}
                 value={message}
                 onChange={e => setMessage(e.target.value)}
               />
               <button onClick={envoyer} disabled={contestant} className="btn-secondary text-xs px-4 py-2">
-                {contestant ? 'Envoi...' : 'Envoyer la contestation'}
+                {contestant ? t('Envoi...') : t('Envoyer la contestation')}
               </button>
             </div>
           </motion.div>
@@ -279,7 +281,7 @@ function AvisRefuse({ a, onContester, contestant }) {
 }
 
 export default function Avis() {
-  usePageTitle('Avis')
+  usePageTitle(t('Avis'))
 
   const { data: mesAvis, isLoading: mesAvisLoading } = useMesAvis()
   const { data: disponibles, isLoading: dispoLoading } = useAvisDisponibles()
@@ -330,9 +332,9 @@ export default function Avis() {
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
-        <h1 className="page-title">Avis</h1>
+        <h1 className="page-title">{t('Avis')}</h1>
         <p className="text-muted mt-1">
-          {currentAvis ? 'Termine ton avis en cours pour être payé' : 'Réserve un avis disponible et gagne de l\'argent'}
+          {currentAvis ? t('Termine ton avis en cours pour être payé') : t('Réserve un avis disponible et gagne de l\'argent')}
         </p>
       </div>
 
@@ -343,18 +345,17 @@ export default function Avis() {
               <PauseCircle size={18} className="text-amber-600" />
             </span>
             <div>
-              <p className="font-semibold text-slate-900 dark:text-white">Tes avis sont en pause</p>
+              <p className="font-semibold text-slate-900 dark:text-white">{t('Tes avis sont en pause')}</p>
               <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-                Une anomalie a été détectée sur ton compte. Tu ne peux plus réserver ni rédiger d'avis pour le moment.
-                Pour être débloqué, ouvre un ticket sur Discord : on regarde ça ensemble.
+                {t('Une anomalie a été détectée sur ton compte. Tu ne peux plus réserver ni rédiger d\'avis pour le moment. Pour être débloqué, ouvre un ticket sur Discord : on regarde ça ensemble.')}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                Ton compte, ton solde et les avis déjà soumis ne sont pas touchés.
+                {t('Ton compte, ton solde et les avis déjà soumis ne sont pas touchés.')}
               </p>
             </div>
           </div>
           <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="btn-primary w-full">
-            <MessageSquare size={16} /> Ouvrir un ticket sur Discord
+            <MessageSquare size={16} />{' '}{t('Ouvrir un ticket sur Discord')}
           </a>
         </div>
       )}
@@ -363,14 +364,14 @@ export default function Avis() {
         <div className="card flex items-center justify-between gap-3 flex-wrap">
           <div>
             <p className="text-sm font-medium text-slate-900 dark:text-white">
-              Tu gagnes {palier.gain_actuel.toFixed(2)} € par avis
+              {t('Tu gagnes {palier} € par avis', { palier: palier.gain_actuel.toFixed(2) })}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {palier.prochain
-                ? `Encore ${palier.prochain.reste} avis pour passer à ${palier.prochain.gain.toFixed(2)} € par avis`
-                : 'Tu es au palier maximum'}
-              {' · '}{palier.nb_faits} avis réalisé{palier.nb_faits > 1 ? 's' : ''}
-              {palier.reduction_parrainage > 0 && ` · dont −${palier.reduction_parrainage.toFixed(2)} € (parrainage)`}
+                ? t('Encore {reste} avis pour passer à {palier} € par avis', { reste: palier.prochain.reste, palier: palier.prochain.gain.toFixed(2) })
+                : t('Tu es au palier maximum')}
+              {' · '}{tn(palier.nb_faits, '{n} avis réalisé', '{n} avis réalisés')}
+              {palier.reduction_parrainage > 0 && ` · ${t('dont −{montant} € (parrainage)', { montant: palier.reduction_parrainage.toFixed(2) })}`}
             </p>
           </div>
         </div>
@@ -391,15 +392,15 @@ export default function Avis() {
       ) : !disponibles?.length ? (
         <div className="card p-10 text-center">
           <AlertTriangle size={28} className="text-slate-300 mx-auto mb-3" />
-          <p className="font-medium text-slate-600 dark:text-slate-400">Aucun avis disponible</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Reviens un peu plus tard</p>
+          <p className="font-medium text-slate-600 dark:text-slate-400">{t('Aucun avis disponible')}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('Reviens un peu plus tard')}</p>
         </div>
       ) : (
         <div className="space-y-6">
           {avisPrioritaires.length > 0 && (
             <div className="space-y-3">
               <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                Prioritaires — à faire en premier
+                {t('Prioritaires — à faire en premier')}
               </h2>
               {avisPrioritaires.map(a => (
                 <CarteDisponible key={a.cle} a={a} onReserver={handleReserver} reserving={reserving} />
@@ -409,7 +410,7 @@ export default function Avis() {
           {avisNormaux.length > 0 && (
             <div className="space-y-3">
               {avisPrioritaires.length > 0 && (
-                <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Autres avis</h2>
+                <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{t('Autres avis')}</h2>
               )}
               {avisNormaux.map(a => (
                 <CarteDisponible key={a.cle} a={a} onReserver={handleReserver} reserving={reserving} />
@@ -422,10 +423,10 @@ export default function Avis() {
       {avisEnVerifs.length > 0 && (
         <div>
           <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
-            En vérification ({avisEnVerifs.length})
+            {t('En vérification ({length})', { length: avisEnVerifs.length })}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-            L'équipe contrôle ces avis. Tu peux en réserver un nouveau sans attendre.
+            {t('L\'équipe contrôle ces avis. Tu peux en réserver un nouveau sans attendre.')}
           </p>
           <div className="divide-y divide-slate-100 dark:divide-slate-800 border-y border-slate-100 dark:border-slate-800">
             {avisEnVerifs.map(a => (
@@ -446,7 +447,7 @@ export default function Avis() {
       {avisValides.length > 0 && (
         <div>
           <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">
-            En attente de paiement
+            {t('En attente de paiement')}
           </h2>
           <div className="divide-y divide-slate-100 dark:divide-slate-800 border-y border-slate-100 dark:border-slate-800">
             {avisValides.map(a => (
@@ -466,7 +467,7 @@ export default function Avis() {
 
       {avisRefuses.length > 0 && (
         <div>
-          <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Avis supprimés</h2>
+          <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">{t('Avis supprimés')}</h2>
           <div className="space-y-2">
             {avisRefuses.map(a => (
               <AvisRefuse

@@ -3,6 +3,7 @@
 // établissement) — évite de dupliquer ces constantes/composants.
 import { Star } from 'lucide-react'
 import api from './api'
+import { t, tn } from './i18n'
 
 export const TONS = [
   { id: 'enthousiaste', label: 'Enthousiaste', emoji: '🔥' },
@@ -27,7 +28,7 @@ export function EtoilesPicker({ value, onChange }) {
           key={n}
           type="button"
           onClick={() => onChange(n)}
-          aria-label={`${n} étoile${n > 1 ? 's' : ''}`}
+          aria-label={tn(n, '{n} étoile', '{n} étoiles')}
           className="p-1 active:scale-90 transition-transform"
         >
           <Star

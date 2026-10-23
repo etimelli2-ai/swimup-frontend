@@ -6,6 +6,7 @@ import { MotionConfig } from 'framer-motion'
 import App from './App'
 import { AuthProvider } from './hooks/useAuth'
 import { ThemeProvider } from './hooks/useTheme'
+import { LangueProvider, ParLangue } from './components/LangueContext'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,14 +23,16 @@ export default function Racine({ Routeur, routeurProps }) {
     // TOUTE animation Framer Motion du site, sans y repenser page par page.
     <MotionConfig reducedMotion="user">
       <Routeur {...routeurProps}>
-        <ThemeProvider>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <App />
-              <Toaster position="top-center" />
-            </AuthProvider>
-          </QueryClientProvider>
-        </ThemeProvider>
+        <LangueProvider>
+          <ThemeProvider>
+            <QueryClientProvider client={queryClient}>
+              <AuthProvider>
+                <ParLangue><App /></ParLangue>
+                <Toaster position="top-center" />
+              </AuthProvider>
+            </QueryClientProvider>
+          </ThemeProvider>
+        </LangueProvider>
       </Routeur>
     </MotionConfig>
   )

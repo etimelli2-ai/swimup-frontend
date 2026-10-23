@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { springSmooth } from '../lib/motion'
+import { t } from '../lib/i18n'
 
 const statutConfig = {
   reserve: { label: 'En cours', dot: 'bg-amber-400', icon: Clock },
@@ -42,7 +43,7 @@ function getDelaiRestant(avis) {
   const delaiJours = parseInt(avis.delai_paiement) || 30
   const payeAt = new Date(soumisAt.getTime() + delaiJours * 24 * 60 * 60 * 1000)
   const diff = payeAt - Date.now()
-  if (diff <= 0) return 'Paiement imminent'
+  if (diff <= 0) return t('Paiement imminent')
   const jours = Math.ceil(diff / (24 * 60 * 60 * 1000))
   return `${jours}j restantes`
 }
@@ -58,7 +59,7 @@ function getPrenomAffiche(email) {
 }
 
 export default function Dashboard() {
-  usePageTitle('Tableau de bord')
+  usePageTitle(t('Tableau de bord'))
 
   const { user } = useAuth()
   const { data: soldeData, isLoading: soldeLoading } = useSolde()
@@ -83,9 +84,9 @@ export default function Dashboard() {
         </div>
         <div>
           <h1 className="text-[28px] leading-tight font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
-            Bonjour, {getPrenomAffiche(user?.email)}
+            {t('Bonjour, {getPrenomAffiche}', { getPrenomAffiche: getPrenomAffiche(user?.email) })}
           </h1>
-          <p className="text-[15px] text-slate-500 dark:text-slate-400 mt-0.5">Voici ce qui se passe sur ton compte.</p>
+          <p className="text-[15px] text-slate-500 dark:text-slate-400 mt-0.5">{t('Voici ce qui se passe sur ton compte.')}</p>
         </div>
       </div>
 
@@ -98,24 +99,24 @@ export default function Dashboard() {
       >
         <div className="flex items-center gap-2 text-sky-100 text-[13px] font-medium">
           <Wallet size={15} />
-          Solde disponible
+          {t('Solde disponible')}
         </div>
         <p className="text-[44px] font-semibold tracking-tight leading-none mt-2">
-          {solde.toFixed(2)} <span className="text-[20px] font-medium text-sky-100">EUR</span>
+          {solde.toFixed(2)} <span className="text-[20px] font-medium text-sky-100">{t('EUR')}</span>
         </p>
         {solde < 0 && (
           <p className="text-[13px] text-red-100 mt-3 bg-red-500/30 rounded-lg px-3 py-2">
-            Solde négatif : un avis refusé t'a été repris. Tes prochains gains le rembourseront.
+            {t('Solde négatif : un avis refusé t\'a été repris. Tes prochains gains le rembourseront.')}
           </p>
         )}
         <div className="flex items-center gap-6 mt-6 pt-5 border-t border-white/15 text-[14px]">
           <div>
-            <p className="text-sky-100 flex items-center gap-1.5"><Clock size={12} /> Après vérification</p>
-            <p className="font-semibold mt-0.5">{soldeAttente.toFixed(2)} EUR</p>
+            <p className="text-sky-100 flex items-center gap-1.5"><Clock size={12} />{' '}{t('Après vérification')}</p>
+            <p className="font-semibold mt-0.5">{t('{soldeAttente} EUR', { soldeAttente: soldeAttente.toFixed(2) })}</p>
           </div>
           <div className="w-px h-8 bg-white/15" />
           <div>
-            <p className="text-sky-100 flex items-center gap-1.5"><TrendingUp size={12} /> Avis rédigés</p>
+            <p className="text-sky-100 flex items-center gap-1.5"><TrendingUp size={12} />{' '}{t('Avis rédigés')}</p>
             <p className="font-semibold mt-0.5">{avis?.length || 0}</p>
           </div>
         </div>
@@ -128,11 +129,11 @@ export default function Dashboard() {
             <div className="flex items-center gap-3 py-4">
               <AlertTriangle size={17} className="text-amber-500 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-medium text-slate-800 dark:text-slate-200">Adresse PayPal manquante</p>
-                <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Ajoute ton PayPal pour pouvoir retirer ton solde.</p>
+                <p className="text-[14px] font-medium text-slate-800 dark:text-slate-200">{t('Adresse PayPal manquante')}</p>
+                <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">{t('Ajoute ton PayPal pour pouvoir retirer ton solde.')}</p>
               </div>
               <Link to="/profil" className="text-[13px] font-medium text-sky-500 hover:underline shrink-0 flex items-center gap-0.5">
-                Profil <ChevronRight size={14} />
+                {t('Profil')}{' '}<ChevronRight size={14} />
               </Link>
             </div>
           )}
@@ -140,11 +141,11 @@ export default function Dashboard() {
             <div className="flex items-center gap-3 py-4">
               <MessageCircle size={17} className="text-sky-500 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-medium text-slate-800 dark:text-slate-200">ID Discord manquant</p>
-                <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Renseigne ton ID Discord dans ton profil.</p>
+                <p className="text-[14px] font-medium text-slate-800 dark:text-slate-200">{t('ID Discord manquant')}</p>
+                <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">{t('Renseigne ton ID Discord dans ton profil.')}</p>
               </div>
               <Link to="/profil" className="text-[13px] font-medium text-sky-500 hover:underline shrink-0 flex items-center gap-0.5">
-                Profil <ChevronRight size={14} />
+                {t('Profil')}{' '}<ChevronRight size={14} />
               </Link>
             </div>
           )}
@@ -157,21 +158,21 @@ export default function Dashboard() {
           <Gift size={18} />
         </div>
         <div className="flex-1">
-          <p className="text-[14px] font-semibold">Parraine tes amis</p>
-          <p className="text-[13px] text-violet-100">Touche 0,20 € sur chaque avis qu'ils font</p>
+          <p className="text-[14px] font-semibold">{t('Parraine tes amis')}</p>
+          <p className="text-[13px] text-violet-100">{t('Touche 0,20 € sur chaque avis qu\'ils font')}</p>
         </div>
         <ChevronRight size={18} className="shrink-0" />
       </Link>
 
       {/* Comment ça marche — cartes avec icônes colorées */}
       <div>
-        <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">Comment ça marche</h2>
+        <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">{t('Comment ça marche')}</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { icon: MapPin, t: 'Réserve un avis', d: 'Choisis un établissement à noter', bg: 'bg-sky-50 dark:bg-sky-900/20', fg: 'text-sky-500' },
-            { icon: Star, t: 'Publie ton avis', d: 'Mets les étoiles demandées sur Google Maps', bg: 'bg-amber-50 dark:bg-amber-900/20', fg: 'text-amber-500' },
-            { icon: Send, t: 'Soumets le lien', d: 'Copie le lien de ton avis publié', bg: 'bg-violet-50 dark:bg-violet-900/20', fg: 'text-violet-500' },
-            { icon: Coins, t: 'Reçois ton argent', d: 'Ton solde est crédité après vérification', bg: 'bg-emerald-50 dark:bg-emerald-900/20', fg: 'text-emerald-500' },
+            { icon: MapPin, t: t('Réserve un avis'), d: t('Choisis un établissement à noter'), bg: 'bg-sky-50 dark:bg-sky-900/20', fg: 'text-sky-500' },
+            { icon: Star, t: t('Publie ton avis'), d: t('Mets les étoiles demandées sur Google Maps'), bg: 'bg-amber-50 dark:bg-amber-900/20', fg: 'text-amber-500' },
+            { icon: Send, t: t('Soumets le lien'), d: t('Copie le lien de ton avis publié'), bg: 'bg-violet-50 dark:bg-violet-900/20', fg: 'text-violet-500' },
+            { icon: Coins, t: t('Reçois ton argent'), d: t('Ton solde est crédité après vérification'), bg: 'bg-emerald-50 dark:bg-emerald-900/20', fg: 'text-emerald-500' },
           ].map((s) => (
             <div key={s.t} className="card p-4">
               <span className={`inline-flex items-center justify-center w-9 h-9 rounded-xl mb-3 ${s.bg} ${s.fg}`}>
@@ -188,9 +189,9 @@ export default function Dashboard() {
       {recentAvis.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Mes derniers avis</h2>
+            <h2 className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{t('Mes derniers avis')}</h2>
             <Link to="/avis" className="text-[13px] font-medium text-sky-500 hover:underline flex items-center gap-1">
-              Voir tout <ArrowRight size={13} />
+              {t('Voir tout')}{' '}<ArrowRight size={13} />
             </Link>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800 border-y border-slate-100 dark:border-slate-800">
@@ -202,13 +203,13 @@ export default function Dashboard() {
                   <span className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} />
                   <div className="flex-1 min-w-0">
                     <p className="text-[14px] font-medium text-slate-800 dark:text-slate-200 truncate">{a.nom_societe}</p>
-                    <p className="text-[12px] text-slate-500 dark:text-slate-400">{parseFloat(a.prix).toFixed(2)} EUR</p>
+                    <p className="text-[12px] text-slate-500 dark:text-slate-400">{t('{parseFloat} EUR', { parseFloat: parseFloat(a.prix).toFixed(2) })}</p>
                   </div>
                   {delai && (
                     <span className="text-[12px] text-slate-500 dark:text-slate-400 shrink-0">{delai}</span>
                   )}
                   <span className="text-[12px] font-medium text-slate-500 shrink-0">
-                    {config.label}
+                    {t(config.label)}
                   </span>
                 </div>
               )
@@ -221,11 +222,11 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row gap-3">
         <Link to="/portefeuille" className="btn-primary flex-1 justify-center">
           <Wallet size={16} />
-          Retirer mon solde
+          {t('Retirer mon solde')}
         </Link>
         <Link to="/avis" className="btn-secondary flex-1 justify-center">
           <Star size={16} />
-          Voir les avis disponibles
+          {t('Voir les avis disponibles')}
         </Link>
       </div>
     </div>

@@ -31,11 +31,13 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SelecteurCompte from './SelecteurCompte'
+import SelecteurLangue from './SelecteurLangue'
 import React from 'react'
 import { springSheet, springSmooth } from '../lib/motion'
 import { LogoMarque } from './Logo'
 import { LiensLegaux } from './PageLegale'
 import { ACCENT_DEFAUT, couleurHover, ARRONDIS, TAILLES, ICONES } from '../lib/themePremium'
+import { t } from '../lib/i18n'
 
 const DiscordIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -53,7 +55,7 @@ function DiscordButton() {
       className: 'flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 dark:text-indigo-400 transition-all'
     },
     React.createElement(DiscordIcon),
-    'Rejoindre Discord'
+    t('Rejoindre Discord')
   )
 }
 
@@ -90,38 +92,38 @@ export default function Layout() {
   }, [taillePct])
 
   const navItems = isAdmin ? [
-    { path: '/admin',          label: 'Dashboard',   icon: LayoutDashboard },
-    { path: '/admin/avis',     label: 'Avis',         icon: Star },
-    { path: '/admin/users',    label: 'Membres',      icon: User },
-    { path: '/admin/retraits', label: 'Retraits',     icon: Wallet },
-    { path: '/admin/commande', label: 'Commande',     icon: FileText },
-    { path: '/admin/commandes-clients', label: 'Commandes clients', icon: ClipboardCheck },
-    { path: '/admin/prospection', label: 'Prospection', icon: Search },
-    { path: '/admin/emails', label: 'Emails', icon: Mail },
-    { path: '/admin/entreprises', label: 'Entreprises', icon: Building2 },
-    { path: '/admin/business', label: 'Business', icon: BarChart3 },
-    { path: '/admin/apporteurs', label: 'Apporteurs', icon: Handshake },
-    { path: '/profil',         label: 'Profil',       icon: User },
+    { path: '/admin',          label: t('Dashboard'),   icon: LayoutDashboard },
+    { path: '/admin/avis',     label: t('Avis'),         icon: Star },
+    { path: '/admin/users',    label: t('Membres'),      icon: User },
+    { path: '/admin/retraits', label: t('Retraits'),     icon: Wallet },
+    { path: '/admin/commande', label: t('Commande'),     icon: FileText },
+    { path: '/admin/commandes-clients', label: t('Commandes clients'), icon: ClipboardCheck },
+    { path: '/admin/prospection', label: t('Prospection'), icon: Search },
+    { path: '/admin/emails', label: t('Emails'), icon: Mail },
+    { path: '/admin/entreprises', label: t('Entreprises'), icon: Building2 },
+    { path: '/admin/business', label: t('Business'), icon: BarChart3 },
+    { path: '/admin/apporteurs', label: t('Apporteurs'), icon: Handshake },
+    { path: '/profil',         label: t('Profil'),       icon: User },
   ] : isClient ? [
     // Les outils payants restent visibles pour un compte gratuit, avec un cadenas :
     // la page explique ce qu'ils apportent et propose de les débloquer.
-    { path: '/client',           label: 'Accueil',       icon: LayoutDashboard },
-    { path: '/client/outils',    label: 'Mes avis',      icon: QrCode },
-    { path: '/client/reputation', label: 'Réputation',   icon: Star },
-    { path: '/client/campagnes', label: 'Campagnes',     icon: Mail,  verrou: user?.premium ? null : 'Premium' },
-    { path: '/client/equipe',    label: 'Équipe',        icon: Users, verrou: ['business', 'agence'].includes(user?.premium_offre) ? null : 'Business' },
-    { path: '/client/aide',      label: 'Guides',        icon: BookOpen },
-    { path: '/client/payer',     label: 'Commander des avis', icon: CreditCard },
-    { path: '/client/commandes', label: 'Mes commandes', icon: ShoppingBag },
-    { path: '/client/stats',     label: 'Statistiques', icon: TrendingUp },
-    { path: '/client/premium',   label: user?.premium ? 'Mon abonnement' : 'Passer Premium', icon: Crown },
-    { path: '/profil',           label: 'Profil',       icon: User },
+    { path: '/client',           label: t('Accueil'),       icon: LayoutDashboard },
+    { path: '/client/outils',    label: t('Mes avis'),      icon: QrCode },
+    { path: '/client/reputation', label: t('Réputation'),   icon: Star },
+    { path: '/client/campagnes', label: t('Campagnes'),     icon: Mail,  verrou: user?.premium ? null : t('Premium') },
+    { path: '/client/equipe',    label: t('Équipe'),        icon: Users, verrou: ['business', 'agence'].includes(user?.premium_offre) ? null : t('Business') },
+    { path: '/client/aide',      label: t('Guides'),        icon: BookOpen },
+    { path: '/client/payer',     label: t('Commander des avis'), icon: CreditCard },
+    { path: '/client/commandes', label: t('Mes commandes'), icon: ShoppingBag },
+    { path: '/client/stats',     label: t('Statistiques'), icon: TrendingUp },
+    { path: '/client/premium',   label: user?.premium ? t('Mon abonnement') : t('Passer Premium'), icon: Crown },
+    { path: '/profil',           label: t('Profil'),       icon: User },
   ] : [
-    { path: '/dashboard',    label: 'Tableau de bord',  icon: LayoutDashboard },
-    { path: '/avis',         label: 'Avis',             icon: Star },
-    { path: '/portefeuille', label: 'Portefeuille',     icon: Wallet },
-    { path: '/parrainage',   label: 'Parrainage',       icon: Gift },
-    { path: '/profil',       label: 'Profil',           icon: User },
+    { path: '/dashboard',    label: t('Tableau de bord'),  icon: LayoutDashboard },
+    { path: '/avis',         label: t('Avis'),             icon: Star },
+    { path: '/portefeuille', label: t('Portefeuille'),     icon: Wallet },
+    { path: '/parrainage',   label: t('Parrainage'),       icon: Gift },
+    { path: '/profil',       label: t('Profil'),           icon: User },
   ]
 
   // Un compte apporteur voit « Apporteur » dans son menu, quel que soit son rôle.
@@ -133,7 +135,7 @@ export default function Layout() {
     return () => { vivant = false }
   }, [user?.id])
   const menu = estApporteur && !navItems.some(i => i.path === '/apporteur')
-    ? [...navItems.slice(0, -1), { path: '/apporteur', label: 'Apporteur', icon: Handshake }, navItems[navItems.length - 1]]
+    ? [...navItems.slice(0, -1), { path: '/apporteur', label: t('Apporteur'), icon: Handshake }, navItems[navItems.length - 1]]
     : navItems
 
   const handleLogout = () => {
@@ -178,7 +180,7 @@ export default function Layout() {
         <Icon size={18} className={`relative ${active ? '' : 'text-slate-500 dark:text-slate-500'}`} style={active ? { color: accent } : undefined} />
         <span className="relative" style={active ? { color: accent } : undefined}>{item.label}</span>
         {item.verrou && (
-          <span className="relative ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-500" title={`Débloquer avec ${item.verrou}`}>
+          <span className="relative ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-500" title={t('Débloquer avec {verrou}', { verrou: item.verrou })}>
             <Lock size={11} /> {item.verrou}
           </span>
         )}
@@ -217,13 +219,14 @@ export default function Layout() {
             <p className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 min-w-0"><span className="truncate">{user?.email}</span><BadgePause actif={user?.avis_bloque} size={13} /></p>
             <p className="text-xs text-slate-500 dark:text-slate-500 capitalize">{user?.role}</p>
           </div>
+          <div className="px-3 py-1.5"><SelecteurLangue /></div>
           <DiscordButton />
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all"
           >
             <LogOut size={18} />
-            Déconnexion
+            {t('Déconnexion')}
           </button>
           <LiensLegaux className="flex flex-wrap gap-x-3 gap-y-1 px-3 pt-2 text-[11px]" classe="text-slate-600 dark:text-slate-400 hover:underline" />
         </div>
@@ -240,12 +243,15 @@ export default function Layout() {
               </div>}
           <span className="font-semibold text-slate-900 dark:text-slate-100 tracking-tight truncate max-w-[200px]">{nomEspace}</span>
         </Link>
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-        >
-          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <div className="flex items-center gap-1">
+          <SelecteurLangue />
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
 
       {/* Menu mobile — vraie feuille qui glisse depuis le bord, au lieu d'un
@@ -290,7 +296,7 @@ export default function Layout() {
                 className="flex items-center gap-3 px-3 py-3 w-full rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               >
                 <LogOut size={18} />
-                Déconnexion
+                {t('Déconnexion')}
               </button>
               <LiensLegaux className="flex flex-wrap gap-x-3 gap-y-1 px-3 py-3 text-xs" classe="text-slate-600 dark:text-slate-400 hover:underline" />
             </nav>

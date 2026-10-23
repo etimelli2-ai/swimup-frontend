@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { springSmooth } from '../../lib/motion'
 import toast from 'react-hot-toast'
 import { MentionDonnees, InfoAvantPaiement } from '../../components/PageLegale'
+import { t, tn } from '../../lib/i18n'
 
 function Spinner() {
   return <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
@@ -58,7 +59,7 @@ export default function ClientPaiement() {
   // Retour de la page Stripe après un paiement abandonné.
   const [params] = useSearchParams()
   useEffect(() => {
-    if (params.get('paiement') === 'annule') toast('Paiement annulé, rien n\'a été débité.', { icon: 'ℹ️' })
+    if (params.get('paiement') === 'annule') toast(t('Paiement annulé, rien n\'a été débité.'), { icon: 'ℹ️' })
   }, [params])
 
   const estPremium = !!user?.premium
@@ -71,9 +72,9 @@ export default function ClientPaiement() {
   // Paiement par carte : on envoie le client chez Stripe, c'est le webhook de
   // Stripe qui crée la commande une fois l'argent reçu (rien n'est créé avant).
   const handleCarte = async () => {
-    if (!form.nom_etablissement) return toast.error('Entre le nom de l\'établissement')
-    if (!form.lien_maps) return toast.error('Entre le lien Google Maps')
-    if (nb < 1) return toast.error('Minimum 1 avis')
+    if (!form.nom_etablissement) return toast.error(t('Entre le nom de l\'établissement'))
+    if (!form.lien_maps) return toast.error(t('Entre le lien Google Maps'))
+    if (nb < 1) return toast.error(t('Minimum 1 avis'))
 
     setLoading(true)
     try {
@@ -89,15 +90,15 @@ export default function ClientPaiement() {
       window.location.href = r.data.url
       return // la page change : on laisse le bouton bloqué
     } catch (e) {
-      toast.error(e.response?.data?.error || 'Impossible de lancer le paiement par carte')
+      toast.error(e.response?.data?.error || t('Impossible de lancer le paiement par carte'))
     }
     setLoading(false)
   }
 
   const handleCommander = async () => {
-    if (!form.nom_etablissement) return toast.error('Entre le nom de l\'établissement')
-    if (!form.lien_maps) return toast.error('Entre le lien Google Maps')
-    if (nb < 1) return toast.error('Minimum 1 avis')
+    if (!form.nom_etablissement) return toast.error(t('Entre le nom de l\'établissement'))
+    if (!form.lien_maps) return toast.error(t('Entre le lien Google Maps'))
+    if (nb < 1) return toast.error(t('Minimum 1 avis'))
 
     setLoading(true)
     try {
@@ -117,10 +118,10 @@ export default function ClientPaiement() {
         // Client — commande envoyée à l'admin pour validation, paiement PayPal en direct
         if (user?.id) ecrireMemoire(user.id, { nom_etablissement: form.nom_etablissement, type_etablissement: form.type_etablissement, lien_maps: form.lien_maps })
         setCommandeEnvoyee({ montant: r.data.montant })
-        toast.success('Commande envoyée !')
+        toast.success(t('Commande envoyée !'))
       }
     } catch (e) {
-      toast.error(e.response?.data?.error || 'Erreur lors de la création')
+      toast.error(e.response?.data?.error || t('Erreur lors de la création'))
     }
     setLoading(false)
   }
@@ -138,9 +139,9 @@ export default function ClientPaiement() {
             <CheckCircle2 size={30} className="text-sky-500" />
           </div>
           <div>
-            <h1 className="text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight">Commande envoyée</h1>
+            <h1 className="text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight">{t('Commande envoyée')}</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-              Il reste une étape : le paiement de {commandeEnvoyee.montant.toFixed(2)}€ par PayPal.
+              {t('Il reste une étape : le paiement de {commandeEnvoyee}€ par PayPal.', { commandeEnvoyee: commandeEnvoyee.montant.toFixed(2) })}
             </p>
           </div>
 
@@ -150,23 +151,23 @@ export default function ClientPaiement() {
             rel="noreferrer"
             className="btn-primary w-full text-base py-3.5"
           >
-            Payer {commandeEnvoyee.montant.toFixed(2)}€ avec PayPal
+            {t('Payer {commandeEnvoyee}€ avec PayPal', { commandeEnvoyee: commandeEnvoyee.montant.toFixed(2) })}
           </a>
 
           <ol className="text-left text-xs text-slate-500 dark:text-slate-400 space-y-1.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4">
-            <li><strong className="text-slate-700 dark:text-slate-200">1.</strong> Tu paies sur PayPal (le montant est déjà rempli).</li>
-            <li><strong className="text-slate-700 dark:text-slate-200">2.</strong> On active ta commande dès qu'on voit le paiement, en général sous 12 h.</li>
-            <li><strong className="text-slate-700 dark:text-slate-200">3.</strong> Tu écris le texte de chaque avis, les membres le publient.</li>
-            <li className="pt-1">Tu peux fermer cette page : le bouton de paiement reste dans « Mes commandes ».</li>
+            <li><strong className="text-slate-700 dark:text-slate-200">1.</strong>{' '}{t('Tu paies sur PayPal (le montant est déjà rempli).')}</li>
+            <li><strong className="text-slate-700 dark:text-slate-200">2.</strong>{' '}{t('On active ta commande dès qu\'on voit le paiement, en général sous 12 h.')}</li>
+            <li><strong className="text-slate-700 dark:text-slate-200">3.</strong>{' '}{t('Tu écris le texte de chaque avis, les membres le publient.')}</li>
+            <li className="pt-1">{t('Tu peux fermer cette page : le bouton de paiement reste dans « Mes commandes ».')}</li>
           </ol>
 
           <div className="flex flex-col gap-3 pt-2">
             <button onClick={() => navigate('/client/commandes')} className="btn-secondary w-full">
               <ArrowRight size={16} />
-              Voir mes commandes
+              {t('Voir mes commandes')}
             </button>
             <button onClick={() => navigate('/client')} className="btn-ghost w-full">
-              Retour au dashboard
+              {t('Retour au dashboard')}
             </button>
           </div>
         </motion.div>
@@ -175,20 +176,20 @@ export default function ClientPaiement() {
   }
 
   const etoilesLabel = n => ({
-    1: 'Très mauvais', 2: 'Mauvais', 3: 'Moyen',
-    4: 'Bien', 5: 'Excellent'
-  }[parseInt(n)] || 'Excellent')
+    1: t('Très mauvais'), 2: t('Mauvais'), 3: t('Moyen'),
+    4: t('Bien'), 5: t('Excellent')
+  }[parseInt(n)] || t('Excellent'))
 
   return (
     <div className="space-y-6 animate-fade-in max-w-lg mx-auto">
       <div>
         <h1 className="page-title">
-          {isAdmin ? 'Commander des avis (Admin)' : 'Commander des avis'}
+          {isAdmin ? t('Commander des avis (Admin)') : t('Commander des avis')}
         </h1>
         <p className="text-muted mt-1">
           {isAdmin
-            ? 'En tant qu\'admin, les avis sont créés gratuitement et immédiatement.'
-            : 'Ton lien Google Maps, le nombre d\'avis, puis le paiement par carte ou PayPal'
+            ? t('En tant qu\'admin, les avis sont créés gratuitement et immédiatement.')
+            : t('Ton lien Google Maps, le nombre d\'avis, puis le paiement par carte ou PayPal')
           }
         </p>
       </div>
@@ -198,10 +199,10 @@ export default function ClientPaiement() {
           <ShieldCheck size={16} className="text-emerald-500 mt-0.5 shrink-0" />
           <div>
             <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-              Mode admin — paiement bypassé
+              {t('Mode admin — paiement bypassé')}
             </p>
             <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-0.5">
-              Les avis seront créés directement sans facturation.
+              {t('Les avis seront créés directement sans facturation.')}
             </p>
           </div>
         </div>
@@ -210,20 +211,20 @@ export default function ClientPaiement() {
       <div className="card p-5 space-y-4">
         <h2 className="section-title flex items-center gap-2">
           <Building size={18} className="text-sky-500" />
-          Ton établissement
+          {t('Ton établissement')}
         </h2>
 
         {dejaRempli && (
           <p className="text-xs text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 rounded-xl px-3 py-2">
-            Repris de ta dernière commande. Change-le si c'est pour un autre établissement.
+            {t('Repris de ta dernière commande. Change-le si c\'est pour un autre établissement.')}
           </p>
         )}
 
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-            Nom de l'établissement <span className="text-red-500">*</span>
+            {t('Nom de l\'établissement')}{' '}<span className="text-red-500">*</span>
           </label>
-          <input className="input" placeholder="Ex: Restaurant Le Petit Bistro"
+          <input className="input" placeholder={t('Ex: Restaurant Le Petit Bistro')}
             value={form.nom_etablissement}
             onChange={e => setForm(p => ({ ...p, nom_etablissement: e.target.value }))} />
         </div>
@@ -231,47 +232,47 @@ export default function ClientPaiement() {
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
             <Link size={14} className="text-slate-500 dark:text-slate-400" />
-            Lien Google Maps <span className="text-red-500">*</span>
+            {t('Lien Google Maps')}{' '}<span className="text-red-500">*</span>
           </label>
           <input className="input" placeholder="https://maps.app.goo.gl/..."
             value={form.lien_maps}
             onChange={e => setForm(p => ({ ...p, lien_maps: e.target.value }))} />
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Sur Google Maps : ta fiche → Partager → Copier le lien.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('Sur Google Maps : ta fiche → Partager → Copier le lien.')}</p>
         </div>
 
         <button type="button" onClick={() => setOptions(o => !o)}
           className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
           <ChevronDown size={14} className={`transition-transform ${options ? 'rotate-180' : ''}`} />
-          Options (type d'établissement, étoiles, garantie)
+          {t('Options (type d\'établissement, étoiles, garantie)')}
         </button>
 
         {options && (
           <div className="space-y-4 border-t border-slate-100 dark:border-slate-700 pt-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Type d'établissement</label>
-              <input className="input" placeholder="Ex: restaurant, hôtel, couvreur..."
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t('Type d\'établissement')}</label>
+              <input className="input" placeholder={t('Ex: restaurant, hôtel, couvreur...')}
                 value={form.type_etablissement}
                 onChange={e => setForm(p => ({ ...p, type_etablissement: e.target.value }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-                  <Star size={14} className="text-slate-500 dark:text-slate-400" /> Note des avis
+                  <Star size={14} className="text-slate-500 dark:text-slate-400" />{' '}{t('Note des avis')}
                 </label>
                 <select className="input" value={form.nb_etoiles}
                   onChange={e => setForm(p => ({ ...p, nb_etoiles: e.target.value }))}>
-                  {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} étoile{n > 1 ? 's' : ''}</option>)}
+                  {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{tn(n, '{n} étoile', '{n} étoiles')}</option>)}
                 </select>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{etoilesLabel(form.nb_etoiles)}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-                  <Clock size={14} className="text-slate-500 dark:text-slate-400" /> Garantie (jours)
+                  <Clock size={14} className="text-slate-500 dark:text-slate-400" />{' '}{t('Garantie (jours)')}
                 </label>
                 <input className="input" type="number" min="7" max="90" placeholder="30"
                   value={form.delai_paiement}
                   onChange={e => setForm(p => ({ ...p, delai_paiement: e.target.value }))} />
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">On vérifie que l'avis reste en ligne</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('On vérifie que l\'avis reste en ligne')}</p>
               </div>
             </div>
           </div>
@@ -281,12 +282,12 @@ export default function ClientPaiement() {
       <div className="card p-5 space-y-4">
         <h2 className="section-title flex items-center gap-2">
           <CreditCard size={18} className="text-sky-500" />
-          Quantité {!isAdmin && 'et paiement'}
+          {t('Quantité')}{' '}{!isAdmin && t('et paiement')}
         </h2>
 
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-            Nombre d'avis
+            {t('Nombre d\'avis')}
           </label>
           <div className="flex flex-wrap gap-2 mb-2">
             {QUANTITES.map(q => (
@@ -304,14 +305,14 @@ export default function ClientPaiement() {
         {!isAdmin && nbBonus === 0 && nb >= 5 && (
           <div className="flex items-center gap-2 text-xs text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 rounded-xl p-3">
             <Gift size={14} className="shrink-0" />
-            Encore {10 - (nb % 10)} avis pour en obtenir 1 offert
+            {t('Encore {valeur} avis pour en obtenir 1 offert', { valeur: 10 - (nb % 10) })}
           </div>
         )}
 
         {!isAdmin && nbBonus > 0 && (
           <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3">
             <Gift size={14} className="shrink-0" />
-            {nbBonus} avis offert{nbBonus > 1 ? 's' : ''} sur cette commande !
+            {tn(nbBonus, '{n} avis offert sur cette commande !', '{n} avis offerts sur cette commande !')}
           </div>
         )}
 
@@ -319,7 +320,7 @@ export default function ClientPaiement() {
         <div className={`rounded-xl p-4 space-y-2 ${isAdmin ? 'bg-green-50 dark:bg-green-900/20' : 'bg-sky-50 dark:bg-sky-900/20'}`}>
           <div className="flex justify-between text-sm">
             <span className="text-slate-600 dark:text-slate-400">
-              {nb} avis{nbBonus > 0 && ` (+${nbBonus} offert${nbBonus > 1 ? 's' : ''})`} × {isAdmin ? '0€ (admin)' : `${PRIX_AVIS}€`}
+              {t('{nb} avis', { nb })}{nbBonus > 0 && ' ' + tn(nbBonus, '(+{n} offert)', '(+{n} offerts)')}{' '}{t('×')}{' '}{isAdmin ? '0€ (admin)' : `${PRIX_AVIS}€`}
             </span>
             <span className="font-semibold text-slate-900 dark:text-white">
               {isAdmin ? '0.00€' : `${sousTotal.toFixed(2)}€`}
@@ -327,30 +328,30 @@ export default function ClientPaiement() {
           </div>
           {!isAdmin && estPremium && (
             <div className="flex justify-between text-sm">
-              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><Crown size={12} /> Remise premium -10%</span>
+              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><Crown size={12} />{' '}{t('Remise premium -10%')}</span>
               <span className="font-semibold text-emerald-600 dark:text-emerald-400">-{(sousTotal - total).toFixed(2)}€</span>
             </div>
           )}
           <div className={`flex justify-between text-sm border-t pt-2 ${isAdmin ? 'border-green-100 dark:border-green-800' : 'border-sky-100 dark:border-sky-800'}`}>
-            <span className="font-semibold text-slate-700 dark:text-slate-300">Total</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">{t('Total')}</span>
             <span className={`font-semibold text-lg ${isAdmin ? 'text-green-600 dark:text-green-400' : 'text-sky-600 dark:text-sky-400'}`}>
-              {isAdmin ? 'Gratuit' : `${total.toFixed(2)}€`}
+              {isAdmin ? t('Gratuit') : `${total.toFixed(2)}€`}
             </span>
           </div>
         </div>
 
         {!isAdmin && (
           <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
-            <p>Par carte : paiement sécurisé chez Stripe, commande activée en quelques secondes.</p>
-            <p>Par PayPal : on active ta commande dès qu'on voit le paiement, en général sous 12 h.</p>
-            <p>Ensuite tu écris le texte de chaque avis.</p>
+            <p>{t('Par carte : paiement sécurisé chez Stripe, commande activée en quelques secondes.')}</p>
+            <p>{t('Par PayPal : on active ta commande dès qu\'on voit le paiement, en général sous 12 h.')}</p>
+            <p>{t('Ensuite tu écris le texte de chaque avis.')}</p>
           </div>
         )}
 
         {!isAdmin && !estPremium && (
           <RouterLink to="/client/premium" className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 hover:opacity-80 transition-opacity">
             <Crown size={14} className="shrink-0" />
-            Passe premium pour -10% sur toutes tes commandes
+            {t('Passe premium pour -10% sur toutes tes commandes')}
           </RouterLink>
         )}
 
@@ -360,25 +361,25 @@ export default function ClientPaiement() {
             disabled={loading || !form.nom_etablissement || !form.lien_maps}
             className="w-full text-base py-3.5 font-medium rounded-full flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all bg-emerald-500 hover:bg-emerald-600 text-white"
           >
-            {loading ? <><Spinner /> Envoi...</> : <><CheckCircle2 size={18} /> Créer {nb} avis gratuitement</>}
+            {loading ? <><Spinner />{' '}{t('Envoi...')}</> : <><CheckCircle2 size={18} />{' '}{t('Créer {nb} avis gratuitement', { nb })}</>}
           </button>
         ) : (
           <div className="space-y-2.5">
             <InfoAvantPaiement />
-            <MentionDonnees>Le lien de ta fiche, le nom et le type de ton établissement servent à faire publier les avis commandés.</MentionDonnees>
+            <MentionDonnees>{t('Le lien de ta fiche, le nom et le type de ton établissement servent à faire publier les avis commandés.')}</MentionDonnees>
             <button
               onClick={handleCarte}
               disabled={loading || !form.nom_etablissement || !form.lien_maps}
               className="btn-primary w-full text-base py-3.5 font-medium rounded-full flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all"
             >
-              {loading ? <><Spinner /> Redirection...</> : <><CreditCard size={18} /> Payer {total.toFixed(2)}€ par carte</>}
+              {loading ? <><Spinner />{' '}{t('Redirection...')}</> : <><CreditCard size={18} />{' '}{t('Payer {total}€ par carte', { total: total.toFixed(2) })}</>}
             </button>
             <button
               onClick={handleCommander}
               disabled={loading || !form.nom_etablissement || !form.lien_maps}
               className="btn-secondary w-full text-sm py-3 rounded-full flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all"
             >
-              <Wallet size={16} /> Payer par PayPal
+              <Wallet size={16} />{' '}{t('Payer par PayPal')}
             </button>
           </div>
         )}

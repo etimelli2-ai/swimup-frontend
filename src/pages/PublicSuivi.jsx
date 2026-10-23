@@ -6,6 +6,8 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import { TONS, TYPES, EtoilesPicker, genererTexteIA } from '../lib/avisPublicShared'
 import Logo from '../components/Logo'
+import { t, tn } from '../lib/i18n'
+import SelecteurLangue from '../components/SelecteurLangue'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.swimup.net/api'
 
@@ -48,15 +50,6 @@ const STATUTS = {
   },
 }
 
-const TONS_LABELS = {
-  enthousiaste: '🔥 Enthousiaste',
-  naturel:      '😊 Naturel',
-  neutre:       '😐 Neutre',
-  drole:        '😂 Drôle',
-  poetique:     '✨ Poétique',
-  severe:       '😤 Sévère',
-}
-
 // Formulaire affiché sur la page de suivi une fois la commande payée — le
 // client y complète les infos de son établissement (avant paiement, sur
 // /commander, on ne lui a demandé que le nombre d'avis).
@@ -78,11 +71,11 @@ function CompleterInfosForm({ token, onSaved }) {
   const typeEffectif = form.type_etablissement === 'Autre' ? form.type_autre : form.type_etablissement
 
   const handleGenerer = async () => {
-    const nom = form.nom_etablissement || 'cet établissement'
+    const nom = form.nom_etablissement || t('cet établissement')
     setGenerating(true)
     const texte = await genererTexteIA(nom, typeEffectif, form.nb_etoiles, form.ton)
     if (texte) set('texte_avis', texte)
-    else setError('Impossible de générer le texte — réessaie ou écris-le toi-même')
+    else setError(t('Impossible de générer le texte — réessaie ou écris-le toi-même'))
     setGenerating(false)
   }
 
@@ -90,10 +83,10 @@ function CompleterInfosForm({ token, onSaved }) {
     e.preventDefault()
     setError(null)
 
-    if (!form.nom_etablissement) return setError("Entre le nom de l'établissement")
-    if (!form.lien_maps) return setError('Entre le lien Google Maps')
+    if (!form.nom_etablissement) return setError(t('Entre le nom de l\'établissement'))
+    if (!form.lien_maps) return setError(t('Entre le lien Google Maps'))
     if (form.type_etablissement === 'Autre' && !form.type_autre.trim()) {
-      return setError("Précise le type d'établissement")
+      return setError(t('Précise le type d\'établissement'))
     }
 
     setSaving(true)
@@ -108,7 +101,7 @@ function CompleterInfosForm({ token, onSaved }) {
       })
       await onSaved()
     } catch (e) {
-      setError(e.response?.data?.error || 'Erreur — réessaie dans quelques secondes')
+      setError(e.response?.data?.error || t('Erreur — réessaie dans quelques secondes'))
       setSaving(false)
     }
   }
@@ -121,19 +114,19 @@ function CompleterInfosForm({ token, onSaved }) {
       className="rounded-2xl border border-sky-200 bg-sky-50/40 p-6 space-y-6"
     >
       <div>
-        <p className="font-semibold text-[17px] text-slate-900">Complète les infos de ton établissement</p>
-        <p className="text-[13px] text-slate-500 mt-1">Un membre pourra rédiger ton avis dès que c'est rempli.</p>
+        <p className="font-semibold text-[17px] text-slate-900">{t('Complète les infos de ton établissement')}</p>
+        <p className="text-[13px] text-slate-500 mt-1">{t('Un membre pourra rédiger ton avis dès que c\'est rempli.')}</p>
       </div>
 
       <div className="space-y-2">
         <label className="block text-[13px] font-semibold text-slate-700">
-          Nom de l'établissement *
+          {t('Nom de l\'établissement *')}
         </label>
         <div className="relative">
           <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
-            placeholder="Ex: Restaurant Le Petit Bistro"
+            placeholder={t('Ex: Restaurant Le Petit Bistro')}
             value={form.nom_etablissement}
             onChange={e => set('nom_etablissement', e.target.value)}
             className="w-full rounded-full border border-slate-200 bg-white pl-11 pr-5 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
@@ -143,7 +136,7 @@ function CompleterInfosForm({ token, onSaved }) {
 
       <div className="space-y-2">
         <label className="block text-[13px] font-semibold text-slate-700">
-          Lien Google Maps de votre établissement *
+          {t('Lien Google Maps de votre établissement *')}
         </label>
         <div className="relative">
           <LinkIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -159,20 +152,20 @@ function CompleterInfosForm({ token, onSaved }) {
 
       <div className="space-y-2">
         <label className="block text-[13px] font-semibold text-slate-700">
-          Type d'établissement
+          {t('Type d\'établissement')}
         </label>
         <select
           value={form.type_etablissement}
           onChange={e => set('type_etablissement', e.target.value)}
           className="w-full rounded-full border border-slate-200 bg-white px-5 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent appearance-none transition-all"
         >
-          <option value="">Sélectionner...</option>
-          {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          <option value="">{t('Sélectionner...')}</option>
+          {TYPES.map(tx => <option key={tx} value={tx}>{t(tx)}</option>)}
         </select>
         {form.type_etablissement === 'Autre' && (
           <input
             type="text"
-            placeholder="Précisez le type d'établissement..."
+            placeholder={t('Précisez le type d\'établissement...')}
             value={form.type_autre}
             onChange={e => set('type_autre', e.target.value)}
             className="w-full rounded-full border border-sky-400 bg-white px-5 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all mt-2"
@@ -182,28 +175,28 @@ function CompleterInfosForm({ token, onSaved }) {
 
       <div className="space-y-2">
         <label className="block text-[13px] font-semibold text-slate-700">
-          Note à attribuer ({form.nb_etoiles} étoile{form.nb_etoiles > 1 ? 's' : ''})
+          {tn(form.nb_etoiles, 'Note à attribuer ({n} étoile)', 'Note à attribuer ({n} étoiles)')}
         </label>
         <EtoilesPicker value={form.nb_etoiles} onChange={v => set('nb_etoiles', v)} />
       </div>
 
       <div className="space-y-2">
         <label className="block text-[13px] font-semibold text-slate-700">
-          Ton de l'avis
+          {t('Ton de l\'avis')}
         </label>
         <div className="flex flex-wrap gap-2">
-          {TONS.map(t => (
+          {TONS.map(tx => (
             <button
-              key={t.id}
+              key={tx.id}
               type="button"
-              onClick={() => set('ton', t.id)}
+              onClick={() => set('ton', tx.id)}
               className={`rounded-full border px-4 py-2 text-[14px] font-medium transition-all active:scale-95 ${
-                form.ton === t.id
+                form.ton === tx.id
                   ? 'border-sky-500 bg-sky-50 text-sky-700'
                   : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
               }`}
             >
-              {t.emoji} {t.label}
+              {tx.emoji} {t(tx.label)}
             </button>
           ))}
         </div>
@@ -212,7 +205,7 @@ function CompleterInfosForm({ token, onSaved }) {
       <div className="space-y-2">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <label className="block text-[13px] font-semibold text-slate-700">
-            Texte de l'avis <span className="font-normal text-slate-500">(optionnel)</span>
+            {t('Texte de l\'avis')}{' '}<span className="font-normal text-slate-500">{t('(optionnel)')}</span>
           </label>
           <button
             type="button"
@@ -221,13 +214,13 @@ function CompleterInfosForm({ token, onSaved }) {
             className="flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3.5 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-100 active:scale-95 transition-all disabled:opacity-50"
           >
             {generating
-              ? <><Loader2 size={12} className="animate-spin" /> Génération...</>
-              : <><Sparkles size={12} className="text-sky-500" /> Générer avec l'IA</>
+              ? <><Loader2 size={12} className="animate-spin" />{' '}{t('Génération...')}</>
+              : <><Sparkles size={12} className="text-sky-500" />{' '}{t('Générer avec l\'IA')}</>
             }
           </button>
         </div>
         <textarea
-          placeholder="Rédigez votre avis ou cliquez sur Générer avec l'IA pour un texte naturel et authentique."
+          placeholder={t('Rédigez votre avis ou cliquez sur Générer avec l\'IA pour un texte naturel et authentique.')}
           value={form.texte_avis}
           onChange={e => set('texte_avis', e.target.value)}
           rows={4}
@@ -235,7 +228,7 @@ function CompleterInfosForm({ token, onSaved }) {
         />
       </div>
 
-      <MentionDonnees>Ces informations servent à faire rédiger et publier les avis de ta commande.</MentionDonnees>
+      <MentionDonnees>{t('Ces informations servent à faire rédiger et publier les avis de ta commande.')}</MentionDonnees>
 
       {error && (
         <div className="rounded-xl bg-red-50 p-4 flex items-start gap-3">
@@ -250,9 +243,9 @@ function CompleterInfosForm({ token, onSaved }) {
         className="w-full rounded-full bg-sky-500 hover:bg-sky-600 text-white py-3.5 font-medium text-[15px] flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50"
       >
         {saving ? (
-          <><Loader2 size={18} className="animate-spin" /> Enregistrement...</>
+          <><Loader2 size={18} className="animate-spin" />{' '}{t('Enregistrement...')}</>
         ) : (
-          'Valider les infos'
+          t('Valider les infos')
         )}
       </button>
     </motion.form>
@@ -271,13 +264,13 @@ export default function PublicSuivi() {
 
   const charger = () => {
     if (!token) {
-      setError('Token de suivi manquant')
+      setError(t('Token de suivi manquant'))
       setLoading(false)
       return
     }
     return axios.get(`${API}/public/suivi/${token}`)
       .then(r => { setData(r.data); setError(null) })
-      .catch(() => setError('Commande introuvable — vérifie ton lien de suivi'))
+      .catch(() => setError(t('Commande introuvable — vérifie ton lien de suivi')))
       .finally(() => setLoading(false))
   }
 
@@ -301,10 +294,10 @@ export default function PublicSuivi() {
         <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto">
           <AlertCircle size={26} className="text-red-500" />
         </div>
-        <h1 className="font-semibold text-[22px] tracking-tight text-slate-900">Commande introuvable</h1>
+        <h1 className="font-semibold text-[22px] tracking-tight text-slate-900">{t('Commande introuvable')}</h1>
         <p className="text-[15px] text-slate-500">{error}</p>
         <Link to="/commander" className="btn-primary inline-flex px-6 py-3">
-          Passer une commande
+          {t('Passer une commande')}
         </Link>
       </div>
     </div>
@@ -313,7 +306,7 @@ export default function PublicSuivi() {
   const { order, avis } = data
   const infosManquantes = order.statut !== 'en_attente' && order.statut !== 'annule' && !order.lien_maps
   const statut = infosManquantes
-    ? { label: 'Payé — infos à compléter', color: 'bg-amber-50 text-amber-700', icon: Package, desc: "Paiement confirmé ! Complète les infos de ton établissement ci-dessous pour qu'un membre puisse rédiger ton avis." }
+    ? { label: t('Payé — infos à compléter'), color: 'bg-amber-50 text-amber-700', icon: Package, desc: t('Paiement confirmé ! Complète les infos de ton établissement ci-dessous pour qu\'un membre puisse rédiger ton avis.') }
     : (STATUTS[order.statut] || STATUTS.en_attente)
   const StatusIcon = statut.icon
   const avisPublic = avis?.[0]
@@ -327,7 +320,10 @@ export default function PublicSuivi() {
           <Link to="/commander" className="flex items-center gap-2">
             <Logo taille={26} classeTexte="text-slate-900" />
           </Link>
-          <span className="text-[12px] text-slate-500 font-mono">#{order.id}</span>
+          <span className="flex items-center gap-3">
+            <SelecteurLangue />
+            <span className="text-[12px] text-slate-500 font-mono">#{order.id}</span>
+          </span>
         </div>
       </header>
 
@@ -342,9 +338,9 @@ export default function PublicSuivi() {
           >
             <CheckCircle2 size={18} className="text-emerald-600 shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-emerald-700 text-[14px]">Paiement confirmé !</p>
+              <p className="font-semibold text-emerald-700 text-[14px]">{t('Paiement confirmé !')}</p>
               <p className="text-[13px] text-emerald-600 mt-0.5">
-                Garde ce lien pour suivre ta commande{infosManquantes ? ' et compléter les infos ci-dessous' : ". Un membre va bientôt s'en occuper"}.
+                {t('Garde ce lien pour suivre ta commande')}{infosManquantes ? t(' et compléter les infos ci-dessous') : ". Un membre va bientôt s'en occuper"}.
               </p>
             </div>
           </motion.div>
@@ -358,15 +354,15 @@ export default function PublicSuivi() {
         >
           <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-semibold ${statut.color}`}>
             <StatusIcon size={15} />
-            {statut.label}
+            {t(statut.label)}
           </div>
           <p className="text-[16px] text-slate-500 leading-relaxed max-w-md mx-auto font-light">
-            {statut.desc}
+            {t(statut.desc)}
           </p>
           <p className="text-[40px] font-semibold tracking-tight text-slate-900">
             {parseFloat(order.montant).toFixed(2)}€
           </p>
-          <p className="text-[13px] text-slate-500 -mt-4">Total payé</p>
+          <p className="text-[13px] text-slate-500 -mt-4">{t('Total payé')}</p>
         </motion.div>
 
         {/* Complète les infos de l'établissement — uniquement tant que ce n'est pas fait */}
@@ -377,13 +373,13 @@ export default function PublicSuivi() {
         {/* Progression */}
         {!infosManquantes && (
         <div className="rounded-2xl border border-slate-200 p-6">
-          <p className="text-[13px] font-semibold text-slate-500 mb-5">Progression</p>
+          <p className="text-[13px] font-semibold text-slate-500 mb-5">{t('Progression')}</p>
           <div className="space-y-4">
             {[
-              { key: ['paye', 'reserve', 'soumis', 'livre'], label: 'Paiement reçu' },
-              { key: ['reserve', 'soumis', 'livre'], label: 'Rédaction en cours' },
-              { key: ['soumis', 'livre'], label: 'Avis publié' },
-              { key: ['livre'], label: 'Livré et vérifié' },
+              { key: ['paye', 'reserve', 'soumis', 'livre'], label: t('Paiement reçu') },
+              { key: ['reserve', 'soumis', 'livre'], label: t('Rédaction en cours') },
+              { key: ['soumis', 'livre'], label: t('Avis publié') },
+              { key: ['livre'], label: t('Livré et vérifié') },
             ].map((step, i) => {
               const done = step.key.includes(order.statut)
               return (
@@ -403,13 +399,13 @@ export default function PublicSuivi() {
 
         {/* Détails commande */}
         <div className="rounded-2xl border border-slate-200 p-6 space-y-5">
-          <p className="text-[13px] font-semibold text-slate-500">Détails</p>
+          <p className="text-[13px] font-semibold text-slate-500">{t('Détails')}</p>
 
           <div className="space-y-4">
             <div className="flex items-start gap-3">
               <Mail size={16} className="text-slate-500 mt-0.5 shrink-0" />
               <div>
-                <p className="text-[12px] text-slate-500 font-medium">Email</p>
+                <p className="text-[12px] text-slate-500 font-medium">{t('Email')}</p>
                 <p className="text-[15px] font-medium text-slate-900">{order.email}</p>
               </div>
             </div>
@@ -418,7 +414,7 @@ export default function PublicSuivi() {
               <div className="flex items-start gap-3">
                 <MapPin size={16} className="text-slate-500 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-[12px] text-slate-500 font-medium">Établissement</p>
+                  <p className="text-[12px] text-slate-500 font-medium">{t('Établissement')}</p>
                   <p className="text-[15px] font-medium text-slate-900">{order.nom_etablissement}</p>
                   {order.type_etablissement && (
                     <p className="text-[13px] text-slate-500">{order.type_etablissement}</p>
@@ -430,7 +426,7 @@ export default function PublicSuivi() {
             <div className="flex items-start gap-3">
               <Star size={16} className="text-slate-500 mt-0.5 shrink-0" />
               <div>
-                <p className="text-[12px] text-slate-500 font-medium">Note demandée</p>
+                <p className="text-[12px] text-slate-500 font-medium">{t('Note demandée')}</p>
                 <p className="text-[15px] font-medium text-slate-900">
                   {'★'.repeat(order.nb_etoiles)}{'☆'.repeat(5 - order.nb_etoiles)} ({order.nb_etoiles}/5)
                 </p>
@@ -440,14 +436,14 @@ export default function PublicSuivi() {
             <div className="flex items-start gap-3">
               <span className="text-slate-500 mt-0.5 shrink-0 text-[15px]">💬</span>
               <div>
-                <p className="text-[12px] text-slate-500 font-medium">Ton</p>
-                <p className="text-[15px] font-medium text-slate-900">{TONS_LABELS[order.ton] || order.ton}</p>
+                <p className="text-[12px] text-slate-500 font-medium">{t('Ton')}</p>
+                <p className="text-[15px] font-medium text-slate-900">{(() => { const ton = TONS.find(x => x.id === order.ton); return ton ? `${ton.emoji} ${t(ton.label)}` : order.ton })()}</p>
               </div>
             </div>
 
             {order.texte_avis && (
               <div className="border-t border-slate-100 pt-4">
-                <p className="text-[12px] text-slate-500 font-medium mb-1">Texte personnalisé</p>
+                <p className="text-[12px] text-slate-500 font-medium mb-1">{t('Texte personnalisé')}</p>
                 <p className="text-[14px] text-slate-500 italic">"{order.texte_avis}"</p>
               </div>
             )}
@@ -456,7 +452,7 @@ export default function PublicSuivi() {
 
         {avisPublic?.lien_avis_poste && (
           <div className="rounded-2xl bg-emerald-50 p-5 space-y-2">
-            <p className="text-[13px] font-semibold text-emerald-700">Avis publié</p>
+            <p className="text-[13px] font-semibold text-emerald-700">{t('Avis publié')}</p>
             <a
               href={avisPublic.lien_avis_poste}
               target="_blank"
@@ -471,7 +467,7 @@ export default function PublicSuivi() {
         {/* Copier le lien de suivi */}
         <div className="rounded-2xl border border-slate-200 p-5 space-y-3">
           <p className="text-[13px] font-semibold text-slate-500">
-            Lien de suivi — garde-le précieusement
+            {t('Lien de suivi — garde-le précieusement')}
           </p>
           <div className="flex gap-2">
             <div className="flex-1 rounded-full bg-slate-50 px-4 py-2.5 text-[12px] font-mono text-slate-500 truncate">
@@ -485,7 +481,7 @@ export default function PublicSuivi() {
             </button>
           </div>
           <p className="text-[13px] text-slate-500">
-            Pas d'email de suivi automatique. Ce lien est ta seule façon de suivre ta commande.
+            {t('Pas d\'email de suivi automatique. Ce lien est ta seule façon de suivre ta commande.')}
           </p>
         </div>
 
@@ -494,29 +490,28 @@ export default function PublicSuivi() {
           <div className="rounded-2xl bg-[#1d1d1f] text-white p-6 space-y-3 text-center">
             {order.compte_cree ? (
               <>
-                <p className="font-semibold text-[18px] tracking-tight">Tu as déjà un compte</p>
+                <p className="font-semibold text-[18px] tracking-tight">{t('Tu as déjà un compte')}</p>
                 <p className="text-[14px] text-slate-300 max-w-sm mx-auto">
-                  Un compte client a déjà été créé pour cette commande.
+                  {t('Un compte client a déjà été créé pour cette commande.')}
                 </p>
                 <Link
                   to="/login"
                   className="inline-flex mt-1 rounded-full bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 font-medium text-[14px] active:scale-95 transition-all"
                 >
-                  Se connecter →
+                  {t('Se connecter →')}
                 </Link>
               </>
             ) : (
               <>
-                <p className="font-semibold text-[18px] tracking-tight">Tu commandes souvent ?</p>
+                <p className="font-semibold text-[18px] tracking-tight">{t('Tu commandes souvent ?')}</p>
                 <p className="text-[14px] text-slate-300 max-w-sm mx-auto">
-                  Crée un compte gratuit lié à cette commande et paie 3€/avis au lieu de 4€.
-                  Suivi intégré, notifications, historique.
+                  {t('Crée un compte gratuit lié à cette commande et paie 3€/avis au lieu de 4€. Suivi intégré, notifications, historique.')}
                 </p>
                 <Link
                   to={`/register?commande=${token}`}
                   className="inline-flex mt-1 rounded-full bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 font-medium text-[14px] active:scale-95 transition-all"
                 >
-                  Créer un compte gratuit →
+                  {t('Créer un compte gratuit →')}
                 </Link>
               </>
             )}
@@ -527,8 +522,8 @@ export default function PublicSuivi() {
 
       <footer className="bg-slate-50 border-t border-slate-200 mt-4 py-8">
         <div className="max-w-2xl mx-auto px-4 flex items-center justify-between text-[12px] text-slate-500">
-          <span>© {new Date().getFullYear()} SwimUp</span>
-          <Link to="/commander" className="text-sky-600 hover:underline">Nouvelle commande</Link>
+          <span>{t('© {date} SwimUp', { date: new Date().getFullYear() })}</span>
+          <Link to="/commander" className="text-sky-600 hover:underline">{t('Nouvelle commande')}</Link>
         </div>
         <div className="max-w-2xl mx-auto px-4 pt-3"><LiensLegaux className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-slate-600" classe="hover:underline" /></div>
       </footer>

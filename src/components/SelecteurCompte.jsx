@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Building2 } from 'lucide-react'
 import api, { compteActif, choisirCompte } from '../lib/api'
+import { t } from '../lib/i18n'
 
 const PAGES_OUTILS = ['/client/outils', '/client/reputation', '/client/campagnes']
 const ROLES = { proprietaire: 'ton compte', editeur: 'éditeur', lecteur: 'lecture seule' }
@@ -41,14 +42,14 @@ export default function SelecteurCompte() {
     <div className={`mb-4 rounded-2xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2 ${delegue ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' : 'bg-slate-100 dark:bg-slate-800'}`}>
       <div className="flex items-center gap-2 text-sm">
         <Building2 size={16} className="shrink-0 text-slate-500" />
-        <label htmlFor="sel-compte" className="font-medium">Établissement</label>
+        <label htmlFor="sel-compte" className="font-medium">{t('Établissement')}</label>
       </div>
       <select id="sel-compte" className="input sm:w-64" value={String(courant?.client_id || '')} onChange={changer}>
-        {comptes.map(c => <option key={c.client_id} value={c.client_id}>{c.nom} ({c.etablissement ? 'ton entreprise' : ROLES[c.role]})</option>)}
+        {comptes.map(c => <option key={c.client_id} value={c.client_id}>{c.nom} ({c.etablissement ? t('ton entreprise') : t(ROLES[c.role])})</option>)}
       </select>
       {delegue && (
         <p className="text-xs text-amber-800 dark:text-amber-200">
-          Tu travailles sur le compte de {courant.nom}{courant.role === 'lecteur' ? ', en lecture seule' : ''}. L'abonnement et les paiements restent les tiens.
+          {t('Tu travailles sur le compte de {nom}', { nom: courant.nom })}{courant.role === 'lecteur' ? t(', en lecture seule') : ''}{t('. L\'abonnement et les paiements restent les tiens.')}
         </p>
       )}
     </div>

@@ -5,6 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
+import { t } from '../lib/i18n'
 
 // Les avis classiques et les avis publics (clients sans compte) sont présentés
 // comme une seule liste : le membre n'a pas à connaître la différence. Chaque
@@ -79,13 +80,13 @@ export function useReserverAvis() {
     mutationFn: ({ id, source }) => api.post(`${baseUrl(source)}/${id}/reserver`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avis'] });
-      toast.success('Avis reserve ! Tu as 3h pour publier.', {
+      toast.success(t('Avis reserve ! Tu as 3h pour publier.'), {
         icon: '✓',
         style: { borderRadius: '10px', background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }
       });
     },
     onError: (err) => {
-      toast.error(err.response?.data?.error || 'Erreur', {
+      toast.error(err.response?.data?.error || t('Erreur'), {
         icon: '✕',
         style: { borderRadius: '10px', background: '#fef2f2', color: '#991b1b' }
       });
@@ -100,13 +101,13 @@ export function useSoumettreAvis() {
     mutationFn: ({ id, source, lien_avis }) => api.post(`${baseUrl(source)}/${id}/soumettre`, { lien_avis }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avis'] });
-      toast.success('Avis soumis et valide !', {
+      toast.success(t('Avis soumis et valide !'), {
         icon: '✓',
         style: { borderRadius: '10px' }
       });
     },
     onError: (err) => {
-      toast.error(err.response?.data?.error || 'Erreur', {
+      toast.error(err.response?.data?.error || t('Erreur'), {
         icon: '✕',
         style: { borderRadius: '10px', background: '#fef2f2', color: '#991b1b' }
       });
@@ -121,10 +122,10 @@ export function useAnnulerAvis() {
     mutationFn: ({ id, source }) => api.post(`${baseUrl(source)}/${id}/annuler`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avis'] });
-      toast.success('Reservation annulee');
+      toast.success(t('Reservation annulee'));
     },
     onError: (err) => {
-      toast.error(err.response?.data?.error || 'Erreur');
+      toast.error(err.response?.data?.error || t('Erreur'));
     }
   });
 }
@@ -136,10 +137,10 @@ export function useContesterAvis() {
     mutationFn: ({ id, message }) => api.post(`/avis/${id}/contester`, { message }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avis'] });
-      toast.success("Contestation envoyee a l'admin");
+      toast.success(t('Contestation envoyee a l\'admin'));
     },
     onError: (err) => {
-      toast.error(err.response?.data?.error || 'Erreur');
+      toast.error(err.response?.data?.error || t('Erreur'));
     }
   });
 }
@@ -151,13 +152,13 @@ export function useDemanderRetrait() {
     mutationFn: (montant) => api.post('/paiements/retrait', { montant }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['solde', 'transactions', 'retraits'] });
-      toast.success('Demande de retrait envoyee ! Paiement sous 24-48h.', {
+      toast.success(t('Demande de retrait envoyee ! Paiement sous 24-48h.'), {
         icon: '💸',
         style: { borderRadius: '10px' }
       });
     },
     onError: (err) => {
-      toast.error(err.response?.data?.error || 'Erreur', {
+      toast.error(err.response?.data?.error || t('Erreur'), {
         icon: '✕',
         style: { borderRadius: '10px', background: '#fef2f2', color: '#991b1b' }
       });

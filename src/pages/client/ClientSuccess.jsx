@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircle2, ArrowRight, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { springSmooth } from '../../lib/motion'
+import { t } from '../../lib/i18n'
 
 export default function ClientSuccess() {
   const [searchParams] = useSearchParams()
@@ -21,26 +22,26 @@ export default function ClientSuccess() {
         </div>
 
         <div>
-          <h1 className="text-[24px] font-semibold text-slate-900 dark:text-white tracking-tight">Paiement réussi !</h1>
+          <h1 className="text-[24px] font-semibold text-slate-900 dark:text-white tracking-tight">{t('Paiement réussi !')}</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2">
-            Ton paiement a été confirmé. Tes avis ont été créés et sont prêts à être remplis.
+            {t('Ton paiement a été confirmé. Tes avis ont été créés et sont prêts à être remplis.')}
           </p>
         </div>
 
         <div className="bg-sky-50 dark:bg-sky-900/20 rounded-2xl p-4 text-sm text-sky-700 dark:text-sky-400 text-left space-y-2">
-          <p className="font-semibold">Prochaines étapes :</p>
-          <p>1. Va dans "Mes commandes" pour voir tes avis</p>
-          <p>2. Remplis les textes de chaque avis</p>
-          <p>3. SwimUp publie tes avis</p>
+          <p className="font-semibold">{t('Prochaines étapes :')}</p>
+          <p>{t('1. Va dans "Mes commandes" pour voir tes avis')}</p>
+          <p>{t('2. Remplis les textes de chaque avis')}</p>
+          <p>{t('3. SwimUp publie tes avis')}</p>
         </div>
 
         <div className="flex flex-col gap-3">
           <Link to="/client/commandes" className="btn-primary w-full">
             <ArrowRight size={16} />
-            Voir mes commandes
+            {t('Voir mes commandes')}
           </Link>
           <Link to="/client" className="btn-secondary w-full">
-            Retour au dashboard
+            {t('Retour au dashboard')}
           </Link>
         </div>
       </motion.div>

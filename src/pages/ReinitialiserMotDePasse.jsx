@@ -5,9 +5,10 @@ import api from '../lib/api'
 import usePageTitle from '../hooks/usePageTitle'
 import AuthShell from '../components/AuthShell'
 import { MentionDonnees } from '../components/PageLegale'
+import { t } from '../lib/i18n'
 
 export default function ReinitialiserMotDePasse() {
-  usePageTitle('Nouveau mot de passe')
+  usePageTitle(t('Nouveau mot de passe'))
 
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
@@ -23,11 +24,11 @@ export default function ReinitialiserMotDePasse() {
     e.preventDefault()
     setError('')
     if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-      setError('Le mot de passe doit faire au moins 8 caractères, avec au moins une lettre et un chiffre.')
+      setError(t('Le mot de passe doit faire au moins 8 caractères, avec au moins une lettre et un chiffre.'))
       return
     }
     if (password !== confirm) {
-      setError('Les mots de passe ne correspondent pas')
+      setError(t('Les mots de passe ne correspondent pas'))
       return
     }
     setLoading(true)
@@ -35,7 +36,7 @@ export default function ReinitialiserMotDePasse() {
       await api.post('/auth/reset-password', { token, password })
       setFait(true)
     } catch (err) {
-      setError(err.response?.data?.error || 'Impossible de modifier le mot de passe. Réessaie.')
+      setError(err.response?.data?.error || t('Impossible de modifier le mot de passe. Réessaie.'))
     } finally {
       setLoading(false)
     }
@@ -43,11 +44,11 @@ export default function ReinitialiserMotDePasse() {
 
   if (!token) {
     return (
-      <AuthShell sousTitre="Lien invalide">
+      <AuthShell sousTitre={t('Lien invalide')}>
         <div className="text-center space-y-4">
           <AlertCircle size={32} className="text-red-500 mx-auto" />
-          <p className="text-sm text-slate-700">Ce lien est incomplet. Refais une demande pour en recevoir un nouveau.</p>
-          <Link to="/mot-de-passe-oublie" className="btn-primary w-full justify-center">Recevoir un nouveau lien</Link>
+          <p className="text-sm text-slate-700">{t('Ce lien est incomplet. Refais une demande pour en recevoir un nouveau.')}</p>
+          <Link to="/mot-de-passe-oublie" className="btn-primary w-full justify-center">{t('Recevoir un nouveau lien')}</Link>
         </div>
       </AuthShell>
     )
@@ -55,12 +56,12 @@ export default function ReinitialiserMotDePasse() {
 
   if (fait) {
     return (
-      <AuthShell sousTitre="C'est fait">
+      <AuthShell sousTitre={t('C\'est fait')}>
         <div className="text-center space-y-4">
           <CheckCircle2 size={32} className="text-emerald-500 mx-auto" />
-          <p className="text-sm text-slate-700">Mot de passe modifié. Tu peux te connecter.</p>
+          <p className="text-sm text-slate-700">{t('Mot de passe modifié. Tu peux te connecter.')}</p>
           <Link to="/login" className="btn-primary w-full justify-center">
-            Se connecter<ArrowRight size={16} />
+            {t('Se connecter')}<ArrowRight size={16} />
           </Link>
         </div>
       </AuthShell>
@@ -69,8 +70,8 @@ export default function ReinitialiserMotDePasse() {
 
   return (
     <AuthShell
-      sousTitre="Choisis un nouveau mot de passe"
-      pied={<Link to="/login" className="font-semibold text-sky-600 hover:text-sky-700">Retour à la connexion</Link>}
+      sousTitre={t('Choisis un nouveau mot de passe')}
+      pied={<Link to="/login" className="font-semibold text-sky-600 hover:text-sky-700">{t('Retour à la connexion')}</Link>}
     >
       {error && (
         <div className="flex items-start gap-2 p-3 mb-4 bg-red-50 border border-red-200 rounded-lg">
@@ -78,14 +79,14 @@ export default function ReinitialiserMotDePasse() {
           <div className="text-sm text-red-700">
             <p>{error}</p>
             {/invalide|expiré/i.test(error) && (
-              <Link to="/mot-de-passe-oublie" className="font-semibold underline">Recevoir un nouveau lien</Link>
+              <Link to="/mot-de-passe-oublie" className="font-semibold underline">{t('Recevoir un nouveau lien')}</Link>
             )}
           </div>
         </div>
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">Nouveau mot de passe</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('Nouveau mot de passe')}</label>
           <div className="relative">
             <input
               type={show ? 'text' : 'password'}
@@ -96,7 +97,7 @@ export default function ReinitialiserMotDePasse() {
               autoFocus
               autoComplete="new-password"
               className="input pr-10"
-              placeholder="Min. 8 caractères, lettre + chiffre"
+              placeholder={t('Min. 8 caractères, lettre + chiffre')}
             />
             <button
               type="button"
@@ -108,7 +109,7 @@ export default function ReinitialiserMotDePasse() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirmer le mot de passe</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('Confirmer le mot de passe')}</label>
           <input
             type={show ? 'text' : 'password'}
             value={confirm}
@@ -123,11 +124,11 @@ export default function ReinitialiserMotDePasse() {
           {loading ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
-            <>Changer le mot de passe<ArrowRight size={16} /></>
+            <>{t('Changer le mot de passe')}<ArrowRight size={16} /></>
           )}
         </button>
       </form>
-            <MentionDonnees className="mt-4">Ton nouveau mot de passe est enregistré sous forme hachée, illisible pour nous.</MentionDonnees>
+            <MentionDonnees className="mt-4">{t('Ton nouveau mot de passe est enregistré sous forme hachée, illisible pour nous.')}</MentionDonnees>
     </AuthShell>
   )
 }

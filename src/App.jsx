@@ -51,6 +51,7 @@ import Layout from './components/Layout'
 import ZonesPrivees from './components/ZonesPrivees'
 import Mesure from './components/Mesure'
 import CaptureApporteur from './components/CaptureApporteur'
+import { t } from './lib/i18n'
 const NotFound = lazy(() => import('./pages/NotFound'))
 const LienAvisGoogle = lazy(() => import('./pages/outils/LienAvisGoogle'))
 const ModelesReponsesAvis = lazy(() => import('./pages/outils/ModelesReponsesAvis'))
@@ -114,7 +115,7 @@ function RouteConnecteSeulement({ children }) {
 export default function App() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"/></div>}>
-    <a href="#contenu" className="lien-evitement">Aller au contenu</a>
+    <a href="#contenu" className="lien-evitement">{t('Aller au contenu')}</a>
     <ZonesPrivees />
     <Mesure />
     <CaptureApporteur />

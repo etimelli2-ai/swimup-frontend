@@ -7,9 +7,10 @@ import { CreditCard, ShoppingBag, Bell, CheckCircle2, Clock, Star, Crown, BarCha
 import { lienPaypal } from '../../lib/paypal'
 import { motion, AnimatePresence } from 'framer-motion'
 import { springSmooth, springSheet } from '../../lib/motion'
+import { t, tn, locale } from '../../lib/i18n'
 
 export default function ClientDashboard() {
-  usePageTitle('Dashboard client')
+  usePageTitle(t('Dashboard client'))
 
   const { user } = useAuth()
   const [stats, setStats]           = useState(null)
@@ -66,8 +67,8 @@ export default function ClientDashboard() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-title">Tableau de bord</h1>
-          <p className="text-muted mt-1">Ce qu'il y a à faire, et où en sont tes avis</p>
+          <h1 className="page-title">{t('Tableau de bord')}</h1>
+          <p className="text-muted mt-1">{t('Ce qu\'il y a à faire, et où en sont tes avis')}</p>
         </div>
         <button
           onClick={() => { setShowNotifs(!showNotifs); if (!showNotifs) marquerLues() }}
@@ -95,14 +96,14 @@ export default function ClientDashboard() {
             className="overflow-hidden"
           >
             <div className="card p-4 space-y-2">
-              <h3 className="section-title">🔔 Notifications</h3>
+              <h3 className="section-title">{t('🔔 Notifications')}</h3>
               {notifs.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">Aucune notification</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">{t('Aucune notification')}</p>
               ) : notifs.slice(0, 5).map(n => (
                 <div key={n.id} className={`rounded-xl p-3 ${n.lu ? 'bg-slate-50 dark:bg-slate-700/50' : 'bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800'}`}>
                   <p className="text-sm font-semibold dark:text-white">{n.titre}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{n.message}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{new Date(n.created_at).toLocaleString('fr-FR')}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{new Date(n.created_at).toLocaleString(locale())}</p>
                 </div>
               ))}
             </div>
@@ -118,18 +119,18 @@ export default function ClientDashboard() {
             <Wallet size={20} className="text-amber-500 mt-0.5 shrink-0" />
             <div className="flex-1">
               <p className="font-semibold text-slate-900 dark:text-white">
-                {commandesAPayer.length > 1 ? `${commandesAPayer.length} commandes attendent ton paiement` : 'Ta commande attend ton paiement'}
+                {commandesAPayer.length > 1 ? t('{length} commandes attendent ton paiement', { length: commandesAPayer.length }) : t('Ta commande attend ton paiement')}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                Dès qu'on voit ton paiement PayPal, on active ta commande (en général sous 12 h).
+                {t('Dès qu\'on voit ton paiement PayPal, on active ta commande (en général sous 12 h).')}
               </p>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
             <a href={lienPaypal(commandesAPayer[0].montant)} target="_blank" rel="noreferrer" className="btn-primary text-sm py-2.5 px-4 flex-1 text-center">
-              Payer {parseFloat(commandesAPayer[0].montant).toFixed(2)}€ avec PayPal
+              {t('Payer {parseFloat}€ avec PayPal', { parseFloat: parseFloat(commandesAPayer[0].montant).toFixed(2) })}
             </a>
-            <Link to="/client/commandes" className="btn-secondary text-sm py-2.5 px-4 text-center">Voir ma commande</Link>
+            <Link to="/client/commandes" className="btn-secondary text-sm py-2.5 px-4 text-center">{t('Voir ma commande')}</Link>
           </div>
         </motion.div>
       ) : textesARemplir > 0 ? (
@@ -138,36 +139,36 @@ export default function ClientDashboard() {
           <PenLine size={20} className="text-sky-500 mt-0.5 shrink-0" />
           <div className="flex-1">
             <p className="font-semibold text-slate-900 dark:text-white">
-              {textesARemplir} texte{textesARemplir > 1 ? 's' : ''} d'avis à écrire
+              {tn(textesARemplir, '{n} texte d\'avis à écrire', '{n} textes d\'avis à écrire')}
             </p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              Tes avis ne sont publiés qu'une fois leur texte rempli.
+              {t('Tes avis ne sont publiés qu\'une fois leur texte rempli.')}
             </p>
           </div>
-          <Link to="/client/commandes" className="btn-primary text-sm py-2.5 px-4 shrink-0">Écrire</Link>
+          <Link to="/client/commandes" className="btn-primary text-sm py-2.5 px-4 shrink-0">{t('Écrire')}</Link>
         </motion.div>
       ) : commandes.length === 0 ? (
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={springSmooth}
           className="card p-5 flex items-center gap-4">
           <div className="flex-1">
-            <p className="font-semibold text-slate-900 dark:text-white">Lance ta première commande</p>
+            <p className="font-semibold text-slate-900 dark:text-white">{t('Lance ta première commande')}</p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              3 € par avis, 1 avis offert tous les 10. Tu colles ton lien Google Maps et c'est parti.
+              {t('3 € par avis, 1 avis offert tous les 10. Tu colles ton lien Google Maps et c\'est parti.')}
             </p>
           </div>
-          <Link to="/client/payer" className="btn-primary text-sm py-2.5 px-4 shrink-0">Commander</Link>
+          <Link to="/client/payer" className="btn-primary text-sm py-2.5 px-4 shrink-0">{t('Commander')}</Link>
         </motion.div>
       ) : (
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={springSmooth}
           className="card p-5 border-l-4 border-l-emerald-500 flex items-center gap-4">
           <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
           <div className="flex-1">
-            <p className="font-semibold text-slate-900 dark:text-white">Tout est en ordre</p>
+            <p className="font-semibold text-slate-900 dark:text-white">{t('Tout est en ordre')}</p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              SwimUp s'occupe de la publication. Tu peux en commander d'autres quand tu veux.
+              {t('SwimUp s\'occupe de la publication. Tu peux en commander d\'autres quand tu veux.')}
             </p>
           </div>
-          <Link to="/client/payer" className="btn-secondary text-sm py-2.5 px-4 shrink-0">Commander</Link>
+          <Link to="/client/payer" className="btn-secondary text-sm py-2.5 px-4 shrink-0">{t('Commander')}</Link>
         </motion.div>
       )}
 
@@ -175,9 +176,9 @@ export default function ClientDashboard() {
       {stats && (
         <div className="grid grid-cols-3 gap-3">
           {[
-            { v: stats.valides || 0, l: 'Publiés sur Google', Icon: CheckCircle2, bg: 'bg-emerald-50 dark:bg-emerald-900/30', fg: 'text-emerald-500' },
-            { v: stats.enCours || 0, l: 'En cours de publication', Icon: Clock, bg: 'bg-amber-50 dark:bg-amber-900/30', fg: 'text-amber-500' },
-            { v: commandes.filter(c => c.statut !== 'en_attente').length, l: 'Commandes actives', Icon: Star, bg: 'bg-sky-50 dark:bg-sky-900/30', fg: 'text-sky-500' },
+            { v: stats.valides || 0, l: t('Publiés sur Google'), Icon: CheckCircle2, bg: 'bg-emerald-50 dark:bg-emerald-900/30', fg: 'text-emerald-500' },
+            { v: stats.enCours || 0, l: t('En cours de publication'), Icon: Clock, bg: 'bg-amber-50 dark:bg-amber-900/30', fg: 'text-amber-500' },
+            { v: commandes.filter(c => c.statut !== 'en_attente').length, l: t('Commandes actives'), Icon: Star, bg: 'bg-sky-50 dark:bg-sky-900/30', fg: 'text-sky-500' },
           ].map(({ v, l, Icon, bg, fg }) => (
             <div key={l} className="stat-card">
               <div className={`w-9 h-9 ${bg} rounded-lg flex items-center justify-center mb-2.5`}>
@@ -196,12 +197,12 @@ export default function ClientDashboard() {
           <div className="w-12 h-12 bg-sky-50 dark:bg-sky-900/30 rounded-xl flex items-center justify-center mb-3 group-hover:bg-sky-100 dark:group-hover:bg-sky-900/50 transition-colors">
             <CreditCard size={24} className="text-sky-500" />
           </div>
-          <h3 className="font-bold text-slate-900 dark:text-white">Commander des avis</h3>
+          <h3 className="font-bold text-slate-900 dark:text-white">{t('Commander des avis')}</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Choisis le nombre d'avis, paie par carte ou PayPal, c'est lancé
+            {t('Choisis le nombre d\'avis, paie par carte ou PayPal, c\'est lancé')}
           </p>
           <div className="mt-3 flex items-center gap-1 text-sky-600 dark:text-sky-400 text-sm font-medium">
-            3 € par avis · 1 offert tous les 10
+            {t('3 € par avis · 1 offert tous les 10')}
           </div>
         </Link>
 
@@ -209,14 +210,14 @@ export default function ClientDashboard() {
           <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center mb-3 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-colors">
             <ShoppingBag size={24} className="text-emerald-500" />
           </div>
-          <h3 className="font-bold text-slate-900 dark:text-white">Mes commandes</h3>
+          <h3 className="font-bold text-slate-900 dark:text-white">{t('Mes commandes')}</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Gérer et remplir les textes de tes avis commandés
+            {t('Gérer et remplir les textes de tes avis commandés')}
           </p>
           <div className="mt-3 flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-sm font-medium">
-            {commandes.length} commande{commandes.length !== 1 ? 's' : ''}
+            {tn(commandes.length, '{n} commande', '{n} commandes')}
             {commandesIncompletes.length > 0 && (
-              <span className="ml-2 badge-amber text-xs">{commandesIncompletes.length} à compléter</span>
+              <span className="ml-2 badge-amber text-xs">{t('{length} à compléter', { length: commandesIncompletes.length })}</span>
             )}
           </div>
         </Link>
@@ -225,14 +226,14 @@ export default function ClientDashboard() {
           <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 rounded-xl flex items-center justify-center mb-3 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/50 transition-colors">
             <Crown size={24} className="text-amber-500" />
           </div>
-          <h3 className="font-bold text-slate-900 dark:text-white">{user?.premium ? 'Mon abonnement' : 'Passer Premium'}</h3>
+          <h3 className="font-bold text-slate-900 dark:text-white">{user?.premium ? t('Mon abonnement') : t('Passer Premium')}</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             {user?.premium
-              ? 'Gère ton offre, ta carte et tes factures'
-              : 'Campagnes d\'emails, suivi Google Maps, -10 % sur les commandes — dès 9,90 € par mois'}
+              ? t('Gère ton offre, ta carte et tes factures')
+              : t('Campagnes d\'emails, suivi Google Maps, -10 % sur les commandes — dès 9,90 € par mois')}
           </p>
           <div className="mt-3 flex items-center gap-1 text-amber-600 dark:text-amber-400 text-sm font-medium">
-            {user?.premium ? (user?.premium_offre === 'agence' ? 'Agence ✓' : user?.premium_offre === 'business' ? 'Business ✓' : 'Premium ✓') : 'Voir les offres'}
+            {user?.premium ? (user?.premium_offre === 'agence' ? t('Agence ✓') : user?.premium_offre === 'business' ? t('Business ✓') : t('Premium ✓')) : t('Voir les offres')}
           </div>
         </Link>
 
@@ -240,25 +241,25 @@ export default function ClientDashboard() {
           <div className="w-12 h-12 bg-violet-50 dark:bg-violet-900/30 rounded-xl flex items-center justify-center mb-3 group-hover:bg-violet-100 dark:group-hover:bg-violet-900/50 transition-colors">
             <BarChart3 size={24} className="text-violet-500" />
           </div>
-          <h3 className="font-bold text-slate-900 dark:text-white">Statistiques</h3>
+          <h3 className="font-bold text-slate-900 dark:text-white">{t('Statistiques')}</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Évolution de ta note Google et de tes avis publiés
+            {t('Évolution de ta note Google et de tes avis publiés')}
           </p>
           <div className="mt-3 flex items-center gap-1 text-violet-600 dark:text-violet-400 text-sm font-medium">
-            Voir l'évolution
+            {t('Voir l\'évolution')}
           </div>
         </Link>
       </div>
 
       {/* Comment ça marche */}
       <div className="card p-5">
-        <h2 className="section-title mb-4">Comment ça marche ?</h2>
+        <h2 className="section-title mb-4">{t('Comment ça marche ?')}</h2>
         <div className="space-y-3">
           {[
-            { n: '1', t: 'Commander', d: 'Colle ton lien Google Maps, choisis le nombre d\'avis et paie par carte ou PayPal', color: 'bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' },
-            { n: '2', t: 'Remplir les textes', d: 'Dès que ton paiement est confirmé, tu écris le texte de chaque avis', color: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
-            { n: '3', t: 'Publication', d: 'SwimUp publie tes avis sur Google Maps', color: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
-            { n: '4', t: 'Vérification', d: 'On vérifie que chaque avis reste en ligne pendant toute la durée de garantie', color: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
+            { n: '1', t: t('Commander'), d: t('Colle ton lien Google Maps, choisis le nombre d\'avis et paie par carte ou PayPal'), color: 'bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' },
+            { n: '2', t: t('Remplir les textes'), d: t('Dès que ton paiement est confirmé, tu écris le texte de chaque avis'), color: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
+            { n: '3', t: t('Publication'), d: t('SwimUp publie tes avis sur Google Maps'), color: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
+            { n: '4', t: t('Vérification'), d: t('On vérifie que chaque avis reste en ligne pendant toute la durée de garantie'), color: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
           ].map((s) => (
             <div key={s.n} className="flex items-start gap-3">
               <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 ${s.color}`}>

@@ -5,6 +5,8 @@ import axios from 'axios'
 import Logo from '../components/Logo'
 import { LiensLegaux, MentionDonnees, InfoAvantPaiement } from '../components/PageLegale'
 import { LIEN_INSTAGRAM, LIEN_TIKTOK } from '../lib/seo.mjs'
+import { t, getLangue, locale } from '../lib/i18n'
+import SelecteurLangue from '../components/SelecteurLangue'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.swimup.net/api'
 const PRIX_UNITAIRE = 4
@@ -14,21 +16,21 @@ const PACK_PAR_DEFAUT = 5
 // Salon Discord déjà utilisé pour le support : canal direct pour les visiteurs
 const LIEN_DISCORD = 'https://discord.gg/Dt2rmcHB5u'
 
-const ETAPES = [
-  { t: 'Vous choisissez et vous payez', d: `${PRIX_UNITAIRE} € par avis, paiement par carte sur Stripe. Pas de compte à créer.` },
-  { t: 'Vous donnez le lien de votre fiche', d: "Juste après le paiement : le lien Google Maps de votre établissement, la note et le texte. Pas de texte ? Notre générateur en propose un." },
-  { t: 'Un membre publie votre avis', d: 'Sous 24 à 48 h. Vous suivez la commande depuis un lien privé, envoyé aussi par email.' },
+const etapes = () => [
+  { t: t('Vous choisissez et vous payez'), d: t('{prix} € par avis, paiement par carte sur Stripe. Pas de compte à créer.', { prix: PRIX_UNITAIRE }) },
+  { t: t('Vous donnez le lien de votre fiche'), d: t("Juste après le paiement : le lien Google Maps de votre établissement, la note et le texte. Pas de texte ? Notre générateur en propose un.") },
+  { t: t('Un membre publie votre avis'), d: t('Sous 24 à 48 h. Vous suivez la commande depuis un lien privé, envoyé aussi par email.') },
 ]
 
-const FAQ = [
-  { q: 'Combien ça coûte ?', r: `${PRIX_UNITAIRE} € par avis, sans abonnement et sans compte. Avec un compte client gratuit, l'avis passe à 3 €.` },
-  { q: "Qui publie l'avis ?", r: "Un membre de notre réseau, depuis son propre compte Google. Chaque avis vient d'un membre différent." },
-  { q: 'Et si Google supprime un avis ?', r: "La garantie dure 30 jours : si Google le retire dans ce délai, on le republie gratuitement. Pas de remboursement, mais un nouvel avis." },
-  { q: "Puis-je choisir le texte de l'avis ?", r: "Oui. Après le paiement, vous écrivez votre texte, ou vous utilisez le générateur qui en propose un adapté à votre établissement." },
-  { q: 'Comment suivre ma commande ?', r: "Après le paiement, vous recevez un lien de suivi privé. C'est aussi là que vous renseignez votre fiche Google Maps." },
+const faq = () => [
+  { q: t('Combien ça coûte ?'), r: t("{prix} € par avis, sans abonnement et sans compte. Avec un compte client gratuit, l'avis passe à 3 €.", { prix: PRIX_UNITAIRE }) },
+  { q: t("Qui publie l'avis ?"), r: t("Un membre de notre réseau, depuis son propre compte Google. Chaque avis vient d'un membre différent.") },
+  { q: t('Et si Google supprime un avis ?'), r: t("La garantie dure 30 jours : si Google le retire dans ce délai, on le republie gratuitement. Pas de remboursement, mais un nouvel avis.") },
+  { q: t("Puis-je choisir le texte de l'avis ?"), r: t("Oui. Après le paiement, vous écrivez votre texte, ou vous utilisez le générateur qui en propose un adapté à votre établissement.") },
+  { q: t('Comment suivre ma commande ?'), r: t("Après le paiement, vous recevez un lien de suivi privé. C'est aussi là que vous renseignez votre fiche Google Maps.") },
 ]
 
-const eur = (n) => `${n.toLocaleString('fr-FR')} €`
+const eur = (n) => (getLangue() === 'en' ? `€${n.toLocaleString(locale())}` : `${n.toLocaleString(locale())} €`)
 
 export default function PublicCommander() {
   const [searchParams] = useSearchParams()
@@ -49,7 +51,7 @@ export default function PublicCommander() {
       const r = await axios.post(`${API}/stripe/public-checkout`, { quantite })
       window.location.href = r.data.url
     } catch (err) {
-      setError(err.response?.data?.error || 'Erreur — réessayez dans quelques secondes.')
+      setError(err.response?.data?.error || t('Erreur — réessayez dans quelques secondes.'))
       setLoading(false)
     }
   }
@@ -63,8 +65,9 @@ export default function PublicCommander() {
             <Logo taille={30} classeTexte="text-[#0B1F33]" />
           </a>
           <nav className="flex items-center gap-5 text-[14px]">
-            <a href="/inscription" className="hidden sm:inline text-slate-600 hover:text-[#0B1F33]">Créer un compte gratuit</a>
-            <a href="/login" className="font-semibold text-[#0369A1] hover:underline underline-offset-4">Se connecter</a>
+            <a href="/inscription" className="hidden sm:inline text-slate-600 hover:text-[#0B1F33]">{t('Créer un compte gratuit')}</a>
+            <a href="/login" className="font-semibold text-[#0369A1] hover:underline underline-offset-4">{t('Se connecter')}</a>
+            <SelecteurLangue />
           </nav>
         </div>
       </header>
@@ -77,22 +80,22 @@ export default function PublicCommander() {
 
           <div>
             <h1 className="font-display text-[34px] sm:text-[52px] leading-[1.06] font-bold tracking-tight">
-              Des avis Google Maps pour votre établissement
+              {t('Des avis Google Maps pour votre établissement')}
             </h1>
             <p className="mt-3 sm:mt-4 text-[17px] sm:text-[18px] leading-relaxed text-slate-600 max-w-md">
-              Vous choisissez le nombre d'avis et vous payez. Un membre les publie en 24 à 48 h.
+              {t('Vous choisissez le nombre d\'avis et vous payez. Un membre les publie en 24 à 48 h.')}
             </p>
             <ul className="mt-5 sm:mt-6 space-y-2.5 sm:space-y-3 text-[16px]">
               {[
-                'Pas de compte à créer',
-                'Garantie 30 jours',
-                'Paiement sécurisé par Stripe',
-              ].map(t => (
-                <li key={t} className="flex items-start gap-3">
+                t('Pas de compte à créer'),
+                t('Garantie 30 jours'),
+                t('Paiement sécurisé par Stripe'),
+              ].map(tx => (
+                <li key={tx} className="flex items-start gap-3">
                   <span className="mt-0.5 w-5 h-5 rounded-full bg-[#0369A1] flex items-center justify-center shrink-0">
                     <Check size={12} className="text-white" strokeWidth={3} />
                   </span>
-                  <span>{t}</span>
+                  <span>{tx}</span>
                 </li>
               ))}
             </ul>
@@ -102,12 +105,12 @@ export default function PublicCommander() {
           <form id="commander" onSubmit={payer} className="rounded-3xl bg-white border border-slate-200 shadow-[0_20px_50px_-20px_rgba(3,105,161,0.35)] p-6 sm:p-7">
             {wasCancelled && (
               <p className="mb-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[14px] px-4 py-3">
-                Paiement annulé, rien n'a été débité. Vous pouvez recommencer.
+                {t('Paiement annulé, rien n\'a été débité. Vous pouvez recommencer.')}
               </p>
             )}
 
             <fieldset>
-              <legend className="font-display text-[20px] font-bold">Combien d'avis ?</legend>
+              <legend className="font-display text-[20px] font-bold">{t('Combien d\'avis ?')}</legend>
               <div className="mt-4 grid grid-cols-4 gap-2.5">
                 {PACKS.map(n => (
                   <label key={n} className="cursor-pointer">
@@ -131,33 +134,33 @@ export default function PublicCommander() {
 
               {autre ? (
                 <div className="mt-3 flex items-center justify-center gap-3">
-                  <button type="button" aria-label="Un avis de moins" onClick={() => setQuantite(q => Math.max(1, q - 1))}
+                  <button type="button" aria-label={t('Un avis de moins')} onClick={() => setQuantite(q => Math.max(1, q - 1))}
                     className="w-11 h-11 rounded-full border border-slate-200 text-lg active:scale-95">−</button>
                   <input
-                    type="number" min="1" inputMode="numeric" aria-label="Nombre d'avis" value={quantite}
+                    type="number" min="1" inputMode="numeric" aria-label={t('Nombre d\'avis')} value={quantite}
                     onChange={e => setQuantite(Math.max(1, parseInt(e.target.value) || 1))}
                     className="w-20 text-center rounded-xl border border-slate-200 py-2.5 text-[20px] font-bold focus:outline-none focus:ring-2 focus:ring-[#0369A1]"
                   />
-                  <button type="button" aria-label="Un avis de plus" onClick={() => setQuantite(q => q + 1)}
+                  <button type="button" aria-label={t('Un avis de plus')} onClick={() => setQuantite(q => q + 1)}
                     className="w-11 h-11 rounded-full border border-slate-200 text-lg active:scale-95">+</button>
                 </div>
               ) : (
                 <button type="button" onClick={() => setAutre(true)} className="mt-3 text-[13px] text-slate-600 hover:text-[#0369A1] underline underline-offset-4">
-                  Un autre nombre
+                  {t('Un autre nombre')}
                 </button>
               )}
             </fieldset>
 
             <div className="mt-6 flex items-end justify-between border-t border-slate-100 pt-5">
               <div>
-                <p className="text-[14px] text-slate-600">Total</p>
-                <p className="text-[12px] text-slate-600">{quantite} × {eur(PRIX_UNITAIRE)}</p>
+                <p className="text-[14px] text-slate-600">{t('Total')}</p>
+                <p className="text-[12px] text-slate-600">{t('{quantite} × {eur}', { quantite, eur: eur(PRIX_UNITAIRE) })}</p>
               </div>
               <p className="font-display text-[44px] leading-none font-bold tracking-tight">{eur(total)}</p>
             </div>
 
             <InfoAvantPaiement className="mt-5" />
-            <MentionDonnees className="mt-2">Ton email est demandé sur la page de paiement sécurisée de Stripe, pour te confirmer la commande et t'envoyer ton lien de suivi.</MentionDonnees>
+            <MentionDonnees className="mt-2">{t('Ton email est demandé sur la page de paiement sécurisée de Stripe, pour te confirmer la commande et t\'envoyer ton lien de suivi.')}</MentionDonnees>
 
             <button
               type="submit"
@@ -165,8 +168,8 @@ export default function PublicCommander() {
               className="mt-4 w-full rounded-full bg-[#0369A1] hover:bg-[#075985] text-white py-4 font-semibold text-[17px] flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-60"
             >
               {loading
-                ? <><Loader2 size={18} className="animate-spin" /> Ouverture du paiement…</>
-                : <>Payer {eur(total)} <ArrowRight size={18} /></>}
+                ? <><Loader2 size={18} className="animate-spin" />{' '}{t('Ouverture du paiement…')}</>
+                : <>{t('Payer {eur}', { eur: eur(total) })}{' '}<ArrowRight size={18} /></>}
             </button>
 
             <div aria-live="polite">
@@ -179,23 +182,23 @@ export default function PublicCommander() {
 
             <p className="mt-4 flex items-center justify-center gap-1.5 text-[12.5px] text-slate-600 text-center">
               <Lock size={12} className="shrink-0" />
-              Paiement par carte sur Stripe. Le lien de votre fiche se donne après.
+              {t('Paiement par carte sur Stripe. Le lien de votre fiche se donne après.')}
             </p>
           </form>
         </div>
 
         <p className="max-w-5xl mx-auto px-5 pb-6 text-[13.5px] text-slate-600">
-          Votre propre fiche à soigner ?{' '}
-          <a href="/inscription" className="font-semibold text-[#0369A1] underline underline-offset-4">Créez un compte gratuit</a>
-          {' '}: QR code, affiche et réponses aux avis, sans carte bancaire.
+          {t('Votre propre fiche à soigner ?')}{' '}
+          <a href="/inscription" className="font-semibold text-[#0369A1] underline underline-offset-4">{t('Créez un compte gratuit')}</a>
+          {' '}{t(': QR code, affiche et réponses aux avis, sans carte bancaire.')}
         </p>
       </section>
 
       {/* 3 étapes, une vraie séquence */}
       <section className="max-w-5xl mx-auto px-5 py-14 sm:py-20">
-        <h2 className="font-display text-[28px] sm:text-[34px] font-bold tracking-tight">Comment ça marche</h2>
+        <h2 className="font-display text-[28px] sm:text-[34px] font-bold tracking-tight">{t('Comment ça marche')}</h2>
         <ol className="mt-8 grid sm:grid-cols-3 gap-8 sm:gap-6">
-          {ETAPES.map((e, i) => (
+          {etapes().map((e, i) => (
             <li key={e.t} className="flex sm:block gap-4">
               <span className="font-display text-[34px] leading-none font-bold text-[#0369A1] shrink-0 w-9 sm:w-auto">{i + 1}</span>
               <div className="sm:mt-3">
@@ -211,22 +214,22 @@ export default function PublicCommander() {
       <section className="bg-[#0B1F33] text-white">
         <div className="max-w-5xl mx-auto px-5 py-12 sm:py-14 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div className="max-w-xl">
-            <h2 className="font-display text-[26px] sm:text-[30px] font-bold tracking-tight">Garantie 30 jours</h2>
+            <h2 className="font-display text-[26px] sm:text-[30px] font-bold tracking-tight">{t('Garantie 30 jours')}</h2>
             <p className="mt-2 text-[16px] leading-relaxed text-slate-300">
-              Si Google supprime un avis dans les 30 jours, on le republie gratuitement. Vous ne payez qu'une fois.
+              {t('Si Google supprime un avis dans les 30 jours, on le republie gratuitement. Vous ne payez qu\'une fois.')}
             </p>
           </div>
           <a href="#commander" className="inline-flex items-center justify-center gap-2 rounded-full bg-white text-[#0B1F33] px-7 py-3.5 font-semibold text-[16px] shrink-0 active:scale-[0.98] transition">
-            Commander <ArrowRight size={17} />
+            {t('Commander')}{' '}<ArrowRight size={17} />
           </a>
         </div>
       </section>
 
       {/* Questions */}
       <section className="max-w-3xl mx-auto px-5 py-14 sm:py-20">
-        <h2 className="font-display text-[28px] sm:text-[34px] font-bold tracking-tight">Questions fréquentes</h2>
+        <h2 className="font-display text-[28px] sm:text-[34px] font-bold tracking-tight">{t('Questions fréquentes')}</h2>
         <div className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
-          {FAQ.map(f => (
+          {faq().map(f => (
             <details key={f.q} className="group py-1">
               <summary className="flex items-center justify-between gap-4 py-4 cursor-pointer list-none font-semibold text-[16px] [&::-webkit-details-marker]:hidden">
                 {f.q}
@@ -237,7 +240,7 @@ export default function PublicCommander() {
           ))}
         </div>
         <a href={LIEN_DISCORD} target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 text-[15px] text-[#0369A1] font-medium hover:underline underline-offset-4">
-          <MessageCircle size={16} /> Une autre question ? Écrivez-nous sur Discord
+          <MessageCircle size={16} />{' '}{t('Une autre question ? Écrivez-nous sur Discord')}
         </a>
       </section>
 
@@ -245,12 +248,12 @@ export default function PublicCommander() {
 
       <footer className="border-t border-slate-200">
         <div className="max-w-5xl mx-auto px-5 py-7 flex flex-wrap items-center justify-between gap-3 text-[13px] text-slate-600">
-          <span>© {new Date().getFullYear()} SwimUp</span>
+          <span>{t('© {date} SwimUp', { date: new Date().getFullYear() })}</span>
           <span className="flex items-center gap-5">
-            <a href="/aide-commercants" className="hover:text-[#0B1F33]">Aide aux commerçants</a>
-            <a href={LIEN_INSTAGRAM} rel="noopener noreferrer me" target="_blank" className="hover:text-[#0B1F33]">Instagram</a>
-            <a href={LIEN_TIKTOK} rel="noopener noreferrer me" target="_blank" className="hover:text-[#0B1F33]">TikTok</a>
-            <a href="/login" className="hover:text-[#0B1F33]">Connexion</a>
+            <a href="/aide-commercants" className="hover:text-[#0B1F33]">{t('Aide aux commerçants')}</a>
+            <a href={LIEN_INSTAGRAM} rel="noopener noreferrer me" target="_blank" className="hover:text-[#0B1F33]">{t('Instagram')}</a>
+            <a href={LIEN_TIKTOK} rel="noopener noreferrer me" target="_blank" className="hover:text-[#0B1F33]">{t('TikTok')}</a>
+            <a href="/login" className="hover:text-[#0B1F33]">{t('Connexion')}</a>
           </span>
         </div>
         <div className="max-w-5xl mx-auto px-5 pb-7"><LiensLegaux className="flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-slate-600" classe="hover:text-[#0B1F33]" /></div>

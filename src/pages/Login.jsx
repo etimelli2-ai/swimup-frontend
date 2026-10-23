@@ -12,9 +12,10 @@ import { LogoMarque } from '../components/Logo'
 import { LiensLegaux } from '../components/PageLegale'
 import { springSmooth, springSnappy, springSheet } from '../lib/motion'
 import { MentionDonnees } from '../components/PageLegale'
+import { t } from '../lib/i18n'
 
 export default function Login() {
-  usePageTitle('Connexion')
+  usePageTitle(t('Connexion'))
 
   const navigate = useNavigate()
   const { login, loginAvec2fa } = useAuth()
@@ -40,7 +41,7 @@ export default function Login() {
         navigate('/dashboard')
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Erreur de connexion')
+      setError(err.response?.data?.error || t('Erreur de connexion'))
     } finally {
       setLoading(false)
     }
@@ -54,7 +55,7 @@ export default function Login() {
       await loginAvec2fa(tempToken, code)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.error || 'Code invalide')
+      setError(err.response?.data?.error || t('Code invalide'))
     } finally {
       setLoading(false)
     }
@@ -82,10 +83,10 @@ export default function Login() {
             transition={springSnappy}
             className="w-14 h-14 mx-auto mb-4"
           >
-            <LogoMarque size={56} titre="Logo SwimUp" />
+            <LogoMarque size={56} titre={t('Logo SwimUp')} />
           </motion.div>
-          <h1 className="font-display text-[28px] font-extrabold text-slate-900 tracking-tight">SwimUp</h1>
-          <p className="text-[15px] text-slate-500 mt-1">Connecte-toi à ton compte</p>
+          <h1 className="font-display text-[28px] font-extrabold text-slate-900 tracking-tight">{t('SwimUp')}</h1>
+          <p className="text-[15px] text-slate-500 mt-1">{t('Connecte-toi à ton compte')}</p>
         </div>
 
         {/* Card */}
@@ -109,10 +110,10 @@ export default function Login() {
             <form onSubmit={handleSubmit2fa} className="space-y-4">
               <div className="flex items-center gap-2 text-slate-700">
                 <ShieldCheck size={18} className="text-sky-500 shrink-0" />
-                <p className="text-sm">Entre le code à 6 chiffres de ton appli d'authentification (ou un code de secours).</p>
+                <p className="text-sm">{t('Entre le code à 6 chiffres de ton appli d\'authentification (ou un code de secours).')}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Code de vérification</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('Code de vérification')}</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -129,7 +130,7 @@ export default function Login() {
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                  <>Valider<ArrowRight size={16} /></>
+                  <>{t('Valider')}<ArrowRight size={16} /></>
                 )}
               </button>
               <button
@@ -137,13 +138,13 @@ export default function Login() {
                 onClick={() => { setTempToken(null); setCode(''); setError('') }}
                 className="w-full text-center text-sm text-slate-500 hover:text-slate-600"
               >
-                Retour
+                {t('Retour')}
               </button>
             </form>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('Email')}</label>
                 <input
                   type="email"
                   value={email}
@@ -155,7 +156,7 @@ export default function Login() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Mot de passe</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('Mot de passe')}</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -168,7 +169,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? 'Cacher le mot de passe' : 'Voir le mot de passe'}
+                    aria-label={showPassword ? t('Cacher le mot de passe') : t('Voir le mot de passe')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -176,7 +177,7 @@ export default function Login() {
                 </div>
                 <div className="text-right mt-1.5">
                   <Link to="/mot-de-passe-oublie" className="text-sm text-sky-600 hover:text-sky-700 font-medium">
-                    Mot de passe oublié ?
+                    {t('Mot de passe oublié ?')}
                   </Link>
                 </div>
               </div>
@@ -190,20 +191,20 @@ export default function Login() {
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    Se connecter
+                    {t('Se connecter')}
                     <ArrowRight size={16} />
                   </>
                 )}
               </button>
             </form>
           )}
-          <MentionDonnees className="mt-4">SwimUp utilise ton email et ton mot de passe pour te connecter, et enregistre ton adresse IP pour protéger ton compte.</MentionDonnees>
+          <MentionDonnees className="mt-4">{t('SwimUp utilise ton email et ton mot de passe pour te connecter, et enregistre ton adresse IP pour protéger ton compte.')}</MentionDonnees>
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-6">
-          Pas encore de compte ?{' '}
+          {t('Pas encore de compte ?')}{' '}
           <Link to="/inscription" className="font-semibold text-sky-600 hover:text-sky-700">
-            Créer un compte gratuit
+            {t('Créer un compte gratuit')}
           </Link>
         </p>
         <LiensLegaux className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6 text-xs" classe="text-slate-600 hover:underline" />

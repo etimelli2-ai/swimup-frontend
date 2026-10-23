@@ -7,6 +7,7 @@ import { useAuth } from '../hooks/useAuth'
 import { prochaineEtape } from '../lib/parcoursClient.mjs'
 import { lireOffreSouhaitee } from '../lib/offreSouhaitee'
 import { LogoMarque } from '../components/Logo'
+import { t } from '../lib/i18n'
 
 export default function VerifierEmail() {
   const [searchParams] = useSearchParams()
@@ -18,17 +19,17 @@ export default function VerifierEmail() {
   useEffect(() => {
     if (!token) {
       setStatut('erreur')
-      setMessage('Lien de vérification invalide.')
+      setMessage(t('Lien de vérification invalide.'))
       return
     }
     api.post('/auth/verify-email', { token })
       .then(r => {
         setStatut('succes')
-        setMessage(r.data.message || 'Adresse email vérifiée !')
+        setMessage(r.data.message || t('Adresse email vérifiée !'))
       })
       .catch(err => {
         setStatut('erreur')
-        setMessage(err.response?.data?.error || 'Lien de vérification invalide ou expiré.')
+        setMessage(err.response?.data?.error || t('Lien de vérification invalide ou expiré.'))
       })
   }, [token])
 
@@ -47,16 +48,16 @@ export default function VerifierEmail() {
       >
         <div className="text-center mb-8">
           <div className="w-14 h-14 mx-auto mb-4">
-            <LogoMarque size={56} titre="Logo SwimUp" />
+            <LogoMarque size={56} titre={t('Logo SwimUp')} />
           </div>
-          <h1 className="font-display text-[28px] font-extrabold text-slate-900 tracking-tight">SwimUp</h1>
+          <h1 className="font-display text-[28px] font-extrabold text-slate-900 tracking-tight">{t('SwimUp')}</h1>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-6 text-center space-y-4">
           {statut === 'chargement' && (
             <>
               <Loader2 size={32} className="text-sky-500 animate-spin mx-auto" />
-              <p className="text-sm text-slate-500">Vérification en cours...</p>
+              <p className="text-sm text-slate-500">{t('Vérification en cours...')}</p>
             </>
           )}
           {statut === 'succes' && (
@@ -65,11 +66,11 @@ export default function VerifierEmail() {
               <p className="font-semibold text-slate-900">{message}</p>
               {loading ? null : user?.role === 'client' ? (
                 <Link to={prochaineEtape(lireOffreSouhaitee())} className="btn-primary w-full justify-center mt-2">
-                  {['premium', 'business', 'agence'].includes(lireOffreSouhaitee()) ? 'Choisir mon offre' : 'Commander mon premier avis'}
+                  {['premium', 'business', 'agence'].includes(lireOffreSouhaitee()) ? t('Choisir mon offre') : t('Commander mon premier avis')}
                 </Link>
               ) : (
                 <Link to={user ? '/dashboard' : '/login'} className="btn-primary w-full justify-center mt-2">
-                  {user ? 'Aller à mon tableau de bord' : 'Me connecter'}
+                  {user ? t('Aller à mon tableau de bord') : t('Me connecter')}
                 </Link>
               )}
             </>
@@ -79,10 +80,10 @@ export default function VerifierEmail() {
               <XCircle size={32} className="text-red-500 mx-auto" />
               <p className="font-semibold text-slate-900">{message}</p>
               <p className="text-sm text-slate-500">
-                Connecte-toi et redemande un nouvel email depuis ton tableau de bord.
+                {t('Connecte-toi et redemande un nouvel email depuis ton tableau de bord.')}
               </p>
               <Link to="/login" className="btn-secondary w-full justify-center mt-2">
-                Retour à la connexion
+                {t('Retour à la connexion')}
               </Link>
             </>
           )}

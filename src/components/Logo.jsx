@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n'
 // Identité visuelle SwimUp : flèche qui remonte au-dessus de petites vagues, sur une pastille bleue.
 // Même tracé que public/favicon.svg et que les visuels du kit de marque.
 // variante 'plein' = pastille bleue, marque blanche ; 'inverse' = pastille blanche, marque bleue (fonds colorés).
@@ -23,9 +24,9 @@ export function LogoMarque({ size = 32, variante = 'plein', className = '', titr
 export default function Logo({ taille = 28, variante = 'plein', className = '', classeTexte = '' }) {
   return (
     <span className={`inline-flex items-center ${className}`} style={{ gap: Math.round(taille * 0.3) }}>
-      <LogoMarque size={taille} variante={variante} titre="Logo SwimUp" />
+      <LogoMarque size={taille} variante={variante} titre={t('Logo SwimUp')} />
       <span className={`font-display font-extrabold tracking-tight ${classeTexte}`} style={{ fontSize: Math.round(taille * 0.62), lineHeight: 1 }}>
-        SwimUp
+        {t('SwimUp')}
       </span>
     </span>
   )

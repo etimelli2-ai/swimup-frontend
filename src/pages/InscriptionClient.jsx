@@ -12,6 +12,7 @@ import { lireCode, oublierCode } from '../lib/apporteur.mjs'
 import { LogoMarque } from '../components/Logo'
 import { LiensLegaux } from '../components/PageLegale'
 import { MentionDonnees } from '../components/PageLegale'
+import { t } from '../lib/i18n'
 
 // Création d'un compte CLIENT : email + mot de passe, rien d'autre.
 // Les comptes membres ont leur propre page (/register), jamais proposée ici.
@@ -42,7 +43,7 @@ export default function InscriptionClient() {
     e.preventDefault()
     setErreur(''); setEmailExiste(false)
     if (password.length < 8 || !/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
-      setErreur('Le mot de passe doit faire 8 caractères minimum, avec au moins une lettre et un chiffre.')
+      setErreur(t('Le mot de passe doit faire 8 caractères minimum, avec au moins une lettre et un chiffre.'))
       return
     }
     setEnvoi(true)
@@ -51,11 +52,11 @@ export default function InscriptionClient() {
       oublierCode()
       mesure('compte-cree')
       if (offre) retenirOffreSouhaitee(offre)
-      toast.success('Compte créé !')
+      toast.success(t('Compte créé !'))
       navigate('/verification-requise')
     } catch (err) {
       setEmailExiste(err.response?.data?.code === 'EMAIL_DEJA_UTILISE')
-      setErreur(err.response?.data?.error || err.response?.data?.errors?.[0]?.message || "L'inscription n'a pas abouti, réessaie.")
+      setErreur(err.response?.data?.error || err.response?.data?.errors?.[0]?.message || t('L\'inscription n\'a pas abouti, réessaie.'))
     } finally {
       setEnvoi(false)
     }
@@ -63,7 +64,7 @@ export default function InscriptionClient() {
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
-      <Seo title="Créer un compte gratuit" description="Crée ton compte gratuit SwimUp : lien et QR code d'avis, affiche à imprimer et aide pour répondre à tes avis Google. Sans carte bancaire." path="/inscription" />
+      <Seo title={t('Créer un compte gratuit')} description={t('Crée ton compte gratuit SwimUp : lien et QR code d\'avis, affiche à imprimer et aide pour répondre à tes avis Google. Sans carte bancaire.')} path="/inscription" />
       <div
         className="absolute inset-x-0 top-0 h-[520px] pointer-events-none"
         style={{ background: 'radial-gradient(60% 50% at 50% 0%, rgba(14,165,233,0.14) 0%, rgba(14,165,233,0) 70%)' }}
@@ -72,18 +73,18 @@ export default function InscriptionClient() {
         <div className="text-center mb-7">
           <motion.div initial={{ scale: 0.6, rotate: -8 }} animate={{ scale: 1, rotate: 0 }} transition={springSnappy}
             className="w-14 h-14 mx-auto mb-4">
-            <LogoMarque size={56} titre="Logo SwimUp" />
+            <LogoMarque size={56} titre={t('Logo SwimUp')} />
           </motion.div>
-          <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">Crée ton compte gratuit</h1>
+          <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">{t('Crée ton compte gratuit')}</h1>
           <p className="text-[15px] text-slate-500 mt-1">
-            {offre ? 'Deux champs, puis tu confirmes ton email et tu choisis ton offre.' : 'Sans carte bancaire, en 20 secondes.'}
+            {offre ? t('Deux champs, puis tu confirmes ton email et tu choisis ton offre.') : t('Sans carte bancaire, en 20 secondes.')}
           </p>
         </div>
 
         <ul className="mb-5 space-y-2">
           {ATOUTS.map(a => (
             <li key={a} className="flex items-start gap-2 text-[14px] text-slate-600">
-              <Check size={16} className="text-emerald-500 mt-0.5 shrink-0" /> {a}
+              <Check size={16} className="text-emerald-500 mt-0.5 shrink-0" /> {t(a)}
             </li>
           ))}
         </ul>
@@ -99,8 +100,8 @@ export default function InscriptionClient() {
                   <p>{erreur}</p>
                   {emailExiste && (
                     <p className="mt-1">
-                      <Link to="/login" className="font-semibold underline">Connecte-toi</Link> ou{' '}
-                      <Link to="/mot-de-passe-oublie" className="font-semibold underline">réinitialise ton mot de passe</Link>.
+                      <Link to="/login" className="font-semibold underline">{t('Connecte-toi')}</Link>{' '}{t('ou')}{' '}
+                      <Link to="/mot-de-passe-oublie" className="font-semibold underline">{t('réinitialise ton mot de passe')}</Link>.
                     </p>
                   )}
                 </div>
@@ -110,34 +111,34 @@ export default function InscriptionClient() {
 
           <form onSubmit={soumettre} className="space-y-4">
             <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
-              <label htmlFor="ins-site-web">Ne pas remplir</label>
+              <label htmlFor="ins-site-web">{t('Ne pas remplir')}</label>
               <input id="ins-site-web" name="site_web" type="text" tabIndex={-1} autoComplete="off" value={piege} onChange={e => setPiege(e.target.value)} />
             </div>
             <div>
-              <label htmlFor="ins-email" className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+              <label htmlFor="ins-email" className="block text-sm font-medium text-slate-700 mb-1.5">{t('Email')}</label>
               <input id="ins-email" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} className="input" placeholder="toi@commerce.fr" />
             </div>
             <div>
-              <label htmlFor="ins-mdp" className="block text-sm font-medium text-slate-700 mb-1.5">Mot de passe</label>
+              <label htmlFor="ins-mdp" className="block text-sm font-medium text-slate-700 mb-1.5">{t('Mot de passe')}</label>
               <div className="relative">
                 <input id="ins-mdp" type={voir ? 'text' : 'password'} autoComplete="new-password" required minLength={8} value={password}
-                  onChange={e => setPassword(e.target.value)} className="input pr-10" placeholder="8 caractères, une lettre, un chiffre" />
-                <button type="button" onClick={() => setVoir(!voir)} aria-label={voir ? 'Cacher le mot de passe' : 'Voir le mot de passe'}
+                  onChange={e => setPassword(e.target.value)} className="input pr-10" placeholder={t('8 caractères, une lettre, un chiffre')} />
+                <button type="button" onClick={() => setVoir(!voir)} aria-label={voir ? t('Cacher le mot de passe') : t('Voir le mot de passe')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600">
                   {voir ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
             <button type="submit" disabled={envoi} className="btn-primary w-full">
-              {envoi ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Créer mon compte <ArrowRight size={16} /></>}
+              {envoi ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>{t('Créer mon compte')}{' '}<ArrowRight size={16} /></>}
             </button>
           </form>
-            <MentionDonnees className="mt-4">SwimUp utilise ton email et ton mot de passe pour créer ton compte et t'écrire à propos de ton compte. Aucune carte bancaire n'est demandée.</MentionDonnees>
+            <MentionDonnees className="mt-4">{t('SwimUp utilise ton email et ton mot de passe pour créer ton compte et t\'écrire à propos de ton compte. Aucune carte bancaire n\'est demandée.')}</MentionDonnees>
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-6">
-          Déjà un compte ?{' '}
-          <Link to="/login" className="font-semibold text-sky-600 hover:text-sky-700">Se connecter</Link>
+          {t('Déjà un compte ?')}{' '}
+          <Link to="/login" className="font-semibold text-sky-600 hover:text-sky-700">{t('Se connecter')}</Link>
         </p>
         <LiensLegaux className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6 text-xs" classe="text-slate-600 hover:underline" />
       </motion.main>

@@ -3,6 +3,7 @@ import { X, MapPin, Star, Send, Coins, Gift, ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import api from '../lib/api'
 import { useAuth } from '../hooks/useAuth'
+import { t } from '../lib/i18n'
 
 const ETAPES = [
   { icon: MapPin, color: 'bg-sky-50 dark:bg-sky-900/20 text-sky-500', t: 'Réserve un avis', d: 'Choisis un établissement disponible dans l\'onglet "Avis" — chaque avis a un prix fixe et un délai de paiement indiqués dessus.' },
@@ -46,15 +47,15 @@ export default function OnboardingTour() {
           </button>
 
           <p className="text-xs font-semibold text-sky-500 uppercase tracking-wide mb-1">
-            Bienvenue sur SwimUp · {step + 1}/{ETAPES.length}
+            {t('Bienvenue sur SwimUp · {step}/{length}', { step: step + 1, length: ETAPES.length })}
           </p>
 
           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${etape.color}`}>
             <etape.icon size={22} />
           </div>
 
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">{etape.t}</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">{etape.d}</p>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t(etape.t)}</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">{t(etape.d)}</p>
 
           <div className="flex items-center gap-1.5 mt-6 mb-5">
             {ETAPES.map((_, i) => (
@@ -65,14 +66,14 @@ export default function OnboardingTour() {
           <div className="flex gap-2">
             {step > 0 && (
               <button onClick={() => setStep(s => s - 1)} className="flex-1 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 py-2.5 rounded-full text-sm font-medium">
-                Retour
+                {t('Retour')}
               </button>
             )}
             <button
               onClick={() => estDernier ? terminer() : setStep(s => s + 1)}
               className="flex-1 btn-primary justify-center flex items-center gap-1.5"
             >
-              {estDernier ? 'Commencer' : 'Suivant'}
+              {estDernier ? t('Commencer') : t('Suivant')}
               {!estDernier && <ArrowRight size={15} />}
             </button>
           </div>

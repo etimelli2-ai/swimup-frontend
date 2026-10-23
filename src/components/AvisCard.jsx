@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { Star, MapPin, Clock, ExternalLink, Copy, Check, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { t, tn } from '../lib/i18n'
 
 export default function AvisCard({ avis, onReserve, isReserving, index = 0 }) {
   const [copied, setCopied] = useState(false);
@@ -52,7 +53,7 @@ export default function AvisCard({ avis, onReserve, isReserving, index = 0 }) {
           ))}
         </div>
         <span className={`text-xs font-semibold ${etoileColor}`}>
-          {nbEtoiles} étoile{nbEtoiles > 1 ? 's' : ''}
+          {tn(nbEtoiles, '{n} étoile', '{n} étoiles')}
         </span>
       </div>
 
@@ -64,7 +65,7 @@ export default function AvisCard({ avis, onReserve, isReserving, index = 0 }) {
         <button 
           onClick={handleCopy}
           className="absolute top-2 right-2 p-1.5 rounded-md bg-white border border-slate-200 text-slate-500 hover:text-sky-600 hover:border-sky-200 transition-all"
-          title="Copier le texte"
+          title={t('Copier le texte')}
         >
           {copied ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
         </button>
@@ -74,7 +75,7 @@ export default function AvisCard({ avis, onReserve, isReserving, index = 0 }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-xs text-slate-500">
           <Clock size={11} />
-          <span>Délai : {avis.delai_paiement}j</span>
+          <span>{t('Délai : {delai_paiement}j', { delai_paiement: avis.delai_paiement })}</span>
         </div>
         <div className="flex gap-2">
           <a 
@@ -84,7 +85,7 @@ export default function AvisCard({ avis, onReserve, isReserving, index = 0 }) {
             className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
           >
             <ExternalLink size={11} />
-            Maps
+            {t('Maps')}
           </a>
           <button
             onClick={() => onReserve(avis.id)}
@@ -95,7 +96,7 @@ export default function AvisCard({ avis, onReserve, isReserving, index = 0 }) {
               <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <>
-                Réserver
+                {t('Réserver')}
                 <ArrowRight size={11} />
               </>
             )}
