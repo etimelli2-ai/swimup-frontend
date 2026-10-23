@@ -82,13 +82,18 @@ export function LangueProvider({ children }) {
 export function useLangue() { return useContext(LangueCtx) }
 
 // Remonte les pages quand la langue change : tous les textes sont relus avec la nouvelle langue.
-// L'administration reste toujours en français, quelle que soit la langue choisie.
-export function langueEffective(langue, user) { return user?.role === 'admin' ? 'fr' : langue }
+// Les pages d'administration (/admin/...) restent toujours en français, quelle que soit la langue choisie.
+// Un admin qui regarde une page publique ou son espace voit la langue de la page, comme n'importe quel visiteur
+// (sinon il ne peut pas vérifier la version anglaise).
+export function langueEffective(langue, user, pathname = '') {
+  return user?.role === 'admin' && /^\/admin(\/|$)/.test(pathname) ? 'fr' : langue
+}
 
 export function ParLangue({ children }) {
   const { langue } = useLangue()
   const { user } = useAuth() || {}
-  const effective = langueEffective(langue, user)
+  const { pathname } = useLocation()
+  const effective = langueEffective(langue, user, pathname)
   setLangueCourante(effective)
   return <Fragment key={effective}>{children}</Fragment>
 }

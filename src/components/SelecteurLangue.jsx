@@ -1,4 +1,5 @@
 // Choix de la langue : FR | EN. Visible sur les pages publiques, la connexion et l'espace connecté.
+import { useLocation } from 'react-router-dom'
 import { useLangue } from './LangueContext'
 import { useAuth } from '../hooks/useAuth'
 import { t } from '../lib/i18n'
@@ -8,7 +9,8 @@ const OPTIONS = [['fr', 'FR', 'Français'], ['en', 'EN', 'English']]
 export default function SelecteurLangue({ className = '', sombre = false }) {
   const { langue, choisirLangue } = useLangue()
   const { user } = useAuth() || {}
-  if (user?.role === 'admin') return null
+  const { pathname } = useLocation()
+  if (user?.role === 'admin' && /^\/admin(\/|$)/.test(pathname)) return null
   const actif = sombre ? 'bg-white/90 text-slate-900' : 'bg-slate-900 text-white'
   const inactif = sombre ? 'text-slate-300 hover:text-white' : 'text-slate-500 hover:text-slate-800'
   return (
