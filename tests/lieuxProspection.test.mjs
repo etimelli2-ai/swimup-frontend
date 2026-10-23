@@ -1,7 +1,7 @@
 // Tirage de codes postaux pour la prospection.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { PAYS, tousLesLieux, tirerLieux, cleDejaFait, metierPourLieu, paysParDefaut } from '../src/lib/lieuxProspection.mjs'
+import { PAYS, tousLesLieux, tirerLieux, cleDejaFait, paysParDefaut } from '../src/lib/lieuxProspection.mjs'
 
 // générateur pseudo-aléatoire reproductible
 const graine = (s) => () => { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296 }
@@ -74,19 +74,20 @@ test('le tirage varie vraiment et touche les deux langues', () => {
   assert.ok(codes.size > 150)
 })
 
-test('les codes déjà cherchés avec ce métier ne reviennent pas', () => {
+test('un code déjà cherché avec tous les métiers ne revient pas ; s\'il reste un métier, il reste tirable', () => {
   const ids = idsDe('Monaco', 'Luxembourg')
   const deja = new Set(tousLesLieux(ids).map(l => cleDejaFait('Coiffeur', l.ville)))
-  for (let s = 1; s <= 40; s++) assert.deepEqual(tirerLieux({ ids, metier: 'Coiffeur', dejaFaits: deja, hasard: graine(s) }), [])
-  const autre = tirerLieux({ ids, metier: 'Plombier', dejaFaits: deja, hasard: graine(1) })
-  assert.equal(autre.length, 5, 'avec un autre métier ces codes sont de nouveau permis')
+  for (let s = 1; s <= 40; s++) assert.deepEqual(tirerLieux({ ids, metiers: ['Coiffeur'], dejaFaits: deja, hasard: graine(s) }), [])
+  assert.equal(tirerLieux({ ids, metiers: ['Plombier'], dejaFaits: deja, hasard: graine(1) }).length, 5, 'autre métier : de nouveau permis')
+  assert.equal(tirerLieux({ ids, metiers: ['Coiffeur', 'Plombier'], dejaFaits: deja, hasard: graine(1) }).length, 5, 'un des deux métiers reste à faire')
+  const tout = new Set(tousLesLieux(ids).flatMap(l => ['Coiffeur', 'Plombier'].map(m => cleDejaFait(m, l.ville))))
+  assert.deepEqual(tirerLieux({ ids, metiers: ['Coiffeur', 'Plombier'], dejaFaits: tout }), [])
+  assert.deepEqual(tirerLieux({ ids, metiers: [], dejaFaits: new Set(), hasard: graine(2) }).length, 5, 'sans métier : tirage simple')
 })
 
-test('métier traduit pour les pays anglophones (clé aussi vérifiée avec le métier anglais), jamais pour les francophones', () => {
-  assert.equal(metierPourLieu('Coiffeur', 'en'), 'Hair salon')
-  assert.equal(metierPourLieu('Coiffeur', 'fr'), 'Coiffeur')
-  assert.equal(metierPourLieu('Métier libre', 'en'), 'Métier libre')
-  const ids = idsDe('Singapour')
-  const deja = new Set(tousLesLieux(ids).map(l => cleDejaFait('Hair salon', l.ville)))
-  assert.deepEqual(tirerLieux({ ids, metier: 'Coiffeur', dejaFaits: deja }), [])
+test('on peut tirer beaucoup de codes (ratissage) : tous différents, jamais plus que disponible', () => {
+  const t = tirerLieux({ n: 50, ids: paysParDefaut(), hasard: graine(7) })
+  assert.equal(t.length, 50)
+  assert.equal(new Set(t.map(l => l.ville)).size, 50)
+  assert.equal(tirerLieux({ n: 10000, ids: paysParDefaut(), hasard: graine(7) }).length, tousLesLieux(paysParDefaut()).length)
 })

@@ -4,7 +4,6 @@ import { sujetDefaut, messageDefaut, langueDe } from '../../lib/messagesProspect
 import RatissageProspection from './RatissageProspection'
 import EnvoiLotProspection from './EnvoiLotProspection'
 import EmailsUneParUne from './EmailsUneParUne'
-import { tirerLieux, metierPourLieu, cleDejaFait, PAYS, paysParDefaut, tousLesLieux } from '../../lib/lieuxProspection.mjs'
 import { estContacte, visibles, compterMasquees, lienRechercheGoogle } from '../../lib/prospectionLot.mjs'
 import { Search, Mail, Phone, Globe, Star, Trash2, Send, Pencil, ExternalLink, Plus } from 'lucide-react'
 
@@ -44,7 +43,6 @@ const LABEL_CANAL = { ...Object.fromEntries(CANAUX), email: 'Email' }
 
 export default function AdminProspection() {
   const [recherches, setRecherches] = useState([{ requete: '', ville: '', autre: false }])
-  const [paysChoisis, setPaysChoisis] = useState(paysParDefaut)
   const [maxAvis, setMaxAvis]       = useState(20)
   const [prospects, setProspects]   = useState([])
   const [filtre, setFiltre]         = useState('tous')
@@ -86,48 +84,17 @@ export default function AdminProspection() {
   const majLigne = (i, champ, val) => {
     const copie = [...recherches]
     copie[i][champ] = val
-    if (champ === 'requete') { copie[i].base = undefined; copie[i].aleatoire = undefined }
     setRecherches(copie)
   }
 
-  // Lieux déjà cherchés (fiches en base + tirages de ce navigateur) : le tirage au sort ne les repropose pas
-  // avec le même métier, même quand la recherche n'avait rien donné.
-  const CLE_TIRAGES = 'swimup_prospection_tirages'
-  const tiragesPasses = () => { try { return JSON.parse(localStorage.getItem(CLE_TIRAGES) || '[]') } catch { return [] } }
-  const retenirTirages = (paires) => {
-    try { localStorage.setItem(CLE_TIRAGES, JSON.stringify([...tiragesPasses(), ...paires].slice(-1000))) } catch { /* stockage indisponible : sans gravité */ }
-  }
-  const dejaFaits = () => new Set([
-    ...prospects.filter(p => p.requete && p.ville).map(p => cleDejaFait(p.requete, p.ville)),
-    ...tiragesPasses(),
-  ])
+  const rechercher = async (e) => {
+    e.preventDefault()
+    const valides = recherches.filter(r => r.requete.trim() && r.ville.trim())
+    if (valides.length === 0) return showMsg('error', 'Renseigne au moins un métier + une ville')
 
-  // 5 lieux au hasard (pays francophones et anglophones). Métier choisi sur la 1re ligne = le même partout ;
-  // sinon chaque lieu reçoit un métier au hasard. Pour un lieu anglophone, le métier est écrit en anglais.
-  const lignesAuHasard = () => {
-    const r0 = recherches[0]
-    const metierChoisi = r0.aleatoire ? '' : (r0.base || (!r0.autre && r0.requete ? r0.requete : ''))
-    const lieux = tirerLieux({ n: 5, ids: paysChoisis, metier: metierChoisi, dejaFaits: dejaFaits() })
-    return lieux.map(l => {
-      const metier = metierChoisi || METIERS.filter(m => m !== '__autre__')[Math.floor(Math.random() * (METIERS.length - 1))]
-      return { requete: metierPourLieu(metier, l.langue), ville: l.ville, autre: false, base: metier, aleatoire: !metierChoisi }
-    })
-  }
-  const tirerAuHasard = (lancerTout) => {
-    if (!paysChoisis.length) return showMsg('error', 'Coche au moins un pays.')
-    const lignes = lignesAuHasard()
-    const metierImpose = lignes.length > 0 && !lignes[0].aleatoire
-    if (!lignes.length) return showMsg('error', 'Plus aucun code postal à tirer dans ces pays avec ce métier : coche d\'autres pays ou change de métier.')
-    setRecherches(lignes.map(l => ({ ...l, autre: !METIERS.includes(l.requete), base: metierImpose ? l.base : undefined })))
-    if (lancerTout) lancerRecherches(lignes.map(({ requete, ville }) => ({ requete, ville })))
-    else showMsg('success', `🎲 ${lignes.length} codes postaux tirés : ${lignes.map(l => l.ville).join(' · ')}`)
-  }
-
-  const lancerRecherches = async (valides) => {
     setLR(true)
     try {
       const r = await api.post('/admin/prospection/rechercher', { recherches: valides, maxAvis })
-      retenirTirages(valides.map(v => cleDejaFait(v.requete, v.ville)))
       if (r.data.total === 0 && r.data.notes?.length) {
         // Rien trouvé ET une raison : c'est un échec, pas un succès à 0
         setMsg({ type: 'error', text: r.data.notes.join(' ') })
@@ -143,13 +110,6 @@ export default function AdminProspection() {
       showMsg('error', e.response?.data?.error || 'Erreur lors de la recherche')
     }
     setLR(false)
-  }
-
-  const rechercher = (e) => {
-    e.preventDefault()
-    const valides = recherches.filter(r => r.requete.trim() && r.ville.trim())
-    if (valides.length === 0) return showMsg('error', 'Renseigne au moins un métier + une ville')
-    lancerRecherches(valides)
   }
 
   const ouvrirModal = (p) => {
@@ -351,7 +311,7 @@ export default function AdminProspection() {
       )}
 
       {/* Ratissage automatique : métiers x zones, traité en tâche de fond par le serveur */}
-      <RatissageProspection onNouvellesFiches={load} />
+      <RatissageProspection onNouvellesFiches={load} prospects={prospects} />
 
       {/* Envoi en lot : mail de présentation à tous ceux qui ont un email, avec plafond par jour */}
       <EnvoiLotProspection prospects={prospects} sujetDe={(p) => sujetDefaut(langueDe(p))} messageDe={messageDefaut} onFini={load} />
@@ -359,38 +319,6 @@ export default function AdminProspection() {
       {/* Formulaire de recherche */}
       <form onSubmit={rechercher} className="card space-y-3">
         <h3 className="font-bold text-gray-900">Nouvelle recherche</h3>
-        <div className="rounded-xl border border-sky-100 bg-sky-50/60 p-3 space-y-2">
-          <p className="text-xs text-gray-600">
-            Plus besoin de saisir des codes postaux : 5 codes postaux tirés au hasard dans les pays cochés, un par pays, jamais un code déjà cherché avec le même métier. Choisis un métier sur la première ligne pour l'imposer, sinon il est tiré aussi.
-          </p>
-          <details className="text-sm">
-            <summary className="cursor-pointer text-gray-700 font-medium">Pays : {paysChoisis.length} sur {PAYS.length} cochés ({tousLesLieux(paysChoisis).length} codes possibles)</summary>
-            <div className="mt-2 flex gap-3 text-xs">
-              <button type="button" className="underline text-sky-700" onClick={() => setPaysChoisis(PAYS.map(p => p.id))}>Tous</button>
-              <button type="button" className="underline text-sky-700" onClick={() => setPaysChoisis([])}>Aucun</button>
-              <button type="button" className="underline text-sky-700" onClick={() => setPaysChoisis(paysParDefaut())}>Par défaut</button>
-            </div>
-            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-              {PAYS.map(p => (
-                <label key={p.id} className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
-                  <input type="checkbox" checked={paysChoisis.includes(p.id)}
-                    onChange={e => setPaysChoisis(e.target.checked ? [...paysChoisis, p.id] : paysChoisis.filter(x => x !== p.id))} />
-                  <span>{p.pays}</span>
-                  <span className="text-[10px] text-gray-400">mail en {p.langue === 'en' ? 'anglais' : 'français'}</span>
-                </label>
-              ))}
-            </div>
-            <p className="mt-2 text-[11px] text-gray-400">Les petits territoires (Jersey, Bermudes...) sont décochés au départ : très peu de commerces.</p>
-          </details>
-          <div className="flex flex-wrap items-center gap-2">
-            <button type="button" disabled={loadingRecherche} onClick={() => tirerAuHasard(false)} className="px-3 py-2 rounded-lg border border-sky-300 text-sky-700 text-sm font-medium bg-white disabled:opacity-60">
-              🎲 Tirer 5 codes postaux
-            </button>
-            <button type="button" disabled={loadingRecherche} onClick={() => tirerAuHasard(true)} className="px-3 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium disabled:opacity-60">
-              Tirer et lancer
-            </button>
-          </div>
-        </div>
         {recherches.map((r, i) => (
           <div key={i} className="space-y-2">
             <div className="flex gap-2">
@@ -400,8 +328,8 @@ export default function AdminProspection() {
                   const val = e.target.value
                   const copie = [...recherches]
                   copie[i] = val === '__autre__'
-                    ? { ...copie[i], autre: true, requete: '', base: undefined, aleatoire: undefined }
-                    : { ...copie[i], autre: false, requete: val, base: undefined, aleatoire: undefined }
+                    ? { ...copie[i], autre: true, requete: '' }
+                    : { ...copie[i], autre: false, requete: val }
                   setRecherches(copie)
                 }}
                 className="input flex-1"
@@ -412,7 +340,7 @@ export default function AdminProspection() {
                 ))}
               </select>
               <input
-                type="text" placeholder="Ville ou code postal (ex: Lyon, France)" value={r.ville}
+                type="text" placeholder="Code postal (ex: 75011)" value={r.ville}
                 onChange={e => majLigne(i, 'ville', e.target.value)}
                 className="input flex-1"
               />

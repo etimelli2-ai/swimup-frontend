@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../../lib/api'
+import { PAYS, paysParDefaut, tousLesLieux, tirerLieux, cleDejaFait } from '../../lib/lieuxProspection.mjs'
 import { lignes, resume, pourcentage, tauxEmail, STATUTS, estActive } from '../../lib/ratissage.mjs'
 
 const METIERS_RAPIDES = [
@@ -9,11 +10,13 @@ const METIERS_RAPIDES = [
 
 // Ratissage : une liste de métiers x une liste de zones, traitée en tâche de fond par le serveur.
 // Tu peux fermer la page : ça continue, avec un plafond de requêtes Google par jour.
-export default function RatissageProspection({ onNouvellesFiches }) {
+export default function RatissageProspection({ onNouvellesFiches, prospects = [] }) {
   const [donnees, setDonnees] = useState(null)
   const [metiers, setMetiers] = useState('')
   const [zones, setZones] = useState('')
   const [maxAvis, setMaxAvis] = useState(20)
+  const [paysChoisis, setPaysChoisis] = useState(paysParDefaut)
+  const [nbCodes, setNbCodes] = useState(20)
   const [plafond, setPlafond] = useState(200)
   const [plafondEdit, setPlafondEdit] = useState('')
   const [occupe, setOccupe] = useState(null)
@@ -37,7 +40,26 @@ export default function RatissageProspection({ onNouvellesFiches }) {
 
   useEffect(() => { if (course) setPlafondEdit(String(course.plafond_jour)) }, [course?.id, course?.plafond_jour]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const r = resume(metiers, zones)
+  // Codes postaux tirés au hasard : jamais un code déjà ratissé avec tous les métiers demandés (fiches en base +
+  // tirages faits depuis ce navigateur).
+  const CLE_TIRAGES = 'swimup_ratissage_tirages'
+  const tiragesPasses = () => { try { return JSON.parse(localStorage.getItem(CLE_TIRAGES) || '[]') } catch { return [] } }
+  const retenirTirages = (paires) => { try { localStorage.setItem(CLE_TIRAGES, JSON.stringify([...tiragesPasses(), ...paires].slice(-5000))) } catch { /* stockage indisponible : sans gravité */ } }
+  const tirer = () => {
+    const n = Math.max(1, Math.min(200, Number(nbCodes) || 20))
+    const dejaFaits = new Set([...prospects.filter(p => p.requete && p.ville).map(p => cleDejaFait(p.requete, p.ville)), ...tiragesPasses()])
+    return tirerLieux({ n, ids: paysChoisis, metiers: lignes(metiers), dejaFaits }).map(l => l.ville)
+  }
+  const tirerDansLesZones = () => {
+    if (!paysChoisis.length) return setMsg({ type: 'error', text: 'Coche au moins un pays.' })
+    const codes = tirer()
+    if (!codes.length) return setMsg({ type: 'error', text: 'Plus aucun code postal à tirer dans ces pays avec ces métiers : coche d\'autres pays ou change de métiers.' })
+    setZones(codes.join('\n')); setMsg(null)
+  }
+  // Zones vides : on tire les codes au moment du lancement (« métiers + pays cochés », rien d'autre à saisir).
+  const zonesAuHasard = lignes(zones).length === 0 && paysChoisis.length > 0
+  const nbAuHasard = Math.max(1, Math.min(200, Number(nbCodes) || 20))
+  const r = zonesAuHasard && lignes(metiers).length ? resume(metiers, Array.from({ length: nbAuHasard }, (_, i) => `z${i}`).join('\n')) : resume(metiers, zones)
 
   const action = async (nom, fn, ok) => {
     setOccupe(nom); setMsg(null)
@@ -54,8 +76,15 @@ export default function RatissageProspection({ onNouvellesFiches }) {
   const lancer = (e) => {
     e.preventDefault()
     if (r.vide || r.trop) return
+    let zonesFinales = lignes(zones)
+    if (!zonesFinales.length) {
+      zonesFinales = tirer()
+      if (!zonesFinales.length) return setMsg({ type: 'error', text: 'Plus aucun code postal à tirer dans ces pays avec ces métiers : coche d\'autres pays ou change de métiers.' })
+      setZones(zonesFinales.join('\n'))
+    }
+    retenirTirages(lignes(metiers).flatMap(m => zonesFinales.map(z => cleDejaFait(m, z))))
     action('lancer', () => api.post('/admin/prospection/ratissage', {
-      metiers: lignes(metiers), zones: lignes(zones), maxAvis: Number(maxAvis) || 20, plafondJour: Number(plafond) || 200,
+      metiers: lignes(metiers), zones: zonesFinales, maxAvis: Number(maxAvis) || 20, plafondJour: Number(plafond) || 200,
     }), 'Ratissage lancé. Tu peux fermer la page, ça continue sur le serveur.')
   }
 
@@ -155,6 +184,35 @@ export default function RatissageProspection({ onNouvellesFiches }) {
           </div>
           <div>
             <label className="text-xs font-medium text-gray-700" htmlFor="rat-zones">Zones (une par ligne : ville, code postal ou quartier)</label>
+            <div className="rounded-xl border border-sky-100 bg-sky-50/60 p-3 mt-1 space-y-2">
+              <p className="text-xs text-gray-600">
+                Plus besoin de saisir les codes postaux : laisse les zones vides, le ratissage tire des codes postaux au hasard dans les pays cochés (un code déjà ratissé avec tes métiers ne revient pas). Le bouton les écrit d'abord dans les zones pour que tu puisses les relire.
+              </p>
+              <details className="text-sm">
+                <summary className="cursor-pointer text-gray-700 font-medium">Pays : {paysChoisis.length} sur {PAYS.length} cochés ({tousLesLieux(paysChoisis).length} codes possibles)</summary>
+                <div className="mt-2 flex gap-3 text-xs">
+                  <button type="button" className="underline text-sky-700" onClick={() => setPaysChoisis(PAYS.map(p => p.id))}>Tous</button>
+                  <button type="button" className="underline text-sky-700" onClick={() => setPaysChoisis([])}>Aucun</button>
+                  <button type="button" className="underline text-sky-700" onClick={() => setPaysChoisis(paysParDefaut())}>Par défaut</button>
+                </div>
+                <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                  {PAYS.map(p => (
+                    <label key={p.id} className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+                      <input type="checkbox" checked={paysChoisis.includes(p.id)}
+                        onChange={e => setPaysChoisis(e.target.checked ? [...paysChoisis, p.id] : paysChoisis.filter(x => x !== p.id))} />
+                      <span>{p.pays}</span>
+                      <span className="text-[10px] text-gray-400">mail en {p.langue === 'en' ? 'anglais' : 'français'}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-gray-400">Les petits territoires (Jersey, Bermudes...) sont décochés au départ : très peu de commerces. Dans les pays anglophones, écris les métiers en anglais (Hair salon, Plumber...) : Google trouve de meilleures fiches.</p>
+              </details>
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="text-xs text-gray-600" htmlFor="rat-nb-codes">Nombre de codes à tirer</label>
+                <input id="rat-nb-codes" type="number" min="1" max="200" inputMode="numeric" value={nbCodes} onChange={e => setNbCodes(e.target.value)} className="input w-20 py-2 text-sm" />
+                <button type="button" onClick={tirerDansLesZones} className="px-3 py-2 rounded-lg border border-sky-300 text-sky-700 text-sm font-medium bg-white">🎲 Tirer les codes postaux</button>
+              </div>
+            </div>
             <textarea id="rat-zones" value={zones} onChange={e => setZones(e.target.value)} rows={5} placeholder={'Lyon 3e\nVilleurbanne\n75011'} className="input w-full text-sm mt-1" />
             <p className="text-[11px] text-gray-400 mt-1">Google limite le nombre de résultats par recherche : plus les zones sont petites (arrondissements, communes), plus tu trouves de fiches.</p>
           </div>
@@ -169,7 +227,7 @@ export default function RatissageProspection({ onNouvellesFiches }) {
             </div>
           </div>
           <p className="text-xs text-gray-600">
-            {r.vide ? 'Ajoute au moins un métier et une zone.' : r.trop ? `Trop de recherches (${r.total}). Maximum 5000 : réduis les métiers ou les zones.` : `${r.metiers} métier${r.metiers > 1 ? 's' : ''} × ${r.zones} zone${r.zones > 1 ? 's' : ''} = ${r.total} recherches.`}
+            {r.vide ? (lignes(metiers).length ? 'Coche au moins un pays ou écris des zones.' : 'Ajoute au moins un métier (les zones peuvent rester vides : codes tirés au hasard).') : r.trop ? `Trop de recherches (${r.total}). Maximum 5000 : réduis les métiers ou les zones.` : `${r.metiers} métier${r.metiers > 1 ? 's' : ''} × ${r.zones} zone${r.zones > 1 ? 's' : ''}${zonesAuHasard ? ' (codes tirés au lancement)' : ''} = ${r.total} recherches.`}
           </p>
           <button type="submit" disabled={!!occupe || r.vide || r.trop || !donnees.google_configure} className="bg-sky-600 text-white px-5 py-2.5 rounded-full text-sm font-medium disabled:opacity-50">
             {occupe === 'lancer' ? 'Lancement…' : 'Lancer le ratissage'}

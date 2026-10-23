@@ -1,4 +1,4 @@
-// Prospection : tirage au sort de codes postaux pour ne plus les saisir à la main.
+// Ratissage de prospection : tirage au sort de codes postaux (zones) pour ne plus les saisir à la main.
 // Seuls figurent les pays développés dont une langue officielle est le français ou l'anglais (20 choix). Ni l'Afrique,
 // ni les pays où l'anglais n'est qu'officiel « de façade » : on cible des marchés comparables à la France. Pour en
 // ajouter un, il suffit d'une ligne dans PAYS (id, nom, langue du mail, codes postaux réels de villes de tailles variées).
@@ -96,21 +96,6 @@ const texteLieu = (p, ville) => {
   return fin ? `${ville}, ${fin}` : ville
 }
 
-// Métier en anglais pour les lieux anglophones : Google comprend « Coiffeur » à Austin, mais « Hair salon » donne de meilleures fiches.
-export const METIER_EN = {
-  'Restaurant': 'Restaurant', 'Bar': 'Bar', 'Café': 'Cafe', 'Boulangerie': 'Bakery', 'Pâtisserie': 'Pastry shop', 'Traiteur': 'Caterer', 'Boucherie': 'Butcher',
-  'Hôtel': 'Hotel', 'Gîte': 'Holiday cottage', 'Chambre d\'hôtes': 'Bed and breakfast',
-  'Coiffeur': 'Hair salon', 'Salon de beauté': 'Beauty salon', 'Institut de beauté': 'Beauty salon', 'Barbier': 'Barber shop', 'Onglerie': 'Nail salon', 'Spa': 'Spa',
-  'Garage automobile': 'Car repair garage', 'Auto-école': 'Driving school', 'Concessionnaire automobile': 'Car dealership', 'Contrôle technique': 'Vehicle inspection',
-  'Plombier': 'Plumber', 'Électricien': 'Electrician', 'Menuisier': 'Carpenter', 'Peintre en bâtiment': 'House painter', 'Serrurier': 'Locksmith', 'Maçon': 'Bricklayer', 'Couvreur': 'Roofer', 'Chauffagiste': 'Heating engineer',
-  'Pharmacie': 'Pharmacy', 'Dentiste': 'Dentist', 'Médecin généraliste': 'General practitioner', 'Kinésithérapeute': 'Physiotherapist', 'Ostéopathe': 'Osteopath', 'Vétérinaire': 'Veterinarian', 'Opticien': 'Optician',
-  'Avocat': 'Law firm', 'Notaire': 'Notary', 'Agence immobilière': 'Real estate agency', 'Assurance': 'Insurance agency', 'Banque': 'Bank', 'Comptable': 'Accountant',
-  'Fleuriste': 'Florist', 'Bijouterie': 'Jewellery shop', 'Magasin de vêtements': 'Clothing store', 'Cordonnier': 'Shoe repair', 'Pressing': 'Dry cleaner', 'Photographe': 'Photographer',
-  'Salle de sport': 'Gym', 'Déménageur': 'Moving company', 'Épicerie': 'Grocery store', 'Supermarché': 'Supermarket',
-}
-
-export const metierPourLieu = (metier, langue) => (langue === 'en' && METIER_EN[metier]) || metier
-
 // Tous les lieux possibles : { ville: '69003 Lyon, France', pays, id, langue }.
 const lieuxDe = (p) => p.codes.map(c => ({ ville: texteLieu(p, c), pays: p.pays, id: p.id, langue: p.langue }))
 export const tousLesLieux = (ids = null) => PAYS.filter(p => !ids || ids.includes(p.id)).flatMap(lieuxDe)
@@ -118,13 +103,15 @@ export const paysParDefaut = () => PAYS.filter(p => p.defaut).map(p => p.id)
 
 export const cleDejaFait = (metier, ville) => `${String(metier).trim().toLowerCase()}|${String(ville).trim().toLowerCase()}`
 
-// Tire `n` codes postaux au hasard dans les pays choisis (`ids`), tous différents, jamais ceux déjà cherchés avec ce
-// métier (`dejaFaits` = ensemble de cleDejaFait). Un pays par tirage tant qu'il reste des pays disponibles : on voyage
+// Tire `n` codes postaux au hasard dans les pays choisis (`ids`), tous différents. Un code déjà cherché avec TOUS les
+// métiers donnés ne revient pas (`dejaFaits` = ensemble de cleDejaFait) ; s'il reste un métier qu'on n'y a pas encore
+// cherché, il reste tirable. Un pays par tirage tant qu'il reste des pays disponibles : on voyage
 // au lieu de tomber 5 fois aux États-Unis. Le pays est choisi au hasard (pas selon son nombre de codes), puis le code.
-export function tirerLieux({ n = 5, ids = null, metier = '', dejaFaits = new Set(), hasard = Math.random } = {}) {
+export function tirerLieux({ n = 5, ids = null, metiers = [''], dejaFaits = new Set(), hasard = Math.random } = {}) {
+  const liste = metiers.length ? metiers : ['']
   const parPays = PAYS
     .filter(p => !ids || ids.includes(p.id))
-    .map(p => ({ p, libres: lieuxDe(p).filter(l => !dejaFaits.has(cleDejaFait(metierPourLieu(metier, p.langue), l.ville)) && !dejaFaits.has(cleDejaFait(metier, l.ville))) }))
+    .map(p => ({ p, libres: lieuxDe(p).filter(l => liste.some(m => !dejaFaits.has(cleDejaFait(m, l.ville)))) }))
     .filter(x => x.libres.length)
   const choisis = []
   const pris = new Set()
